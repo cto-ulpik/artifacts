@@ -7,74 +7,106 @@
 <link rel="apple-touch-icon" href="../favicon.png">
 <title>Auditor de Objeciones y Rescate de Cierres</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="../assets/theme.js"></script>
+<link rel="stylesheet" href="../assets/theme.css">
 <style>
 :root {
   --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --border-radius-lg: 14px;
   --border-radius-md: 10px;
+}
+html[data-theme="light"] {
   --color-text-primary: #1c1917;
   --color-text-secondary: #78716c;
   --color-background-primary: #fff;
   --color-background-secondary: #f5f5f4;
   --color-border-secondary: #d6d3d1;
   --color-border-tertiary: #e7e5e4;
+  --page-bg: #f5f5f4;
+  --hero-bg: #0d1b2e;
+  --hero-text: #f5f0e0;
+  --hero-muted: #7a8fa8;
+  --gold: #b5a45a;
+  --gold-soft: #faeeda;
+  --hero-hover: #1a2e48;
+  --script-text: #c8d8ea;
+  --chart-track: #1a2e48;
 }
-body { margin: 0; background: #f5f5f4; min-height: 100vh; padding: 16px; }
+html[data-theme="dark"] {
+  --color-text-primary: #e8ecf2;
+  --color-text-secondary: #94a3b8;
+  --color-background-primary: #1e2632;
+  --color-background-secondary: #171e28;
+  --color-border-secondary: #2d3848;
+  --color-border-tertiary: #232d3a;
+  --page-bg: #11161d;
+  --hero-bg: #0d1b2e;
+  --hero-text: #f5f0e0;
+  --hero-muted: #7a8fa8;
+  --gold: #c4b07a;
+  --gold-soft: #2a2618;
+  --hero-hover: #1a2e48;
+  --script-text: #c8d8ea;
+  --chart-track: #2d3848;
+}
+body { margin: 0; background: var(--page-bg); min-height: 100vh; padding: 16px; transition: background 0.25s; }
 *{box-sizing:border-box;margin:0;padding:0}
 .aud{font-family:var(--font-sans);padding:0 0 2rem}
-.top-bar{background:#0d1b2e;border-radius:var(--border-radius-lg);padding:20px 24px;margin-bottom:20px}
-.top-eyebrow{font-size:11px;font-weight:500;letter-spacing:0.12em;color:#b5a45a;text-transform:uppercase;margin-bottom:4px}
-.top-title{font-size:22px;font-weight:500;color:#f5f0e0}
-.top-sub{font-size:13px;color:#7a8fa8;margin-top:4px}
+.top-bar{background:var(--hero-bg);border-radius:var(--border-radius-lg);padding:20px 24px;margin-bottom:20px}
+.top-eyebrow{font-size:11px;font-weight:500;letter-spacing:0.12em;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.top-title{font-size:22px;font-weight:500;color:var(--hero-text)}
+.top-sub{font-size:13px;color:var(--hero-muted);margin-top:4px}
 .step-wrap{display:none}
 .step-wrap.active{display:block}
 .q-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:20px 24px;margin-bottom:14px}
-.q-num{font-size:11px;font-weight:500;color:#b5a45a;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px}
+.q-num{font-size:11px;font-weight:500;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px}
 .q-text{font-size:16px;font-weight:500;color:var(--color-text-primary);margin-bottom:16px;line-height:1.5}
 .opt{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);margin-bottom:8px;cursor:pointer;transition:all 0.15s;background:var(--color-background-secondary)}
 .opt:last-child{margin-bottom:0}
-.opt:hover{border-color:#b5a45a;background:var(--color-background-primary)}
-.opt.selected{border-color:#b5a45a;background:#faeeda}
-.opt.selected .opt-letter{background:#b5a45a;color:#fff;border-color:#b5a45a}
+.opt:hover{border-color:var(--gold);background:var(--color-background-primary)}
+.opt.selected{border-color:var(--gold);background:var(--gold-soft)}
+.opt.selected .opt-letter{background:var(--gold);color:#fff;border-color:var(--gold)}
 .opt-letter{min-width:28px;height:28px;border-radius:50%;border:1.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--color-text-secondary);transition:all 0.15s;margin-top:1px}
 .opt-text{font-size:14px;color:var(--color-text-primary);line-height:1.4}
 .progress-track{height:4px;background:var(--color-background-secondary);border-radius:99px;margin-bottom:16px;overflow:hidden}
-.progress-fill{height:100%;background:#b5a45a;border-radius:99px;transition:width 0.4s}
-.btn-next{background:#0d1b2e;color:#f5f0e0;border:none;border-radius:var(--border-radius-md);padding:12px 28px;font-size:15px;font-weight:500;cursor:pointer;margin-top:4px;display:inline-flex;align-items:center;gap:8px}
-.btn-next:hover{background:#1a2e48}
+.progress-fill{height:100%;background:var(--gold);border-radius:99px;transition:width 0.4s}
+.btn-next{background:var(--hero-bg);color:var(--hero-text);border:none;border-radius:var(--border-radius-md);padding:12px 28px;font-size:15px;font-weight:500;cursor:pointer;margin-top:4px;display:inline-flex;align-items:center;gap:8px}
+.btn-next:hover{background:var(--hero-hover)}
 .btn-next:disabled{background:#B4B2A9;cursor:not-allowed}
 .result-wrap{display:none}
-.result-top{background:#0d1b2e;border-radius:var(--border-radius-lg);padding:24px;margin-bottom:16px;display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.result-top{background:var(--hero-bg);border-radius:var(--border-radius-lg);padding:24px;margin-bottom:16px;display:flex;gap:24px;align-items:center;flex-wrap:wrap}
 .donut-area{position:relative;width:140px;height:140px;min-width:140px}
 .score-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
-.score-num{font-size:32px;font-weight:500;color:#f5f0e0;line-height:1}
-.score-label{font-size:11px;color:#7a8fa8;margin-top:2px}
+.score-num{font-size:32px;font-weight:500;color:var(--hero-text);line-height:1}
+.score-label{font-size:11px;color:var(--hero-muted);margin-top:2px}
 .result-meta{flex:1;min-width:180px}
 .res-badge{display:inline-block;font-size:11px;font-weight:500;padding:4px 12px;border-radius:99px;margin-bottom:8px}
-.res-title{font-size:20px;font-weight:500;color:#f5f0e0;margin-bottom:6px;line-height:1.3}
-.res-sub{font-size:13px;color:#7a8fa8;line-height:1.5}
+.res-title{font-size:20px;font-weight:500;color:var(--hero-text);margin-bottom:6px;line-height:1.3}
+.res-sub{font-size:13px;color:var(--hero-muted);line-height:1.5}
 .diag-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:16px}
 .diag-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px}
 .diag-label{font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
 .diag-val{font-size:15px;font-weight:500;color:var(--color-text-primary)}
-.script-toggle{width:100%;background:#0d1b2e;border:none;border-radius:var(--border-radius-lg);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:0}
+.script-toggle{width:100%;background:var(--hero-bg);border:none;border-radius:var(--border-radius-lg);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:0}
 .script-toggle-left{display:flex;align-items:center;gap:10px}
-.script-toggle-label{font-size:15px;font-weight:500;color:#f5f0e0}
-.script-toggle-sub{font-size:12px;color:#7a8fa8;margin-top:2px}
+.script-toggle-label{font-size:15px;font-weight:500;color:var(--hero-text)}
+.script-toggle-sub{font-size:12px;color:var(--hero-muted);margin-top:2px}
 .script-body{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-top:none;border-radius:0 0 var(--border-radius-lg) var(--border-radius-lg);padding:0;max-height:0;overflow:hidden;transition:max-height 0.4s,padding 0.3s}
 .script-body.open{max-height:1200px;padding:20px 24px}
 .script-channel{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
 .ch-btn{padding:7px 16px;border-radius:99px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);font-size:13px;cursor:pointer;color:var(--color-text-secondary);transition:all 0.15s}
-.ch-btn.active{background:#0d1b2e;color:#f5f0e0;border-color:#0d1b2e}
-.script-box{background:#0d1b2e;border-radius:var(--border-radius-md);padding:16px 18px;margin-bottom:12px}
-.script-box-label{font-size:11px;color:#b5a45a;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px}
-.script-text{font-size:14px;color:#c8d8ea;line-height:1.7;white-space:pre-wrap}
-.btn-copy-script{background:transparent;border:0.5px solid #b5a45a;color:#b5a45a;border-radius:var(--border-radius-md);padding:9px 18px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-top:4px}
-.btn-copy-script:hover{background:rgba(181,164,90,0.08)}
+.ch-btn.active{background:var(--hero-bg);color:var(--hero-text);border-color:var(--hero-bg)}
+.script-box{background:var(--hero-bg);border-radius:var(--border-radius-md);padding:16px 18px;margin-bottom:12px}
+.script-box-label{font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px}
+.script-text{font-size:14px;color:var(--script-text);line-height:1.7;white-space:pre-wrap}
+.btn-copy-script{background:transparent;border:0.5px solid var(--gold);color:var(--gold);border-radius:var(--border-radius-md);padding:9px 18px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-top:4px}
+.btn-copy-script:hover{background:color-mix(in srgb, var(--gold) 12%, transparent)}
 .btn-reset{background:transparent;border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);border-radius:var(--border-radius-md);padding:10px 20px;font-size:14px;cursor:pointer;margin-top:16px;display:inline-flex;align-items:center;gap:6px}
-.copy-confirm{font-size:12px;color:#b5a45a;margin-left:8px;opacity:0;transition:opacity 0.3s}
+.copy-confirm{font-size:12px;color:var(--gold);margin-left:8px;opacity:0;transition:opacity 0.3s}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 </style>
+</head>
+<body>
 
 <h2 class="sr-only">Auditor de objeciones y rescate de cierres: diagnóstico post-llamada con score de probabilidad de rescate del lead</h2>
 
@@ -196,6 +228,7 @@ const questions = [
 let answers = {};
 let currentQ = 0;
 let donutChart = null;
+let lastDonutScore = null;
 let currentChannel = 'wa';
 let generatedScripts = {wa:'', em:''};
 
@@ -374,10 +407,11 @@ Un saludo,
 }
 
 function renderDonut(score) {
+  lastDonutScore = score;
   const ctx = document.getElementById('donutChart').getContext('2d');
   const remaining = 100 - score;
   const color = score >= 70 ? '#3B6D11' : score >= 40 ? '#BA7517' : '#A32D2D';
-  const trackColor = '#1a2e48';
+  const trackColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-track').trim();
   if(donutChart) donutChart.destroy();
   donutChart = new Chart(ctx, {
     type: 'doughnut',
@@ -397,6 +431,12 @@ function renderDonut(score) {
     }
   });
 }
+
+window.addEventListener('artifacts-theme-change', function () {
+  if (lastDonutScore !== null && document.getElementById('result-wrap').style.display !== 'none') {
+    renderDonut(lastDonutScore);
+  }
+});
 
 function toggleScript() {
   const body = document.getElementById('script-body');

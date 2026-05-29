@@ -1,0 +1,58 @@
+.artifacts-theme-toggle {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 10000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--theme-toggle-border, rgba(255, 255, 255, 0.12));
+  background: var(--theme-toggle-bg, rgba(15, 23, 42, 0.92));
+  color: var(--theme-toggle-text, #e2e8f0);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(8px);
+  transition: background 0.2s, border-color 0.2s, transform 0.12s;
+}
+
+.artifacts-theme-toggle:hover {
+  transform: translateY(-1px);
+  border-color: var(--theme-toggle-border-hover, rgba(255, 255, 255, 0.22));
+}
+
+.artifacts-theme-toggle:active {
+  transform: translateY(0);
+}
+
+.artifacts-theme-toggle-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+html[data-theme="light"] {
+  --theme-toggle-bg: rgba(255, 255, 255, 0.94);
+  --theme-toggle-text: #1e293b;
+  --theme-toggle-border: #cbd5e1;
+  --theme-toggle-border-hover: #94a3b8;
+}
+
+html[data-theme="dark"] {
+  --theme-toggle-bg: rgba(15, 23, 42, 0.92);
+  --theme-toggle-text: #e2e8f0;
+  --theme-toggle-border: rgba(255, 255, 255, 0.12);
+  --theme-toggle-border-hover: rgba(255, 255, 255, 0.22);
+}
+
+@media (max-width: 520px) {
+  .artifacts-theme-toggle span[data-theme-label] {
+    display: none;
+  }
+  .artifacts-theme-toggle {
+    padding: 10px 12px;
+  }
+}

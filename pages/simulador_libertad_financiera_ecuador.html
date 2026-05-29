@@ -7,11 +7,15 @@
 <link rel="apple-touch-icon" href="../favicon.png">
 <title>Simulador de Libertad Financiera · Ecuador</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="../assets/theme.js"></script>
+<link rel="stylesheet" href="../assets/theme.css">
 <style>
 :root {
   --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --border-radius-lg: 14px;
   --border-radius-md: 10px;
+}
+html[data-theme="dark"] {
   --bg-page: #11161d;
   --bg-card: #171e28;
   --bg-input: #1e2632;
@@ -19,17 +23,59 @@
   --text: #e8ecf2;
   --text-muted: #8b9aad;
   --text-dim: #5c6b7d;
+  --card-muted: #c5ced8;
+  --slider-track: #2a3544;
   --accent: #7eb8ad;
   --accent-hover: #96c9bf;
   --accent-soft: rgba(126, 184, 173, 0.14);
+  --btn-calc-text: #1a2428;
   --blue: #7a9ec4;
   --danger: #d4918f;
   --danger-soft: rgba(212, 145, 143, 0.12);
+  --cb-key: #a88a88;
   --warning: #c9a86a;
+  --bnum-lbl-red: #a88a88;
+  --bnum-lbl-green: #6a9a92;
+  --bnum-lbl-amber: #a8946a;
+  --chart-sin: #7a9ec4;
+  --chart-con: #7eb8ad;
+  --chart-costo: #d4918f;
+  --chart-grid: #232d3a;
+  --chart-tick: #6b7a8c;
+  --chart-tooltip-bg: #1e2632;
+}
+html[data-theme="light"] {
+  --bg-page: #f1f5f9;
+  --bg-card: #ffffff;
+  --bg-input: #f8fafc;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
+  --card-muted: #475569;
+  --slider-track: #cbd5e1;
+  --accent: #5a9e94;
+  --accent-hover: #6eb0a6;
+  --accent-soft: rgba(90, 158, 148, 0.12);
+  --btn-calc-text: #ffffff;
+  --blue: #4a7fad;
+  --danger: #c27876;
+  --danger-soft: rgba(194, 120, 118, 0.1);
+  --cb-key: #9a7a7a;
+  --warning: #b8924f;
+  --bnum-lbl-red: #9a6b6b;
+  --bnum-lbl-green: #4a7a72;
+  --bnum-lbl-amber: #8a7348;
+  --chart-sin: #4a7fad;
+  --chart-con: #5a9e94;
+  --chart-costo: #c27876;
+  --chart-grid: #e2e8f0;
+  --chart-tick: #94a3b8;
+  --chart-tooltip-bg: #ffffff;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-sans);background:var(--bg-page);min-height:100vh;padding:16px}
-.bb{background:var(--bg-card);border-radius:var(--border-radius-lg);overflow:hidden;color:#c5ced8;border:0.5px solid var(--border)}
+body{font-family:var(--font-sans);background:var(--bg-page);min-height:100vh;padding:16px;transition:background 0.25s,color 0.25s}
+.bb{background:var(--bg-card);border-radius:var(--border-radius-lg);overflow:hidden;color:var(--card-muted);border:0.5px solid var(--border);transition:background 0.25s,border-color 0.25s}
 .bb-top{padding:20px 24px 16px;border-bottom:0.5px solid var(--border)}
 .bb-eye{font-size:10px;letter-spacing:0.15em;color:var(--accent);text-transform:uppercase;font-weight:500;margin-bottom:4px}
 .bb-h1{font-size:20px;font-weight:500;color:var(--text);line-height:1.2}
@@ -41,7 +87,7 @@ body{font-family:var(--font-sans);background:var(--bg-page);min-height:100vh;pad
 .inp-lbl span{color:var(--accent);font-size:10px}
 .inp-row{display:flex;align-items:center;gap:10px}
 .inp-val{font-size:18px;font-weight:500;color:var(--text);min-width:56px;text-align:right}
-input[type=range].sr{flex:1;-webkit-appearance:none;height:3px;background:#2a3544;border-radius:99px;outline:none;cursor:pointer}
+input[type=range].sr{flex:1;-webkit-appearance:none;height:3px;background:var(--slider-track);border-radius:99px;outline:none;cursor:pointer}
 input[type=range].sr::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 2px var(--bg-card)}
 .nfield-wrap{position:relative}
 .nfield-pre{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:13px}
@@ -51,7 +97,7 @@ input[type=range].sr::-webkit-slider-thumb{-webkit-appearance:none;width:16px;he
 .sbu-opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
 .sbu-btn{background:var(--bg-input);border:0.5px solid var(--border);border-radius:4px;color:var(--text-muted);font-size:12px;padding:5px 10px;cursor:pointer;transition:all 0.15s}
 .sbu-btn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
-.btn-calc{display:block;margin:0 24px 20px;width:calc(100% - 48px);background:var(--accent);border:none;border-radius:var(--border-radius-md);padding:13px;color:#1a2428;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans);transition:background 0.15s}
+.btn-calc{display:block;margin:0 24px 20px;width:calc(100% - 48px);background:var(--accent);border:none;border-radius:var(--border-radius-md);padding:13px;color:var(--btn-calc-text);font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans);transition:background 0.15s}
 .btn-calc:hover{background:var(--accent-hover)}
 .bb-res{padding:20px 24px;display:none}
 .big-nums{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
@@ -59,6 +105,9 @@ input[type=range].sr::-webkit-slider-thumb{-webkit-appearance:none;width:16px;he
 .bnum-lbl{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
 .bnum-val{font-size:28px;font-weight:500;line-height:1}
 .bnum-sub{font-size:11px;margin-top:5px;color:var(--text-muted)}
+.bnum-lbl-red{color:var(--bnum-lbl-red)}
+.bnum-lbl-green{color:var(--bnum-lbl-green)}
+.bnum-lbl-amber{color:var(--bnum-lbl-amber)}
 .red{color:var(--danger)}
 .green{color:var(--accent)}
 .white{color:var(--text)}
@@ -67,7 +116,7 @@ input[type=range].sr::-webkit-slider-thumb{-webkit-appearance:none;width:16px;he
 .cb-head{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--danger);margin-bottom:10px}
 .cb-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid rgba(212,145,143,0.15);font-size:13px}
 .cb-row:last-child{border-bottom:none;padding-top:10px;margin-top:2px}
-.cb-key{color:#a88a88}
+.cb-key{color:var(--cb-key)}
 .cb-val{font-weight:500}
 .cb-total{color:var(--danger);font-size:15px;font-weight:500}
 .eq-breakdown{background:var(--accent-soft);border:0.5px solid rgba(126,184,173,0.25);border-radius:var(--border-radius-md);padding:16px;margin-bottom:14px}
@@ -78,7 +127,7 @@ input[type=range].sr::-webkit-slider-thumb{-webkit-appearance:none;width:16px;he
 .eq-val{font-weight:500;color:var(--accent)}
 .cfo-box{background:var(--bg-input);border:0.5px solid var(--border);border-left:3px solid var(--accent);border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:16px 18px;margin-bottom:14px}
 .cfo-lbl{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue);margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.cfo-txt{font-size:14px;color:#b8c5d4;line-height:1.7}
+.cfo-txt{font-size:14px;color:var(--text-muted);line-height:1.7}
 .cfo-txt strong{color:var(--text);font-weight:500}
 .cfo-txt em{color:var(--accent);font-style:normal;font-weight:500}
 .cfo-txt mark{background:transparent;color:var(--danger);font-weight:500}
@@ -88,7 +137,7 @@ input[type=range].sr::-webkit-slider-thumb{-webkit-appearance:none;width:16px;he
 .chart-legend span{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted)}
 .chart-legend b{display:inline-block;width:10px;height:10px;border-radius:2px}
 .iess-note{background:var(--bg-input);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:14px;font-size:11px;color:var(--text-muted);line-height:1.6;border:0.5px solid var(--border)}
-.iess-note strong{color:#c5ced8}
+.iess-note strong{color:var(--text)}
 .btn-reset{width:100%;background:transparent;border:0.5px solid var(--border);border-radius:var(--border-radius-md);padding:11px;color:var(--text-muted);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:var(--font-sans)}
 .btn-reset:hover{border-color:var(--text-muted);color:var(--text)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
@@ -167,9 +216,9 @@ input[type=range].sr::-webkit-slider-thumb{-webkit-appearance:none;width:16px;he
     <div class="chart-sec">
       <div class="chart-lbl">Proyección de facturación — antes vs. después (6 meses)</div>
       <div class="chart-legend">
-        <span><b style="background:#7a9ec4"></b>Sin delegar</span>
-        <span><b style="background:#7eb8ad"></b>Con delegación</span>
-        <span><b style="display:inline-block;width:18px;height:2px;background:transparent;border-top:2px dashed #d4918f;border-radius:0"></b>Costo patronal real</span>
+        <span><b style="background:var(--chart-sin)"></b>Sin delegar</span>
+        <span><b style="background:var(--chart-con)"></b>Con delegación</span>
+        <span><b style="display:inline-block;width:18px;height:2px;background:transparent;border-top:2px dashed var(--chart-costo);border-radius:0"></b>Costo patronal real</span>
       </div>
       <div style="position:relative;height:190px">
         <canvas id="pc" role="img" aria-label="Proyección comparativa de facturación con y sin delegación en 6 meses bajo legislación ecuatoriana">Proyección comparativa.</canvas>
@@ -236,7 +285,7 @@ function calcular(){
     {lbl:'Horas liberadas / mes', val: Math.round(horasLiberadas)+'h', cls:'green', sub:`de ${Math.round(horasMes)}h totales que trabajas`},
     {lbl:'Tu hora vale hoy', val: fmt(Math.round(valorHoraActual)), cls:'amber', sub:'antes de contratar'},
     {lbl:'Tu hora valdrá', val: fmt(Math.round(valorHoraNueva)), cls:'green', sub:'delegando y vendiendo'},
-  ].map(m=>`<div class="bnum"><div class="bnum-lbl" style="color:${m.cls==='red'?'#a88a88':m.cls==='green'?'#6a9a92':'#a8946a'}">${m.lbl}</div><div class="bnum-val ${m.cls}">${m.val}</div><div class="bnum-sub">${m.sub}</div></div>`).join('');
+  ].map(m=>`<div class="bnum"><div class="bnum-lbl bnum-lbl-${m.cls}">${m.lbl}</div><div class="bnum-val ${m.cls}">${m.val}</div><div class="bnum-sub">${m.sub}</div></div>`).join('');
 
   document.getElementById('cost-bd').innerHTML = `
     <div class="cb-head"><i class="ti ti-alert-triangle" aria-hidden="true" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Desglose del costo patronal real (lo que realmente pagas)</div>
@@ -266,30 +315,60 @@ function calcular(){
   document.getElementById('res').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
+function chartPalette(){
+  const s = getComputedStyle(document.documentElement);
+  const pick = (v) => s.getPropertyValue(v).trim();
+  return {
+    sin: pick('--chart-sin'),
+    con: pick('--chart-con'),
+    costo: pick('--chart-costo'),
+    grid: pick('--chart-grid'),
+    tick: pick('--chart-tick'),
+    tooltipBg: pick('--chart-tooltip-bg'),
+    text: pick('--text'),
+    muted: pick('--text-muted'),
+    border: pick('--border')
+  };
+}
+
 function renderChart(base, nueva, costo){
   const labels = ['Mes 1','Mes 2','Mes 3','Mes 4','Mes 5','Mes 6'];
   const sinD = labels.map((_,i)=>Math.round(base*(1+i*0.015)));
   const conD = labels.map((_,i)=>Math.round(nueva*(1+i*0.03)));
   const costoLine = Array(6).fill(Math.round(base+costo));
   const ctx = document.getElementById('pc').getContext('2d');
+  const c = chartPalette();
   if(pChart) pChart.destroy();
   pChart = new Chart(ctx,{
     type:'line',
     data:{labels,datasets:[
-      {label:'Sin delegar',data:sinD,borderColor:'#7a9ec4',backgroundColor:'rgba(122,158,196,0.08)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#7a9ec4',fill:true,tension:0.35},
-      {label:'Con delegación',data:conD,borderColor:'#7eb8ad',backgroundColor:'rgba(126,184,173,0.08)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#7eb8ad',fill:true,tension:0.35},
-      {label:'Costo patronal real',data:costoLine,borderColor:'#d4918f',backgroundColor:'transparent',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false},
+      {label:'Sin delegar',data:sinD,borderColor:c.sin,backgroundColor:c.sin+'14',borderWidth:2,pointRadius:3,pointBackgroundColor:c.sin,fill:true,tension:0.35},
+      {label:'Con delegación',data:conD,borderColor:c.con,backgroundColor:c.con+'14',borderWidth:2,pointRadius:3,pointBackgroundColor:c.con,fill:true,tension:0.35},
+      {label:'Costo patronal real',data:costoLine,borderColor:c.costo,backgroundColor:'transparent',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false},
     ]},
     options:{
       responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e2632',titleColor:'#8b9aad',bodyColor:'#e8ecf2',borderColor:'#2d3848',borderWidth:1,callbacks:{label:c=>' '+fmt(c.raw)}}},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:c.tooltipBg,titleColor:c.muted,bodyColor:c.text,borderColor:c.border,borderWidth:1,callbacks:{label:ctx=>' '+fmt(ctx.raw)}}},
       scales:{
-        x:{ticks:{color:'#6b7a8c',font:{size:11}},grid:{color:'#232d3a'},ticks:{autoSkip:false,maxRotation:0}},
-        y:{ticks:{color:'#6b7a8c',font:{size:11},callback:v=>'$'+(v>=1000?(v/1000).toFixed(0)+'k':v)},grid:{color:'#232d3a'}}
+        x:{ticks:{color:c.tick,font:{size:11},autoSkip:false,maxRotation:0},grid:{color:c.grid}},
+        y:{ticks:{color:c.tick,font:{size:11},callback:v=>'$'+(v>=1000?(v/1000).toFixed(0)+'k':v)},grid:{color:c.grid}}
       }
     }
   });
 }
+
+window.addEventListener('artifacts-theme-change', function(){
+  if(!pChart) return;
+  const fact = parseFloat(document.getElementById('fact').value)||0;
+  if(!fact || document.getElementById('res').style.display==='none') return;
+  const horas = parseFloat(document.getElementById('horas-s').value)||55;
+  const lib = parseFloat(document.getElementById('lib-s').value)||40;
+  const sueldo = Math.round(SBU * sbuMult * 100) / 100;
+  const costoPatronalTotal = sueldo + sueldo*0.1115 + sueldo/12 + SBU/12;
+  const horasMes = horas * 4.33;
+  const factExtra = horasMes * (lib/100) * (fact/horasMes);
+  renderChart(fact, fact + factExtra, costoPatronalTotal);
+});
 
 function resetCalc(){
   document.getElementById('res').style.display='none';

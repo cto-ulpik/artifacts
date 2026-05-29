@@ -6,62 +6,129 @@
 <link rel="icon" href="../favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="../favicon.png">
 <title>Simulador de Rentabilidad Agencia</title>
+<script src="../assets/theme.js"></script>
+<link rel="stylesheet" href="../assets/theme.css">
 <style>
 :root {
   --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --border-radius-lg: 14px;
   --border-radius-md: 10px;
 }
+html[data-theme="dark"] {
+  --page-bg: #06080d;
+  --dash-bg: #0d0f14;
+  --dash-text: #e2e8f0;
+  --title: #f1f5f9;
+  --card-bg: #161b27;
+  --card-border: #2a3148;
+  --input-bg: #0d0f14;
+  --label: #64748b;
+  --accent: #4ade80;
+  --green: #4ade80;
+  --red: #f87171;
+  --amber: #fbbf24;
+  --muted: #94a3b8;
+  --divider: #2a3148;
+  --thermo-track: #1e2538;
+  --row-border: #1e2538;
+  --badge-ok-bg: #052e16;
+  --badge-warn-bg: #451a03;
+  --badge-danger-bg: #450a0a;
+  --alert-danger-bg: #450a0a;
+  --alert-danger-border: #7f1d1d;
+  --alert-danger-text: #fca5a5;
+  --alert-ok-bg: #052e16;
+  --alert-ok-border: #14532d;
+  --alert-ok-text: #86efac;
+  --chart-green: #4ade80;
+  --chart-red: #f87171;
+  --chart-blue: #60a5fa;
+  --chart-grid: #1e2538;
+  --chart-tick: #64748b;
+}
+html[data-theme="light"] {
+  --page-bg: #f1f5f9;
+  --dash-bg: #ffffff;
+  --dash-text: #334155;
+  --title: #0f172a;
+  --card-bg: #f8fafc;
+  --card-border: #e2e8f0;
+  --input-bg: #ffffff;
+  --label: #64748b;
+  --accent: #16a34a;
+  --green: #16a34a;
+  --red: #dc2626;
+  --amber: #d97706;
+  --muted: #64748b;
+  --divider: #e2e8f0;
+  --thermo-track: #e2e8f0;
+  --row-border: #e2e8f0;
+  --badge-ok-bg: #dcfce7;
+  --badge-warn-bg: #fef3c7;
+  --badge-danger-bg: #fee2e2;
+  --alert-danger-bg: #fef2f2;
+  --alert-danger-border: #fecaca;
+  --alert-danger-text: #b91c1c;
+  --alert-ok-bg: #f0fdf4;
+  --alert-ok-border: #bbf7d0;
+  --alert-ok-text: #15803d;
+  --chart-green: #16a34a;
+  --chart-red: #dc2626;
+  --chart-blue: #2563eb;
+  --chart-grid: #e2e8f0;
+  --chart-tick: #64748b;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: var(--font-sans);
-  background: #06080d;
-  color: #e2e8f0;
+  background: var(--page-bg);
+  color: var(--dash-text);
   min-height: 100vh;
   padding: 20px;
+  transition: background 0.25s, color 0.25s;
 }
 .page-wrap { max-width: 1120px; margin: 0 auto; }
-.dash { background: #0d0f14; border-radius: var(--border-radius-lg); padding: 1.5rem; color: #e2e8f0; }
-.dash-title { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; color: #4ade80; text-transform: uppercase; margin-bottom: 4px; }
-.dash-sub { font-size: 22px; font-weight: 500; color: #f1f5f9; margin-bottom: 1.5rem; }
+.dash { background: var(--dash-bg); border-radius: var(--border-radius-lg); padding: 1.5rem; color: var(--dash-text); border: 0.5px solid var(--card-border); transition: background 0.25s, color 0.25s; }
+.dash-title { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; color: var(--accent); text-transform: uppercase; margin-bottom: 4px; }
+.dash-sub { font-size: 22px; font-weight: 500; color: var(--title); margin-bottom: 1.5rem; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-.card-dark { background: #161b27; border: 0.5px solid #2a3148; border-radius: var(--border-radius-md); padding: 1rem; }
-label { display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.card-dark { background: var(--card-bg); border: 0.5px solid var(--card-border); border-radius: var(--border-radius-md); padding: 1rem; }
+label { display: block; font-size: 11px; color: var(--label); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
 input[type=number], select {
-  width: 100%; background: #0d0f14; border: 0.5px solid #2a3148; border-radius: var(--border-radius-md);
-  color: #e2e8f0; font-size: 15px; padding: 8px 10px; outline: none;
+  width: 100%; background: var(--input-bg); border: 0.5px solid var(--card-border); border-radius: var(--border-radius-md);
+  color: var(--dash-text); font-size: 15px; padding: 8px 10px; outline: none;
 }
-input[type=number]:focus, select:focus { border-color: #4ade80; }
-select option { background: #0d0f14; }
-.metric-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+input[type=number]:focus, select:focus { border-color: var(--accent); }
+select option { background: var(--input-bg); }
+.metric-label { font-size: 11px; color: var(--label); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
 .metric-value { font-size: 22px; font-weight: 500; }
-.green { color: #4ade80; }
-.red { color: #f87171; }
-.amber { color: #fbbf24; }
-.muted { color: #94a3b8; }
-.divider { border: none; border-top: 0.5px solid #2a3148; margin: 1rem 0; }
+.green { color: var(--green); }
+.red { color: var(--red); }
+.amber { color: var(--amber); }
+.muted { color: var(--muted); }
+.divider { border: none; border-top: 0.5px solid var(--divider); margin: 1rem 0; }
 .thermo-wrap { margin: 1rem 0; }
-.thermo-label { font-size: 11px; color: #64748b; margin-bottom: 6px; display: flex; justify-content: space-between; }
-.thermo-track { height: 14px; background: #1e2538; border-radius: 99px; overflow: hidden; position: relative; }
+.thermo-label { font-size: 11px; color: var(--label); margin-bottom: 6px; display: flex; justify-content: space-between; }
+.thermo-track { height: 14px; background: var(--thermo-track); border-radius: 99px; overflow: hidden; position: relative; }
 .thermo-fill { height: 100%; border-radius: 99px; transition: width 0.4s, background 0.4s; }
 .badge { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 99px; font-weight: 500; }
-.badge-ok { background: #052e16; color: #4ade80; }
-.badge-warn { background: #451a03; color: #fbbf24; }
-.badge-danger { background: #450a0a; color: #f87171; }
-.row-detail { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.5px solid #1e2538; font-size: 13px; }
+.badge-ok { background: var(--badge-ok-bg); color: var(--green); }
+.badge-warn { background: var(--badge-warn-bg); color: var(--amber); }
+.badge-danger { background: var(--badge-danger-bg); color: var(--red); }
+.row-detail { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.5px solid var(--row-border); font-size: 13px; }
 .row-detail:last-child { border-bottom: none; }
-.row-key { color: #94a3b8; }
+.row-key { color: var(--muted); }
 .row-val { font-weight: 500; }
-.btn-copy { width: 100%; margin-top: 1rem; background: transparent; border: 0.5px solid #4ade80; color: #4ade80; border-radius: var(--border-radius-md); padding: 10px 16px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
-.btn-copy:hover { background: rgba(74,222,128,0.08); }
+.btn-copy { width: 100%; margin-top: 1rem; background: transparent; border: 0.5px solid var(--accent); color: var(--accent); border-radius: var(--border-radius-md); padding: 10px 16px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
+.btn-copy:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .btn-copy:active { transform: scale(0.98); }
 .alert-box { border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; margin-top: 12px; }
-.alert-danger { background: #450a0a; border: 0.5px solid #7f1d1d; color: #fca5a5; }
-.alert-ok { background: #052e16; border: 0.5px solid #14532d; color: #86efac; }
+.alert-danger { background: var(--alert-danger-bg); border: 0.5px solid var(--alert-danger-border); color: var(--alert-danger-text); }
+.alert-ok { background: var(--alert-ok-bg); border: 0.5px solid var(--alert-ok-border); color: var(--alert-ok-text); }
 .chart-wrap { position: relative; height: 200px; margin-top: 12px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
-.section-title { font-size: 11px; color: #4ade80; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+.section-title { font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
 @media (max-width: 960px) {
   .grid3 { grid-template-columns: 1fr; }
 }
@@ -116,7 +183,7 @@ select option { background: #0d0f14; }
     <div class="thermo-track">
       <div class="thermo-fill" id="thermo" style="width:0%;"></div>
     </div>
-    <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:#475569;">
+    <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted);">
       <span>0% (pérdida total)</span><span>50% (saludable)</span><span>100%</span>
     </div>
   </div>
@@ -135,7 +202,7 @@ select option { background: #0d0f14; }
     </div>
     <div class="card-dark">
       <div class="metric-label">Ganancia real neta</div>
-      <div class="metric-value" id="ganancia-real" style="color:#f1f5f9">$0</div>
+      <div class="metric-value" id="ganancia-real">$0</div>
     </div>
   </div>
 
@@ -148,10 +215,10 @@ select option { background: #0d0f14; }
   <div class="chart-wrap">
     <canvas id="barChart" role="img" aria-label="Gráfica comparativa de ingresos ideal versus real con desglose de costos ocultos">Comparativa de ingresos.</canvas>
   </div>
-  <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:#64748b;flex-wrap:wrap;">
-    <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#4ade80;"></span>Ingreso ideal</span>
-    <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#f87171;"></span>Costo oculto</span>
-    <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#60a5fa;"></span>Ganancia real neta</span>
+  <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:var(--muted);flex-wrap:wrap;">
+    <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--chart-green);"></span>Ingreso ideal</span>
+    <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--chart-red);"></span>Costo oculto</span>
+    <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--chart-blue);"></span>Ganancia real neta</span>
   </div>
 
   <div id="alert-msg"></div>
@@ -172,12 +239,17 @@ select option { background: #0d0f14; }
   <button class="btn-copy" onclick="copiarResumen()">
     <i class="ti ti-copy" aria-hidden="true"></i> Copiar resumen ejecutivo para Slack
   </button>
-  <div id="copy-confirm" style="font-size:12px;color:#4ade80;text-align:center;margin-top:6px;height:16px;"></div>
+  <div id="copy-confirm" style="font-size:12px;color:var(--accent);text-align:center;margin-top:6px;height:16px;"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 let barChart = null;
+let lastChartData = null;
+
+function themeColor(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
 
 function fmt(n) {
   return '$' + Math.round(n).toLocaleString('en-US');
@@ -223,7 +295,7 @@ function calc() {
   const thermo = document.getElementById('thermo');
   const pct = Math.min(100, margenPct * 2);
   thermo.style.width = pct + '%';
-  thermo.style.background = margenPct < 15 ? '#f87171' : margenPct < 30 ? '#fbbf24' : '#4ade80';
+  thermo.style.background = margenPct < 15 ? themeColor('--red') : margenPct < 30 ? themeColor('--amber') : themeColor('--green');
 
   document.getElementById('pct-label').textContent = Math.round(margenPct) + '% de margen real';
 
@@ -246,7 +318,7 @@ function calc() {
     <div class="row-detail">
       <span class="row-key">${f.label}</span>
       <span style="display:flex;align-items:center;gap:12px;">
-        <span style="font-size:11px;color:#475569;">${f.hrs}h</span>
+        <span style="font-size:11px;color:var(--label);">${f.hrs}h</span>
         <span class="row-val red">${fmt(f.val)}</span>
       </span>
     </div>
@@ -265,18 +337,27 @@ function calc() {
 }
 
 function renderChart(ideal, oculto, neto) {
+  lastChartData = { ideal, oculto, neto };
   const ctx = document.getElementById('barChart').getContext('2d');
+  const colors = [themeColor('--chart-green'), themeColor('--chart-red'), themeColor('--chart-blue')];
+  const tick = themeColor('--chart-tick');
+  const grid = themeColor('--chart-grid');
   const data = {
     labels: ['Ingreso ideal', 'Costo oculto', 'Ganancia neta real'],
     datasets: [{
       data: [ideal, oculto, neto],
-      backgroundColor: ['#4ade80', '#f87171', '#60a5fa'],
+      backgroundColor: colors,
       borderRadius: 6,
       borderSkipped: false,
     }]
   };
   if (barChart) {
     barChart.data.datasets[0].data = [ideal, oculto, neto];
+    barChart.data.datasets[0].backgroundColor = colors;
+    barChart.options.scales.x.ticks.color = tick;
+    barChart.options.scales.x.grid.color = grid;
+    barChart.options.scales.y.ticks.color = tick;
+    barChart.options.scales.y.grid.color = grid;
     barChart.update();
   } else {
     barChart = new Chart(ctx, {
@@ -289,13 +370,19 @@ function renderChart(ideal, oculto, neto) {
           callbacks: { label: ctx => ' ' + fmt(ctx.raw) }
         }},
         scales: {
-          x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { color: '#1e2538' } },
-          y: { ticks: { color: '#64748b', font: { size: 11 }, callback: v => '$' + (v/1000).toFixed(0) + 'k' }, grid: { color: '#1e2538' } }
+          x: { ticks: { color: tick, font: { size: 11 } }, grid: { color: grid } },
+          y: { ticks: { color: tick, font: { size: 11 }, callback: v => '$' + (v/1000).toFixed(0) + 'k' }, grid: { color: grid } }
         }
       }
     });
   }
 }
+
+window.addEventListener('artifacts-theme-change', function () {
+  if (lastChartData) {
+    renderChart(lastChartData.ideal, lastChartData.oculto, lastChartData.neto);
+  }
+});
 
 function copiarResumen() {
   const horas = document.getElementById('horas').value;
