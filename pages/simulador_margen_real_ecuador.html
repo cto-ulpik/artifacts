@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="../favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="../favicon.png">
+<title>Simulador Margen Real Ecuador</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="../assets/theme.js"></script>
+<link rel="stylesheet" href="../assets/theme.css">
+<style>
+:root {
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --radius-lg: 12px;
+  --radius-md: 10px;
+}
+html[data-theme="dark"] {
+  --page-bg: #0d1117;
+  --app-text: #e6edf3;
+  --muted: #8b949e;
+  --dim: #484f58;
+  --section-bg: #161b22;
+  --card-bg: #0d1117;
+  --border: #30363d;
+  --row-border: #21262d;
+  --accent: #5cb87a;
+  --accent-soft: rgba(92, 184, 122, 0.12);
+  --green: #5cb87a;
+  --red: #e57373;
+  --yellow: #d4a84b;
+  --thermo-track: #1c2128;
+  --warning-bg: #1a1212;
+  --warning-border: rgba(229, 115, 115, 0.4);
+  --warning-text: #e8a0a0;
+  --warning-strong: #e57373;
+  --recom-bg: #0f1a14;
+  --recom-border: rgba(92, 184, 122, 0.35);
+  --recom-text: #8fd4a8;
+  --btn-copy-bg: #5cb87a;
+  --btn-copy-text: #0d1117;
+  --btn-copy-shadow: rgba(92, 184, 122, 0.3);
+  --chart-grid: #21262d;
+  --chart-tick: #8b949e;
+  --chart-bar1: #3d8b5c;
+  --chart-bar2: #2d6b47;
+  --chart-bar3: #e57373;
+}
+html[data-theme="light"] {
+  --page-bg: #f1f5f9;
+  --app-text: #1e293b;
+  --muted: #64748b;
+  --dim: #94a3b8;
+  --section-bg: #ffffff;
+  --card-bg: #f8fafc;
+  --border: #e2e8f0;
+  --row-border: #e2e8f0;
+  --accent: #16a34a;
+  --accent-soft: rgba(22, 163, 74, 0.1);
+  --green: #16a34a;
+  --red: #dc2626;
+  --yellow: #d97706;
+  --thermo-track: #e2e8f0;
+  --warning-bg: #fef2f2;
+  --warning-border: #fecaca;
+  --warning-text: #991b1b;
+  --warning-strong: #dc2626;
+  --recom-bg: #f0fdf4;
+  --recom-border: #bbf7d0;
+  --recom-text: #166534;
+  --btn-copy-bg: #16a34a;
+  --btn-copy-text: #ffffff;
+  --btn-copy-shadow: rgba(22, 163, 74, 0.25);
+  --chart-grid: #e2e8f0;
+  --chart-tick: #64748b;
+  --chart-bar1: #22c55e;
+  --chart-bar2: #16a34a;
+  --chart-bar3: #dc2626;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--page-bg);min-height:100vh;transition:background 0.25s,color 0.25s}
+.app{min-height:100vh;padding:0 1.5rem 2rem;color:var(--app-text)}
+.header{text-align:center;margin-bottom:2rem;padding-top:0.5rem}
+.header h1{font-size:22px;font-weight:700;color:var(--app-text);letter-spacing:-0.5px}
+.header p{font-size:13px;color:var(--muted);margin-top:6px}
+.accent{color:var(--accent)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:1rem}
+.section{background:var(--section-bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;transition:background 0.25s,border-color 0.25s}
+.section-title{font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.field input[type=range]{width:100%;accent-color:var(--accent);height:4px}
+.field select{width:100%;background:var(--card-bg);border:0.5px solid var(--border);border-radius:8px;color:var(--app-text);padding:8px 10px;font-size:13px;outline:none}
+.field select:focus{border-color:var(--accent)}
+.field-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.field-val{font-size:18px;font-weight:700;color:var(--accent);min-width:72px;text-align:right}
+.metric-card{background:var(--card-bg);border:0.5px solid var(--border);border-radius:var(--radius-md);padding:1rem}
+.metric-card .label{font-size:11px;color:var(--muted);margin-bottom:4px}
+.metric-card .value{font-size:22px;font-weight:700}
+.green{color:var(--green)}
+.red{color:var(--red)}
+.yellow{color:var(--yellow)}
+.white{color:var(--app-text)}
+.thermo-wrap{margin-top:1rem}
+.thermo-label{font-size:12px;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between}
+.thermo-track{height:20px;background:var(--thermo-track);border-radius:10px;overflow:hidden;position:relative}
+.thermo-fill{height:100%;border-radius:10px;transition:width 0.4s ease,background 0.4s ease;min-width:4px}
+.chart-wrap{position:relative;width:100%;height:260px;margin-top:1rem}
+.desglose{margin-top:1rem}
+.desglose-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--row-border);font-size:13px}
+.desglose-row:last-child{border-bottom:none;font-weight:700;font-size:14px;padding-top:12px}
+.desglose-row .desc{color:var(--muted)}
+.warning-box{background:var(--warning-bg);border:0.5px solid var(--warning-border);border-radius:var(--radius-md);padding:1rem;margin-top:0}
+.warning-box p{font-size:13px;color:var(--warning-text);line-height:1.6}
+.warning-box strong{color:var(--warning-strong)}
+.btn-copy{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--btn-copy-bg);color:var(--btn-copy-text);border:none;border-radius:var(--radius-md);padding:12px 20px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 4px 20px var(--btn-copy-shadow);z-index:99;display:flex;align-items:center;gap:8px;transition:transform .15s,background 0.2s}
+.btn-copy:active{transform:scale(0.96)}
+.btn-copy i{font-size:16px}
+.recom{background:var(--recom-bg);border:0.5px solid var(--recom-border);border-radius:var(--radius-md);padding:1rem;margin-top:0}
+.recom p{font-size:13px;color:var(--recom-text);line-height:1.6}
+.recom strong{color:var(--accent)}
+.section-header{display:flex;align-items:center;gap:8px;margin-bottom:1rem}
+.section-header i{font-size:18px;color:var(--muted)}
+.section-header .section-title--alert{color:var(--red)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+@media(max-width:600px){.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <h2 class="sr-only">Simulador de Margen Real vs Fugas por Scope Creep — herramienta interactiva para agencias ecuatorianas</h2>
+
+  <div class="header">
+    <h1>Simulador de <span class="accent">Margen Real</span> vs. Fugas por Yapa</h1>
+    <p>La matemática fría de lo que estás perdiendo por no cobrar la gestión de cuentas</p>
+  </div>
+
+  <div class="grid-2">
+    <div class="section">
+      <div class="section-header">
+        <i class="ti ti-calculator" aria-hidden="true"></i>
+        <div class="section-title" style="margin-bottom:0">Datos del Proyecto</div>
+      </div>
+
+      <div class="field">
+        <label>Horas ideales de producción estimadas</label>
+        <div class="field-row">
+          <input type="range" id="horas" min="10" max="500" step="5" value="80">
+          <span class="field-val" id="horas-val">80 h</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Tarifa por hora cobrada (USD)</label>
+        <div class="field-row">
+          <input type="range" id="tarifa" min="10" max="200" step="5" value="35">
+          <span class="field-val" id="tarifa-val">$35/h</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Reuniones semanales previstas con el cliente</label>
+        <div class="field-row">
+          <input type="range" id="reuniones" min="1" max="10" step="1" value="2">
+          <span class="field-val" id="reuniones-val">2/sem</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Duración estimada del proyecto (semanas)</label>
+        <div class="field-row">
+          <input type="range" id="semanas" min="2" max="24" step="1" value="6">
+          <span class="field-val" id="semanas-val">6 sem</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Costo hora interna (salario + overhead, USD)</label>
+        <div class="field-row">
+          <input type="range" id="costo" min="5" max="80" step="1" value="15">
+          <span class="field-val" id="costo-val">$15/h</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Factor de Intensidad del Cliente Ecuatoriano</label>
+        <select id="tipo">
+          <option value="ejecutivo">Cliente Ejecutivo / Corporativo</option>
+          <option value="indeciso" selected>Indeciso con Comité (+15% reuniones y cambios)</option>
+          <option value="micromanager">Micromanager por WhatsApp (+30% retrabajo y llamadas)</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div class="section" style="flex:1">
+        <div class="section-header">
+          <i class="ti ti-chart-bar" aria-hidden="true"></i>
+          <div class="section-title" style="margin-bottom:0">Resumen de Márgenes</div>
+        </div>
+        <div class="grid-3">
+          <div class="metric-card">
+            <div class="label">Facturación bruta</div>
+            <div class="value green" id="m-factura">$2,800</div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Margen ideal</div>
+            <div class="value green" id="m-ideal">$1,600</div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Margen real</div>
+            <div class="value red" id="m-real">$980</div>
+          </div>
+        </div>
+        <div class="grid-3" style="margin-top:12px">
+          <div class="metric-card">
+            <div class="label">Horas muertas gestión</div>
+            <div class="value red" id="m-hmuerta">18 h</div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Horas retrabajo</div>
+            <div class="value red" id="m-hretrab">12 h</div>
+          </div>
+          <div class="metric-card">
+            <div class="label">Pérdida neta $</div>
+            <div class="value red" id="m-perdida">$630</div>
+          </div>
+        </div>
+        <div class="thermo-wrap">
+          <div class="thermo-label">
+            <span>Termómetro de Margen en Peligro</span>
+            <span id="thermo-pct">57%</span>
+          </div>
+          <div class="thermo-track">
+            <div class="thermo-fill" id="thermo-fill" style="width:57%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:4px">
+            <span>0% Pérdida</span>
+            <span>100% Pérdida total</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <i class="ti ti-alert-triangle" aria-hidden="true"></i>
+          <div class="section-title" style="margin-bottom:0">Desglose de Fugas</div>
+        </div>
+        <div class="desglose" id="desglose"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:1rem">
+    <div class="section">
+      <div class="section-header">
+        <i class="ti ti-chart-area" aria-hidden="true"></i>
+        <div class="section-title" style="margin-bottom:0">Comparativa Visual</div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chart" role="img" aria-label="Gráfico de barras comparando margen ideal versus margen real después de descontar fugas"></canvas>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div class="section warning-box" id="warning-section">
+        <div class="section-header">
+          <i class="ti ti-exclamation-circle" style="color:var(--red)" aria-hidden="true"></i>
+          <div class="section-title section-title--alert" style="margin-bottom:0">Diagnóstico del CFO</div>
+        </div>
+        <div id="diagnostico"></div>
+      </div>
+      <div class="section recom">
+        <div class="section-header">
+          <i class="ti ti-trending-up" style="color:var(--accent)" aria-hidden="true"></i>
+          <div class="section-title" style="margin-bottom:0;color:var(--accent)">Cotización Recomendada</div>
+        </div>
+        <div id="recomendacion"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:80px"></div>
+</div>
+
+<button class="btn-copy" id="btn-copy" onclick="copiarResumen()">
+  <i class="ti ti-clipboard" aria-hidden="true"></i>
+  Copiar Resumen para el Equipo
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+let chart;
+let lastChartPayload = null;
+
+function themeColor(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function fmt(n){return '$'+Math.round(n).toLocaleString('es-EC')}
+function fmtH(n){return Math.round(n)+' h'}
+
+function marginColor(margenReal, margenIdeal) {
+  if (margenReal < 0) return themeColor('--red');
+  if (margenReal < margenIdeal * 0.4) return themeColor('--yellow');
+  return themeColor('--green');
+}
+
+function thermoColor(pct) {
+  if (pct < 30) return themeColor('--green');
+  if (pct < 60) return themeColor('--yellow');
+  return themeColor('--red');
+}
+
+function renderChart(factura, margenIdeal, costoFuga, margenReal) {
+  lastChartPayload = { factura, margenIdeal, costoFuga, margenReal };
+  const labels = ['Facturación','Margen Ideal','Costo Fugas','Margen Real'];
+  const data = [factura, margenIdeal, costoFuga, margenReal];
+  const colors = [
+    themeColor('--chart-bar1'),
+    themeColor('--chart-bar2'),
+    themeColor('--chart-bar3'),
+    marginColor(margenReal, margenIdeal)
+  ];
+  const tick = themeColor('--chart-tick');
+  const grid = themeColor('--chart-grid');
+
+  if (chart) {
+    chart.data.datasets[0].data = data;
+    chart.data.datasets[0].backgroundColor = colors;
+    chart.options.scales.x.ticks.color = tick;
+    chart.options.scales.x.grid.color = grid;
+    chart.options.scales.y.ticks.color = tick;
+    chart.options.scales.y.grid.color = grid;
+    chart.update();
+  } else {
+    chart = new Chart(document.getElementById('chart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'USD',
+          data,
+          backgroundColor: colors,
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => fmt(ctx.parsed.y) } }
+        },
+        scales: {
+          x: { ticks: { color: tick, font: { size: 11 } }, grid: { color: grid } },
+          y: { ticks: { color: tick, font: { size: 11 }, callback: v => fmt(v) }, grid: { color: grid } }
+        }
+      }
+    });
+  }
+}
+
+function calc(){
+  const horas=+document.getElementById('horas').value;
+  const tarifa=+document.getElementById('tarifa').value;
+  const reuniones=+document.getElementById('reuniones').value;
+  const semanas=+document.getElementById('semanas').value;
+  const costo=+document.getElementById('costo').value;
+  const tipo=document.getElementById('tipo').value;
+
+  let factorReuniones=1, factorRetrabajo=0, factorLlamadas=0, tipoLabel='';
+  if(tipo==='ejecutivo'){factorReuniones=1;factorRetrabajo=0.05;factorLlamadas=0.02;tipoLabel='Ejecutivo/Corporativo'}
+  else if(tipo==='indeciso'){factorReuniones=1.15;factorRetrabajo=0.15;factorLlamadas=0.05;tipoLabel='Indeciso con Comité'}
+  else{factorReuniones=1.3;factorRetrabajo=0.30;factorLlamadas=0.12;tipoLabel='Micromanager por WhatsApp'}
+
+  const factura=horas*tarifa;
+  const costoProduccion=horas*costo;
+  const margenIdeal=factura-costoProduccion;
+
+  const hReuniones=reuniones*factorReuniones*semanas;
+  const hRetrabajo=Math.round(horas*factorRetrabajo);
+  const hLlamadas=Math.round(horas*factorLlamadas);
+  const hPrep=Math.round(hReuniones*0.5);
+  const hTotalFuga=hReuniones+hRetrabajo+hLlamadas+hPrep;
+
+  const costoFuga=hTotalFuga*costo;
+  const margenReal=margenIdeal-costoFuga;
+  const perdida=Math.max(0,margenIdeal-margenReal);
+  const pct=Math.min(100,Math.round((perdida/Math.max(1,margenIdeal))*100));
+
+  const cotizRecomendada=factura*(1.25+(tipo==='micromanager'?0.10:tipo==='indeciso'?0.05:0));
+  const mc = marginColor(margenReal, margenIdeal);
+
+  document.getElementById('horas-val').textContent=horas+' h';
+  document.getElementById('tarifa-val').textContent='$'+tarifa+'/h';
+  document.getElementById('reuniones-val').textContent=reuniones+'/sem';
+  document.getElementById('semanas-val').textContent=semanas+' sem';
+  document.getElementById('costo-val').textContent='$'+costo+'/h';
+
+  document.getElementById('m-factura').textContent=fmt(factura);
+  document.getElementById('m-ideal').textContent=fmt(margenIdeal);
+  document.getElementById('m-real').textContent=fmt(margenReal);
+  document.getElementById('m-hmuerta').textContent=fmtH(hReuniones+hPrep+hLlamadas);
+  document.getElementById('m-hretrab').textContent=fmtH(hRetrabajo);
+  document.getElementById('m-perdida').textContent=fmt(perdida);
+
+  document.getElementById('m-real').style.color = mc;
+
+  const fill=document.getElementById('thermo-fill');
+  fill.style.width=pct+'%';
+  fill.style.background=thermoColor(pct);
+  document.getElementById('thermo-pct').textContent=pct+'% erosionado';
+
+  document.getElementById('desglose').innerHTML=`
+    <div class="desglose-row"><span class="desc">Facturación bruta</span><span class="green">${fmt(factura)}</span></div>
+    <div class="desglose-row"><span class="desc">— Costo de producción (${horas} h × $${costo})</span><span class="red">—${fmt(costoProduccion)}</span></div>
+    <div class="desglose-row"><span class="desc">— Reuniones no cobradas (${Math.round(hReuniones)} h)</span><span class="red">—${fmt(hReuniones*costo)}</span></div>
+    <div class="desglose-row"><span class="desc">— Prep & seguimiento post-reunión (${hPrep} h)</span><span class="red">—${fmt(hPrep*costo)}</span></div>
+    <div class="desglose-row"><span class="desc">— Retrabajo/cambios no facturados (${hRetrabajo} h)</span><span class="red">—${fmt(hRetrabajo*costo)}</span></div>
+    <div class="desglose-row"><span class="desc">— Llamadas/WhatsApp fuera de hora (${hLlamadas} h)</span><span class="red">—${fmt(hLlamadas*costo)}</span></div>
+    <div class="desglose-row"><span>MARGEN NETO REAL</span><span style="color:${mc}">${fmt(margenReal)}</span></div>
+  `;
+
+  const ws = themeColor('--warning-strong');
+  const wy = themeColor('--yellow');
+  const wt = themeColor('--warning-text');
+
+  let diagnostico='';
+  if(margenReal<0){
+    diagnostico=`<p><strong>🚨 Estás trabajando para perder dinero.</strong> Con este cliente tipo "${tipoLabel}", no solo no ganas — el proyecto te cuesta <strong>${fmt(Math.abs(margenReal))}</strong> de tu bolsillo. Cada hora que avanza el proyecto, vas más al rojo. Necesitas reestructurar la propuesta antes de firmar cualquier contrato.</p>`;
+  } else if(pct>50){
+    diagnostico=`<p><strong>⚠️ Margen crítico.</strong> Estás perdiendo el <strong style="color:${wy}">${pct}%</strong> de tu margen ideal por gestión no cobrada. Con el perfil "${tipoLabel}", las horas muertas están destruyendo <strong>${fmt(perdida)}</strong> de utilidad. Ningún empresario sobrevive cotizando así más de 3 proyectos seguidos.</p>`;
+  } else {
+    diagnostico=`<p><strong style="color:${wy}">⚡ Margen en riesgo.</strong> Tu proyecto tiene una fuga de <strong>${fmt(perdida)}</strong> por gestión no cobrada. Aún no es catastrófico, pero con el perfil "${tipoLabel}" y cualquier imprevisto adicional, cruzas al rojo fácilmente. Sube la cotización al menos un 25%.</p>`;
+  }
+  document.getElementById('diagnostico').innerHTML=diagnostico;
+
+  const extraPct=tipo==='micromanager'?35:tipo==='indeciso'?25:20;
+  document.getElementById('recomendacion').innerHTML=`
+    <p>
+      Tu cotización actual: <strong class="white">${fmt(factura)}</strong><br>
+      Cotización recomendada (+${extraPct}% gestión + buffer): <strong style="color:var(--accent);font-size:18px">${fmt(cotizRecomendada)}</strong><br>
+      <span style="color:var(--muted);font-size:12px">Incluye: retención de alcance, horas de gestión de cuenta y colchón de retrabajo</span>
+    </p>
+  `;
+
+  renderChart(factura, margenIdeal, costoFuga, margenReal);
+
+  window._resumen={horas,tarifa,reuniones,semanas,costo,tipo:tipoLabel,factura,margenIdeal,margenReal,perdida,hTotalFuga,hReuniones,hRetrabajo,hLlamadas,pct,cotizRecomendada};
+}
+
+['horas','tarifa','reuniones','semanas','costo'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',calc);
+});
+document.getElementById('tipo').addEventListener('change',calc);
+
+window.addEventListener('artifacts-theme-change', function () {
+  calc();
+  if (lastChartPayload) {
+    renderChart(
+      lastChartPayload.factura,
+      lastChartPayload.margenIdeal,
+      lastChartPayload.costoFuga,
+      lastChartPayload.margenReal
+    );
+  }
+});
+
+function copiarResumen(){
+  const r=window._resumen;
+  const texto=`📊 *ANÁLISIS DE MARGEN — SIMULADOR DE YAPA Y SCOPE CREEP*
+━━━━━━━━━━━━━━━━━━━━━━━━
+📋 *Datos del Proyecto*
+• Horas estimadas: ${r.horas} h
+• Tarifa cobrada: $${r.tarifa}/h
+• Perfil del cliente: ${r.tipo}
+• Duración: ${r.semanas} semanas (${r.reuniones} reuniones/sem)
+
+💰 *Análisis Financiero*
+• Facturación bruta: ${fmt(r.factura)}
+• Margen ideal (sin gestión): ${fmt(r.margenIdeal)}
+• Horas muertas no cobradas: ${Math.round(r.hTotalFuga)} h
+  → Reuniones: ${Math.round(r.hReuniones)} h
+  → Retrabajo: ${r.hRetrabajo} h
+  → WhatsApp/llamadas: ${r.hLlamadas} h
+
+🔴 *Impacto Real*
+• Pérdida por gestión no cobrada: ${fmt(r.perdida)}
+• Margen neto real: ${fmt(r.margenReal)}
+• Erosión del margen: ${r.pct}%
+
+✅ *Acción Recomendada*
+Cotización corregida: ${fmt(r.cotizRecomendada)}
+
+⚡ Generado con el Simulador de Margen Real — MIK Corporativo`;
+
+  navigator.clipboard.writeText(texto).then(()=>{
+    const btn=document.getElementById('btn-copy');
+    btn.innerHTML='<i class="ti ti-check" aria-hidden="true"></i> ¡Copiado al portapapeles!';
+    const prevBg = btn.style.background;
+    btn.style.background = themeColor('--chart-bar2');
+    setTimeout(()=>{
+      btn.innerHTML='<i class="ti ti-clipboard" aria-hidden="true"></i> Copiar Resumen para el Equipo';
+      btn.style.background = '';
+    },2500);
+  }).catch(()=>alert('Activa permisos de portapapeles en tu navegador'));
+}
+
+calc();
+</script>
+</body>
+</html>
