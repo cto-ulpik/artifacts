@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="../favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="../favicon.png">
+<title>Generador de Hoja de Turno</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root {
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --border-radius-lg: 14px;
+  --border-radius-md: 10px;
+  --color-text-primary: #1c1917;
+  --color-text-secondary: #78716c;
+  --color-background-primary: #fff;
+  --color-background-secondary: #f5f5f4;
+  --color-border-secondary: #d6d3d1;
+  --color-border-tertiary: #e7e5e4;
+}
+body { margin: 0; background: #f5f5f4; min-height: 100vh; }
+*{box-sizing:border-box;margin:0;padding:0}
+.app{font-family:var(--font-sans);max-width:400px;margin:0 auto;padding:12px}
+.header{background:#1a56a0;border-radius:var(--border-radius-lg);padding:14px 16px;margin-bottom:14px}
+.header-title{font-size:13px;font-weight:500;color:#b5d4f4;letter-spacing:0.08em;text-transform:uppercase}
+.header-sub{font-size:20px;font-weight:500;color:#fff;margin-top:2px}
+.section-label{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:12px}
+select{width:100%;font-size:15px;padding:10px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);outline:none}
+select:focus{border-color:#378ADD}
+.dolor-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dolor-btn{padding:10px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);font-size:12px;cursor:pointer;text-align:center;line-height:1.3;transition:all 0.15s;min-height:44px;display:flex;align-items:center;justify-content:center}
+.dolor-btn.selected{background:#E6F1FB;border-color:#378ADD;color:#0C447C;font-weight:500}
+.dolor-count{font-size:11px;color:var(--color-text-secondary);margin-top:6px}
+.btn-gen{width:100%;background:#1a56a0;color:#fff;border:none;border-radius:var(--border-radius-md);padding:13px;font-size:15px;font-weight:500;cursor:pointer;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-gen:active{transform:scale(0.98)}
+.btn-gen:disabled{background:#B4B2A9;cursor:not-allowed}
+.checklist-wrap{display:none}
+.shift-header{background:#1a56a0;border-radius:var(--border-radius-lg);padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.shift-role{font-size:18px;font-weight:500;color:#fff}
+.shift-date{font-size:12px;color:#b5d4f4;margin-top:2px}
+.progress-bar-track{height:6px;background:#E6F1FB;border-radius:99px;margin:10px 0 0;overflow:hidden}
+.progress-bar-fill{height:100%;background:#4ade80;border-radius:99px;transition:width 0.3s}
+.progress-label{font-size:11px;color:#b5d4f4;margin-top:4px}
+.section-block{margin-bottom:14px}
+.section-head{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.09em;padding:0 0 6px;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:8px}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);margin-bottom:6px;cursor:pointer;transition:all 0.15s;min-height:44px}
+.check-item.done{background:#EAF3DE;border-color:#97C459}
+.check-box{width:22px;height:22px;min-width:22px;border-radius:6px;border:1.5px solid #B4B2A9;display:flex;align-items:center;justify-content:center;transition:all 0.15s;margin-top:1px}
+.check-item.done .check-box{background:#3B6D11;border-color:#3B6D11;color:#fff}
+.check-text{font-size:14px;color:var(--color-text-primary);line-height:1.4}
+.check-item.done .check-text{color:#27500A;text-decoration:line-through}
+.regla-oro{background:#FCEBEB;border:1.5px solid #E24B4A;border-radius:var(--border-radius-lg);padding:14px 16px;margin-bottom:14px}
+.regla-title{font-size:12px;font-weight:500;color:#A32D2D;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.regla-text{font-size:14px;color:#791F1F;line-height:1.5}
+.btn-reiniciar{width:100%;background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);border-radius:var(--border-radius-md);padding:12px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+.btn-reiniciar:active{transform:scale(0.98)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+</style>
+
+<h2 class="sr-only">Generador interactivo de hojas de turno para personal de tienda</h2>
+
+<div class="app" id="app">
+
+<div class="header">
+  <div class="header-title">Operaciones · Turno</div>
+  <div class="header-sub">Hoja de turno</div>
+</div>
+
+<div class="card" style="margin-bottom:12px">
+  <div class="section-label" style="margin-bottom:8px">Rol del empleado</div>
+  <select id="rol-select">
+    <option value="">Selecciona tu rol...</option>
+    <option value="Cajero">Cajero</option>
+    <option value="Cocinero">Cocinero</option>
+    <option value="Personal de piso">Personal de piso</option>
+    <option value="Almacenista">Almacenista</option>
+    <option value="Supervisor de turno">Supervisor de turno</option>
+  </select>
+</div>
+
+<div class="card" style="margin-bottom:12px">
+  <div class="section-label">Focos de dolor del día <span class="dolor-count" id="dolor-count">(elige hasta 3)</span></div>
+  <div class="dolor-grid" id="dolor-grid">
+    <div class="dolor-btn" data-dolor="Cuadre de caja">Cuadre de caja</div>
+    <div class="dolor-btn" data-dolor="Limpieza de equipos">Limpieza de equipos</div>
+    <div class="dolor-btn" data-dolor="Rotación de inventario">Rotación de inventario</div>
+    <div class="dolor-btn" data-dolor="Atención al cliente">Atención al cliente</div>
+    <div class="dolor-btn" data-dolor="Control de temperaturas">Control de temperaturas</div>
+    <div class="dolor-btn" data-dolor="Recepción de pedidos">Recepción de pedidos</div>
+    <div class="dolor-btn" data-dolor="Seguridad e higiene">Seguridad e higiene</div>
+    <div class="dolor-btn" data-dolor="Gestión de residuos">Gestión de residuos</div>
+  </div>
+</div>
+
+<button class="btn-gen" id="btn-gen" disabled onclick="generarTurno()">
+  <i class="ti ti-player-play" aria-hidden="true"></i> Generar hoja de turno
+</button>
+
+<div class="checklist-wrap" id="checklist-wrap"></div>
+
+</div>
+
+<script>
+const doloresSelected = new Set();
+
+const checklistData = {
+  "Cajero": {
+    base: [
+      {s:"Apertura", items:["Verifica que el cajón tenga el fondo inicial correcto antes de abrir.","Comprueba que el sistema de cobro enciende y responde sin errores.","Confirma que hay rollos de ticket suficientes para todo el turno."]},
+      {s:"Durante el turno", items:["Anuncia el total en voz alta antes de recibir el pago del cliente.","Cuenta el cambio frente al cliente sin voltear la mirada.","Reporta de inmediato cualquier billete sospechoso al supervisor."]}
+    ],
+    "Cuadre de caja": ["Cuenta el efectivo antes y después de cada corte parcial.","Registra cada diferencia por mínima que sea en la bitácora.","No prestes dinero del cajón bajo ninguna circunstancia."],
+    "Atención al cliente": ["Saluda con nombre de la tienda y tu nombre en los primeros 5 segundos.","Ofrece siempre un artículo adicional antes de cerrar la venta.","Despide al cliente con frase de cierre estándar del local."],
+    "Seguridad e higiene": ["Lávate las manos cada 30 minutos y tras tocar cualquier superficie externa.","Mantén el área de caja despejada de bolsas personales.","Reporta cualquier objeto olvidado al supervisor de turno."],
+    "Limpieza de equipos": ["Pasa paño húmedo a la pantalla del POS al inicio y cierre del turno.","Desinfecta la bandeja de billetes con toalla sanitaria cada 2 horas.","Revisa que el lector de tarjetas no tenga residuos en la ranura."],
+    "Rotación de inventario": ["Verifica que los displays de producto tienen precio visible y correcto.","Informa faltantes de cambio menor al supervisor antes de que sean urgentes.","Registra en la bitácora si se agotó algún denominación de billete."],
+    "Control de temperaturas": ["Reporta si el área de trabajo supera 24°C para evitar fatiga del personal.","No dejes bebidas personales sobre el mostrador en ningún momento.","Verifica que los productos refrigerados en exhibición estén bajo 4°C."],
+    "Recepción de pedidos": ["Confirma el pedido en pantalla antes de procesarlo.","Si hay discrepancia en el pedido, llama al supervisor antes de cobrar.","Anota número de pedido en papel si el sistema falla."],
+    "Gestión de residuos": ["Coloca los recibos rechazados en el contenedor de papel designado.","No acumules papel en el cajón ni debajo del mostrador.","Vacía el cesto de recibos al llegar a 3/4 de su capacidad."]
+  },
+  "Cocinero": {
+    base: [
+      {s:"Preparación", items:["Verifica temperatura del aceite antes de iniciar la primera fritura.","Revisa que todos los utensilios estén limpios y en su lugar asignado.","Confirma que hay insumos suficientes para al menos 2 horas de servicio."]},
+      {s:"Durante el turno", items:["Respeta tiempos exactos de cocción sin acortar por presión del servicio.","Etiqueta todo producto abierto con fecha y hora de apertura.","Notifica al supervisor si un insumo llega a menos del 20% de stock."]}
+    ],
+    "Limpieza de equipos": ["Raspa la parrilla cada 45 minutos con la espátula designada.","Limpia salpicaduras de grasa en freidoras antes de que se carbonicen.","Al cierre, deja todos los equipos en remojo con desgrasante aprobado."],
+    "Control de temperaturas": ["Registra temperatura de cada equipo frío cada 2 horas en la hoja de control.","Descarta cualquier producto que haya superado la cadena de frío.","Reporta al supervisor si algún refrigerador marca más de 4°C."],
+    "Rotación de inventario": ["Usa siempre el producto más antiguo primero (regla PEPS).","Mueve al frente los insumos con fecha de vencimiento más próxima.","Marca con cinta roja cualquier producto próximo a vencer ese día."],
+    "Atención al cliente": ["Prepara el plato exactamente como lo indica el ticket, sin modificar.","Si hay error en el pedido, informa al cajero antes de desechar el producto.","Mantén silencio en cocina durante hora pico para escuchar órdenes."],
+    "Cuadre de caja": ["Entrega mermas y devoluciones al supervisor con ticket de justificación.","No saques producto de cocina sin nota de salida firmada.","Registra todo producto que no pueda servirse por falla de calidad."],
+    "Seguridad e higiene": ["Usa guantes de malla al cortar y cambia guantes de látex cada hora.","Reporta cualquier corte o quemadura de inmediato para registro sanitario.","Mantén el piso seco con tapete antideslizante en zonas de freidoras."],
+    "Recepción de pedidos": ["Lee el ticket completo antes de comenzar a cocinar cualquier orden.","Separa pedidos especiales (sin alérgenos) en área marcada con cinta azul.","Confirma verbalmente los pedidos con cambios antes de prepararlos."],
+    "Gestión de residuos": ["Separa residuos orgánicos, aceite usado y empaque en contenedores distintos.","Drena el aceite usado en el contenedor sellado, nunca por el desagüe.","Vacía basura orgánica al llegar al 50% para evitar olores."]
+  },
+  "Personal de piso": {
+    base: [
+      {s:"Apertura de área", items:["Recorre toda el área asignada antes de abrir y reporta anomalías.","Verifica que mesas, sillas y menús estén limpios y bien dispuestos.","Asegúrate de que los baños tengan papel, jabón y toallas completos."]},
+      {s:"Durante el turno", items:["Mantén un recorrido de limpieza cada 15 minutos en área de mesas.","Responde a cualquier solicitud del cliente en menos de 60 segundos.","Comunica al supervisor cualquier incidente antes de intentar resolverlo."]}
+    ],
+    "Limpieza de equipos": ["Limpia con desinfectante aprobado cada superficie de contacto tras su uso.","Lava trapeadores en solución sanitaria después de cada uso, no solo enjuagues.","Reporta equipos de limpieza dañados para reposición inmediata."],
+    "Atención al cliente": ["Anticipa necesidades del cliente sin esperar a que levante la mano.","Si un cliente se queja, escucha sin interrumpir y llama al supervisor.","Mantén lenguaje positivo: nunca digas 'no hay', di 'busco una alternativa'."],
+    "Seguridad e higiene": ["Señaliza con cono amarillo cualquier piso mojado antes de limpiarlo.","No uses el mismo trapo en superficie de alimentos y superficie de baño.","Lávate las manos antes de reabastecer condimentos y servilletas."],
+    "Rotación de inventario": ["Revisa y reabastece dispensadores de servilletas, azúcar y condimentos.","Retira del mostrador productos de exhibición con fecha vencida ese día.","Informa al almacenista cuando algún insumo de piso quede en el último rollo."],
+    "Cuadre de caja": ["Entrega al cajero cualquier dinero encontrado en el piso de inmediato.","No realices cambios o transacciones monetarias, deriva siempre a caja.","Reporta al supervisor si ves a alguien en el área de caja sin autorización."],
+    "Control de temperaturas": ["Verifica que vitrinas de exhibición marquen temperatura correcta cada hora.","Reporta si el área de comedor supera los 22°C para activar ventilación.","Asegura que puertas de refrigeración cierren herméticamente tras cada uso."],
+    "Recepción de pedidos": ["Guía al cliente al área de espera y confirma número de pedido en voz alta.","Entrega pedidos verificando que el nombre del ticket coincide con el cliente.","Si hay confusión de pedidos, detén la entrega y avisa a cocina de inmediato."],
+    "Gestión de residuos": ["Vacía botes de basura del área cuando lleguen a 3/4 de su capacidad.","Separa residuos en los contenedores de color correcto siempre.","Limpia el área alrededor del bote de basura tras cada vaciado."]
+  },
+  "Almacenista": {
+    base: [
+      {s:"Inicio de turno", items:["Verifica que el almacén esté bajo llave y en orden antes de operar.","Consulta la lista de pedidos pendientes del día antes de mover producto.","Comprueba que la báscula y scanner estén funcionando correctamente."]},
+      {s:"Durante el turno", items:["Registra cada entrada y salida de producto en el sistema en tiempo real.","Mantén pasillos despejados para evitar accidentes con mercancía.","No liberes producto sin nota de salida autorizada por el supervisor."]}
+    ],
+    "Rotación de inventario": ["Aplica PEPS sin excepción: lo primero que entró es lo primero que sale.","Revisa fechas de vencimiento de todo lo que entra antes de almacenarlo.","Marca con cinta roja producto que vence en menos de 3 días."],
+    "Control de temperaturas": ["Registra temperatura de cámaras frías al inicio, mitad y fin del turno.","Si una cámara falla, traslada el producto a otra y avisa al supervisor ya.","No abras puertas de cámara por más de 2 minutos consecutivos."],
+    "Recepción de pedidos": ["Cuenta y pesa todo pedido recibido antes de firmar la remisión.","Rechaza producto con empaque dañado, sin etiqueta o fuera de temperatura.","Toma foto de cada remisión recibida antes de archivarla."],
+    "Seguridad e higiene": ["Usa casco y faja al manipular tarimas de más de 15 kg.","Reporta inmediatamente cualquier plaga, rastro o daño en empaque.","Desinfecta el área de recepción antes y después de cada entrega."],
+    "Limpieza de equipos": ["Limpia báscula y scanner con paño seco al inicio y cierre del turno.","Desinfecta montacargas manual y carros de carga una vez por turno.","Revisa que las estanterías no tengan humedad ni residuos de producto."],
+    "Gestión de residuos": ["Coloca cajas vacías desarmadas en el área de reciclaje designada.","Separa y etiqueta mermas para la revisión del supervisor al cierre.","Registra cada merma con causa y peso en la bitácora de pérdidas."],
+    "Cuadre de caja": ["Entrega el inventario físico al supervisor con cifras exactas sin redondear.","Reporta cualquier diferencia entre sistema y físico antes de cerrar.","No ajustes el sistema sin autorización escrita del supervisor."],
+    "Atención al cliente": ["Atiende solicitudes internas de otros departamentos en menos de 10 min.","Informa con anticipación si un producto solicitado no está disponible.","Comunica los tiempos de reposición de manera clara y sin comprometerte de más."]
+  },
+  "Supervisor de turno": {
+    base: [
+      {s:"Apertura general", items:["Verifica asistencia completa del equipo en los primeros 5 minutos.","Revisa que todas las áreas estén listas antes de abrir al público.","Lee la bitácora del turno anterior y atiende pendientes urgentes."]},
+      {s:"Gestión del turno", items:["Recorre todas las áreas cada 30 minutos durante el turno.","Aprueba cualquier devolución, descuento o ajuste antes de ejecutarlo.","Documenta todos los incidentes del turno en la bitácora en tiempo real."]}
+    ],
+    "Cuadre de caja": ["Realiza corte parcial de caja a mitad del turno sin previo aviso al cajero.","Verifica que diferencias mayores a $5 tengan justificación escrita.","Lleva el efectivo de cortes parciales a la caja fuerte de inmediato."],
+    "Atención al cliente": ["Interviene en quejas que el personal no pueda resolver en 90 segundos.","Autoriza compensaciones solo dentro del protocolo aprobado por dirección.","Registra cada queja con nombre del cliente, hora y resolución aplicada."],
+    "Seguridad e higiene": ["Verifica que todos porten uniforme completo y EPP correcto al inicio.","Aplica sanción inmediata a quien incumpla protocolo de higiene.","Firma la hoja de verificación sanitaria antes de abrir y al cierre."],
+    "Control de temperaturas": ["Revisa las hojas de control de temperatura de todas las áreas al iniciar.","Toma decisión inmediata de descarte si hay ruptura de cadena de frío.","Lleva registro fotográfico de cualquier anomalía de temperatura."],
+    "Rotación de inventario": ["Supervisa que ningún área opere con producto vencido o próximo a vencer.","Autoriza la etiqueta roja de merma antes de que el almacenista la registre.","Revisa el reporte de inventario al cierre y firma de conformidad."],
+    "Limpieza de equipos": ["Verifica que el programa de limpieza profunda se ejecuta según el calendario.","Firma la bitácora de limpieza de equipos solo si la verificaste en persona.","Reporta a mantenimiento cualquier equipo que no pueda limpiarse correctamente."],
+    "Recepción de pedidos": ["Supervisa la primera recepción del día para verificar el proceso del almacenista.","Resuelve discrepancias con proveedor antes de firmar cualquier remisión.","Informa a dirección si hay faltante de producto crítico en la entrega."],
+    "Gestión de residuos": ["Verifica separación correcta de residuos en todas las áreas durante el recorrido.","Autoriza la disposición final de mermas registradas al cierre del turno.","Reporta a mantenimiento si los contenedores externos están saturados."]
+  }
+};
+
+const reglaOro = {
+  "Cajero": "Si tienes duda entre cerrar la caja o atender al cliente: primero cierra la caja. El dinero no espera, el cliente sí.",
+  "Cocinero": "Nunca sirvas un producto del que no estés 100% seguro de su temperatura, frescura y presentación. Mejor descartar que una queja sanitaria.",
+  "Personal de piso": "El piso siempre manda: ninguna tarea del mostrador justifica dejar una mesa sucia o un cliente esperando más de 60 segundos.",
+  "Almacenista": "Si no está registrado, no existe. Todo movimiento de producto sin registro en sistema es una pérdida contable y tu responsabilidad directa.",
+  "Supervisor de turno": "Tu firma es tu palabra. No firmes ningún documento —bitácora, remisión o reporte— sin haber verificado personalmente su contenido."
+};
+
+document.querySelectorAll('.dolor-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const d = btn.dataset.dolor;
+    if (doloresSelected.has(d)) {
+      doloresSelected.delete(d);
+      btn.classList.remove('selected');
+    } else {
+      if (doloresSelected.size >= 3) return;
+      doloresSelected.add(d);
+      btn.classList.add('selected');
+    }
+    updateCount();
+    updateGenBtn();
+  });
+});
+
+document.getElementById('rol-select').addEventListener('change', updateGenBtn);
+
+function updateCount() {
+  const c = doloresSelected.size;
+  document.getElementById('dolor-count').textContent = c === 3 ? '(3/3 seleccionados)' : `(elige hasta 3 — ${c}/3)`;
+}
+
+function updateGenBtn() {
+  const rol = document.getElementById('rol-select').value;
+  document.getElementById('btn-gen').disabled = !(rol && doloresSelected.size > 0);
+}
+
+function generarTurno() {
+  const rol = document.getElementById('rol-select').value;
+  if (!rol || doloresSelected.size === 0) return;
+  const data = checklistData[rol];
+  const now = new Date();
+  const fecha = now.toLocaleDateString('es-MX', {weekday:'long', day:'numeric', month:'long'});
+  const hora = now.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
+
+  let allItems = [];
+  let sectionsHtml = '';
+
+  data.base.forEach(sec => {
+    sectionsHtml += renderSection(sec.s, sec.items, allItems);
+  });
+
+  doloresSelected.forEach(dolor => {
+    if (data[dolor]) {
+      sectionsHtml += renderSection(dolor, data[dolor], allItems);
+    }
+  });
+
+  const wrap = document.getElementById('checklist-wrap');
+  wrap.style.display = 'block';
+  wrap.innerHTML = `
+    <div class="shift-header">
+      <div>
+        <div class="shift-role">${rol}</div>
+        <div class="shift-date">${fecha} · ${hora}</div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
+        <div class="progress-label" id="prog-label">0 de ${allItems.length} tareas completadas</div>
+      </div>
+    </div>
+    ${sectionsHtml}
+    <div class="regla-oro">
+      <div class="regla-title"><i class="ti ti-alert-triangle" aria-hidden="true" style="font-size:16px"></i> La regla de oro inquebrantable del turno</div>
+      <div class="regla-text">${reglaOro[rol]}</div>
+    </div>
+    <button class="btn-reiniciar" onclick="reiniciarTurno()">
+      <i class="ti ti-refresh" aria-hidden="true" style="font-size:16px"></i> Reiniciar turno
+    </button>
+  `;
+
+  document.querySelectorAll('.check-item').forEach(item => {
+    item.addEventListener('click', () => toggleCheck(item));
+  });
+
+  wrap.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function renderSection(titulo, items, allItems) {
+  let html = `<div class="section-block"><div class="section-head">${titulo}</div>`;
+  items.forEach((text, i) => {
+    const id = 'ci-' + allItems.length;
+    allItems.push(id);
+    html += `<div class="check-item" id="${id}" role="checkbox" aria-checked="false" tabindex="0">
+      <div class="check-box"><i class="ti ti-check" aria-hidden="true" style="font-size:14px;display:none"></i></div>
+      <div class="check-text">${text}</div>
+    </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function toggleCheck(item) {
+  const done = item.classList.toggle('done');
+  item.setAttribute('aria-checked', done);
+  const icon = item.querySelector('.ti-check');
+  icon.style.display = done ? 'block' : 'none';
+  updateProgress();
+}
+
+function updateProgress() {
+  const all = document.querySelectorAll('.check-item');
+  const done = document.querySelectorAll('.check-item.done');
+  const pct = all.length ? Math.round((done.length / all.length) * 100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = `${done.length} de ${all.length} tareas completadas`;
+}
+
+function reiniciarTurno() {
+  document.getElementById('checklist-wrap').style.display = 'none';
+  document.getElementById('checklist-wrap').innerHTML = '';
+  document.getElementById('rol-select').value = '';
+  doloresSelected.clear();
+  document.querySelectorAll('.dolor-btn').forEach(b => b.classList.remove('selected'));
+  updateCount();
+  updateGenBtn();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>
