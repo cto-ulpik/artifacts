@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="../favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="../favicon.png">
+<title>Auditor de Objeciones y Rescate de Cierres</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root {
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --border-radius-lg: 14px;
+  --border-radius-md: 10px;
+  --color-text-primary: #1c1917;
+  --color-text-secondary: #78716c;
+  --color-background-primary: #fff;
+  --color-background-secondary: #f5f5f4;
+  --color-border-secondary: #d6d3d1;
+  --color-border-tertiary: #e7e5e4;
+}
+body { margin: 0; background: #f5f5f4; min-height: 100vh; padding: 16px; }
+*{box-sizing:border-box;margin:0;padding:0}
+.aud{font-family:var(--font-sans);padding:0 0 2rem}
+.top-bar{background:#0d1b2e;border-radius:var(--border-radius-lg);padding:20px 24px;margin-bottom:20px}
+.top-eyebrow{font-size:11px;font-weight:500;letter-spacing:0.12em;color:#b5a45a;text-transform:uppercase;margin-bottom:4px}
+.top-title{font-size:22px;font-weight:500;color:#f5f0e0}
+.top-sub{font-size:13px;color:#7a8fa8;margin-top:4px}
+.step-wrap{display:none}
+.step-wrap.active{display:block}
+.q-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:20px 24px;margin-bottom:14px}
+.q-num{font-size:11px;font-weight:500;color:#b5a45a;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px}
+.q-text{font-size:16px;font-weight:500;color:var(--color-text-primary);margin-bottom:16px;line-height:1.5}
+.opt{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);margin-bottom:8px;cursor:pointer;transition:all 0.15s;background:var(--color-background-secondary)}
+.opt:last-child{margin-bottom:0}
+.opt:hover{border-color:#b5a45a;background:var(--color-background-primary)}
+.opt.selected{border-color:#b5a45a;background:#faeeda}
+.opt.selected .opt-letter{background:#b5a45a;color:#fff;border-color:#b5a45a}
+.opt-letter{min-width:28px;height:28px;border-radius:50%;border:1.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--color-text-secondary);transition:all 0.15s;margin-top:1px}
+.opt-text{font-size:14px;color:var(--color-text-primary);line-height:1.4}
+.progress-track{height:4px;background:var(--color-background-secondary);border-radius:99px;margin-bottom:16px;overflow:hidden}
+.progress-fill{height:100%;background:#b5a45a;border-radius:99px;transition:width 0.4s}
+.btn-next{background:#0d1b2e;color:#f5f0e0;border:none;border-radius:var(--border-radius-md);padding:12px 28px;font-size:15px;font-weight:500;cursor:pointer;margin-top:4px;display:inline-flex;align-items:center;gap:8px}
+.btn-next:hover{background:#1a2e48}
+.btn-next:disabled{background:#B4B2A9;cursor:not-allowed}
+.result-wrap{display:none}
+.result-top{background:#0d1b2e;border-radius:var(--border-radius-lg);padding:24px;margin-bottom:16px;display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.donut-area{position:relative;width:140px;height:140px;min-width:140px}
+.score-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.score-num{font-size:32px;font-weight:500;color:#f5f0e0;line-height:1}
+.score-label{font-size:11px;color:#7a8fa8;margin-top:2px}
+.result-meta{flex:1;min-width:180px}
+.res-badge{display:inline-block;font-size:11px;font-weight:500;padding:4px 12px;border-radius:99px;margin-bottom:8px}
+.res-title{font-size:20px;font-weight:500;color:#f5f0e0;margin-bottom:6px;line-height:1.3}
+.res-sub{font-size:13px;color:#7a8fa8;line-height:1.5}
+.diag-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:16px}
+.diag-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px}
+.diag-label{font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
+.diag-val{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.script-toggle{width:100%;background:#0d1b2e;border:none;border-radius:var(--border-radius-lg);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:0}
+.script-toggle-left{display:flex;align-items:center;gap:10px}
+.script-toggle-label{font-size:15px;font-weight:500;color:#f5f0e0}
+.script-toggle-sub{font-size:12px;color:#7a8fa8;margin-top:2px}
+.script-body{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-top:none;border-radius:0 0 var(--border-radius-lg) var(--border-radius-lg);padding:0;max-height:0;overflow:hidden;transition:max-height 0.4s,padding 0.3s}
+.script-body.open{max-height:1200px;padding:20px 24px}
+.script-channel{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.ch-btn{padding:7px 16px;border-radius:99px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);font-size:13px;cursor:pointer;color:var(--color-text-secondary);transition:all 0.15s}
+.ch-btn.active{background:#0d1b2e;color:#f5f0e0;border-color:#0d1b2e}
+.script-box{background:#0d1b2e;border-radius:var(--border-radius-md);padding:16px 18px;margin-bottom:12px}
+.script-box-label{font-size:11px;color:#b5a45a;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px}
+.script-text{font-size:14px;color:#c8d8ea;line-height:1.7;white-space:pre-wrap}
+.btn-copy-script{background:transparent;border:0.5px solid #b5a45a;color:#b5a45a;border-radius:var(--border-radius-md);padding:9px 18px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-top:4px}
+.btn-copy-script:hover{background:rgba(181,164,90,0.08)}
+.btn-reset{background:transparent;border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary);border-radius:var(--border-radius-md);padding:10px 20px;font-size:14px;cursor:pointer;margin-top:16px;display:inline-flex;align-items:center;gap:6px}
+.copy-confirm{font-size:12px;color:#b5a45a;margin-left:8px;opacity:0;transition:opacity 0.3s}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+</style>
+
+<h2 class="sr-only">Auditor de objeciones y rescate de cierres: diagnóstico post-llamada con score de probabilidad de rescate del lead</h2>
+
+<div class="aud">
+<div class="top-bar">
+  <div class="top-eyebrow">Sales Closer · Diagnóstico post-llamada</div>
+  <div class="top-title">Auditor de objeciones y rescate de cierres</div>
+  <div class="top-sub">5 preguntas · 60 segundos · script listo para enviar</div>
+</div>
+
+<div class="progress-track"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+
+<div id="q-container"></div>
+
+<div class="result-wrap" id="result-wrap">
+  <div class="result-top">
+    <div class="donut-area">
+      <canvas id="donutChart" width="140" height="140" role="img" aria-label="Indicador radial de probabilidad de rescate del lead">Score de rescate.</canvas>
+      <div class="score-center">
+        <div class="score-num" id="score-num">0</div>
+        <div class="score-label">/ 100</div>
+      </div>
+    </div>
+    <div class="result-meta">
+      <div class="res-badge" id="res-badge"></div>
+      <div class="res-title" id="res-title"></div>
+      <div class="res-sub" id="res-sub"></div>
+    </div>
+  </div>
+
+  <div class="diag-grid" id="diag-grid"></div>
+
+  <div style="border-radius:var(--border-radius-lg) var(--border-radius-lg) 0 0;overflow:hidden">
+    <button class="script-toggle" onclick="toggleScript()" id="script-toggle">
+      <div class="script-toggle-left">
+        <i class="ti ti-message-2" aria-hidden="true" style="font-size:20px;color:#b5a45a"></i>
+        <div>
+          <div class="script-toggle-label">Script de seguimiento exacto</div>
+          <div class="script-toggle-sub">Copy-paste listo · WhatsApp / Email · Enviar en las próximas 24h</div>
+        </div>
+      </div>
+      <i class="ti ti-chevron-down" id="script-chevron" aria-hidden="true" style="font-size:18px;color:#7a8fa8;transition:transform 0.3s"></i>
+    </button>
+    <div class="script-body" id="script-body">
+      <div class="script-channel" id="ch-tabs">
+        <button class="ch-btn active" onclick="switchCh('wa',this)"><i class="ti ti-brand-whatsapp" aria-hidden="true" style="font-size:14px;vertical-align:-2px;margin-right:4px"></i>WhatsApp</button>
+        <button class="ch-btn" onclick="switchCh('em',this)"><i class="ti ti-mail" aria-hidden="true" style="font-size:14px;vertical-align:-2px;margin-right:4px"></i>Email</button>
+      </div>
+      <div class="script-box">
+        <div class="script-box-label" id="script-ch-label">Mensaje de WhatsApp</div>
+        <div class="script-text" id="script-text-display"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <button class="btn-copy-script" onclick="copyScript()"><i class="ti ti-copy" aria-hidden="true" style="font-size:14px"></i> Copiar mensaje</button>
+        <span class="copy-confirm" id="copy-confirm">Copiado</span>
+      </div>
+    </div>
+  </div>
+
+  <div><button class="btn-reset" onclick="resetAudit()"><i class="ti ti-refresh" aria-hidden="true" style="font-size:15px"></i> Nuevo diagnóstico</button></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const questions = [
+  {
+    id:'presupuesto',
+    text:'¿Cómo manejaste el tema del presupuesto durante la llamada?',
+    opts:[
+      {t:'Presenté el precio solo al final, sin anclar valor antes.',score:5,tag:'precio_al_final'},
+      {t:'Mencioné el precio pero no conecté con el ROI o resultado concreto.',score:12,tag:'sin_roi'},
+      {t:'Construí valor, comparé con el costo de NO resolver el problema.',score:25,tag:'valor_construido'},
+      {t:'Ofrecí descuento o flexibilidad antes de que me lo pidieran.',score:3,tag:'descuento_prematuro'}
+    ]
+  },
+  {
+    id:'urgencia',
+    text:'¿Cómo calificaste la urgencia del prospecto?',
+    opts:[
+      {t:'No pregunté por fechas límite ni consecuencias de no actuar.',score:4,tag:'sin_urgencia'},
+      {t:'Pregunté pero el prospecto no tenía un plazo claro definido.',score:10,tag:'urgencia_baja'},
+      {t:'El prospecto mencionó un problema activo con costo o riesgo claro.',score:22,tag:'urgencia_alta'},
+      {t:'Creé urgencia artificial con descuentos por tiempo limitado.',score:7,tag:'urgencia_artificial'}
+    ]
+  },
+  {
+    id:'objecion',
+    text:'¿Cuál fue la objeción exacta que mató la venta?',
+    opts:[
+      {t:'"Es muy caro" o "No tengo presupuesto ahora".',score:0,tag:'precio'},
+      {t:'"Necesito pensarlo" o "Lo consulto con mi socio/equipo".',score:0,tag:'pensar'},
+      {t:'"No estoy seguro de que funcione para mi caso".',score:0,tag:'desconfianza'},
+      {t:'"Ahora no es el momento, quizás en 3 meses".',score:0,tag:'timing'}
+    ]
+  },
+  {
+    id:'manejo',
+    text:'¿Cómo respondiste cuando surgió la objeción?',
+    opts:[
+      {t:'Acepté la objeción y cerré la llamada amablemente.',score:3,tag:'acepte'},
+      {t:'Intenté rebatirla pero el prospecto cortó la conversación.',score:8,tag:'rebate_fallido'},
+      {t:'Usé una pregunta para explorar la objeción más a fondo.',score:20,tag:'explore'},
+      {t:'Bajé el precio o propuse un plan de pago sin preguntar.',score:5,tag:'bajo_precio'}
+    ]
+  },
+  {
+    id:'seguimiento',
+    text:'¿Qué hiciste al terminar la llamada sin cierre?',
+    opts:[
+      {t:'Nada todavía, por eso estoy aquí.',score:2,tag:'nada'},
+      {t:'Envié un email genérico de "gracias por tu tiempo".',score:5,tag:'email_generico'},
+      {t:'Acordé una fecha de seguimiento antes de colgar.',score:18,tag:'fecha_acordada'},
+      {t:'Envié una propuesta formal por escrito.',score:12,tag:'propuesta_formal'}
+    ]
+  }
+];
+
+let answers = {};
+let currentQ = 0;
+let donutChart = null;
+let currentChannel = 'wa';
+let generatedScripts = {wa:'', em:''};
+
+function renderQuestion(idx) {
+  const q = questions[idx];
+  const pct = Math.round((idx/questions.length)*100);
+  document.getElementById('prog').style.width = pct + '%';
+  const c = document.getElementById('q-container');
+  c.innerHTML = `
+    <div class="q-card step-wrap active" id="step-${idx}">
+      <div class="q-num">Pregunta ${idx+1} de ${questions.length}</div>
+      <div class="q-text">${q.text}</div>
+      ${q.opts.map((o,i)=>`
+        <div class="opt" id="opt-${idx}-${i}" onclick="selectOpt(${idx},${i})" role="radio" aria-checked="false" tabindex="0">
+          <div class="opt-letter">${String.fromCharCode(65+i)}</div>
+          <div class="opt-text">${o.t}</div>
+        </div>
+      `).join('')}
+      <div style="margin-top:16px">
+        <button class="btn-next" id="btn-next" onclick="nextQ()" disabled>
+          ${idx < questions.length-1 ? 'Siguiente <i class="ti ti-arrow-right" aria-hidden="true" style="font-size:15px"></i>' : 'Ver diagnóstico <i class="ti ti-chart-donut" aria-hidden="true" style="font-size:15px"></i>'}
+        </button>
+      </div>
+    </div>`;
+}
+
+function selectOpt(qIdx, oIdx) {
+  const q = questions[qIdx];
+  answers[q.id] = {score: q.opts[oIdx].score, tag: q.opts[oIdx].tag, text: q.opts[oIdx].t};
+  document.querySelectorAll(`[id^="opt-${qIdx}-"]`).forEach((el,i)=>{
+    el.classList.toggle('selected', i===oIdx);
+    el.setAttribute('aria-checked', i===oIdx);
+  });
+  document.getElementById('btn-next').disabled = false;
+}
+
+function nextQ() {
+  currentQ++;
+  if(currentQ < questions.length) {
+    renderQuestion(currentQ);
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  document.getElementById('prog').style.width = '100%';
+  document.getElementById('q-container').innerHTML = '';
+  document.getElementById('result-wrap').style.display = 'block';
+
+  const rawScore = Object.values(answers).reduce((s,a)=>s+a.score,0);
+  const maxScore = 25+22+20+18;
+  const score = Math.round((rawScore/maxScore)*100);
+
+  let badge, title, sub, badgeStyle;
+  if(score>=70){
+    badge='Alta probabilidad de rescate'; badgeStyle='background:#EAF3DE;color:#27500A';
+    title='Este lead aún tiene pulso.';
+    sub='Cometiste errores rescatables. El prospecto tiene interés real pero necesita un reencuadre del valor y un seguimiento con intención.';
+  } else if(score>=40){
+    badge='Rescate posible con estrategia'; badgeStyle='background:#FAEEDA;color:#633806';
+    title='La venta está en cuidados intensivos.';
+    sub='Hay señales mixtas. La objeción no es el problema real, es la punta del iceberg. El script de seguimiento puede darte una segunda oportunidad.';
+  } else {
+    badge='Rescate de emergencia'; badgeStyle='background:#FCEBEB;color:#791F1F';
+    title='Quemaste el puente, pero hay forma de reconstruirlo.';
+    sub='El prospecto sintió presión o falta de confianza. El enfoque de seguimiento debe ser de reencuadre total, no de venta. Tu objetivo es la conversación, no el cierre.';
+  }
+
+  document.getElementById('score-num').textContent = score;
+  const badgeEl = document.getElementById('res-badge');
+  badgeEl.textContent = badge; badgeEl.style.cssText = badgeStyle+';font-size:11px;font-weight:500;padding:4px 12px;border-radius:99px;margin-bottom:8px;display:inline-block';
+  document.getElementById('res-title').textContent = title;
+  document.getElementById('res-sub').textContent = sub;
+
+  const errores = getDiagErrors();
+  document.getElementById('diag-grid').innerHTML = errores.map(e=>`
+    <div class="diag-card">
+      <div class="diag-label">${e.label}</div>
+      <div class="diag-val">${e.val}</div>
+    </div>`).join('');
+
+  generatedScripts = buildScripts(score);
+  document.getElementById('script-text-display').textContent = generatedScripts.wa;
+
+  renderDonut(score);
+}
+
+function getDiagErrors() {
+  const items = [];
+  const p = answers.presupuesto?.tag;
+  const u = answers.urgencia?.tag;
+  const o = answers.objecion?.tag;
+  const m = answers.manejo?.tag;
+  const s = answers.seguimiento?.tag;
+
+  const presMap = {precio_al_final:'Presentaste precio sin ancla de valor',sin_roi:'Faltó conectar con ROI concreto',valor_construido:'Buen manejo del valor',descuento_prematuro:'Descuento prematuro dañó tu posición'};
+  const urgMap = {sin_urgencia:'No calificaste urgencia',urgencia_baja:'Urgencia baja o ausente',urgencia_alta:'Urgencia bien identificada',urgencia_artificial:'Urgencia forzada genera desconfianza'};
+  const objMap = {precio:'Objeción: precio / presupuesto',pensar:'Objeción: necesita tiempo',desconfianza:'Objeción: falta de confianza',timing:'Objeción: mal momento'};
+  const manMap = {acepte:'Cediste sin explorar',rebate_fallido:'Rebate sin preguntas previas',explore:'Buen manejo — exploraste',bajo_precio:'Bajaste precio sin diagnóstico'};
+  const segMap = {nada:'Sin seguimiento todavía',email_generico:'Seguimiento genérico, bajo impacto',fecha_acordada:'Fecha acordada — ventaja clave',propuesta_formal:'Propuesta enviada'};
+
+  items.push({label:'Manejo del presupuesto', val: presMap[p]||'—'});
+  items.push({label:'Nivel de urgencia', val: urgMap[u]||'—'});
+  items.push({label:'Objeción detectada', val: objMap[o]||'—'});
+  items.push({label:'Respuesta a la objeción', val: manMap[m]||'—'});
+  items.push({label:'Acción post-llamada', val: segMap[s]||'—'});
+  return items;
+}
+
+function buildScripts(score) {
+  const obj = answers.objecion?.tag;
+  const urgencia = answers.urgencia?.tag;
+  const manejo = answers.manejo?.tag;
+
+  const reencuadres = {
+    precio: {
+      core: 'Entiendo perfectamente. Lo que me dices me dice que no fui lo suficientemente claro sobre el resultado específico que esto genera para ti.',
+      pregunta: '¿Puedo preguntarte algo directo? Si esto te resolviera [problema principal] en los próximos 60 días, ¿cuánto vale eso para ti en tiempo o dinero?',
+      cierre: 'No te pido que te comprometas hoy. Solo te pido 15 minutos para mostrarte números reales de casos similares al tuyo. ¿Te parece justo?'
+    },
+    pensar: {
+      core: 'Tiene todo el sentido que quieras pensarlo. Lo que me falta entender es: ¿qué información específica necesitas para tomar esa decisión con confianza?',
+      pregunta: '¿Hay algo que no quedó claro en la llamada, o hay alguien más que deba estar en la conversación antes de decidir?',
+      cierre: 'Propongo esto: nos reunimos 20 minutos, traes tus preguntas y yo traigo evidencia concreta. Sin presión, sin pitch. Solo claridad. ¿El jueves o viernes te funciona?'
+    },
+    desconfianza: {
+      core: 'Eso me dice que no hice bien mi trabajo en la llamada. Debí mostrarte evidencia concreta antes de hablar de números.',
+      pregunta: '¿Qué necesitarías ver —un caso de éxito, una garantía, una prueba piloto— para sentirte seguro de que esto funciona para tu situación específica?',
+      cierre: 'Déjame enviarte 2 casos documentados de clientes con tu mismo perfil. Si después de verlos sigues sin estar convencido, lo entiendo completamente. ¿Puedo mandártelos hoy?'
+    },
+    timing: {
+      core: 'Respeto completamente tu timing. Lo que me preocupa es esto: el problema que mencionaste en la llamada no va a esperar 3 meses — de hecho, suele crecer.',
+      pregunta: '¿Qué tendría que pasar en los próximos 30 días para que esto se volviera urgente para ti?',
+      cierre: 'No te pido que arranques ahora. Te propongo reservar una sesión en la fecha que tú definas, sin costo. Solo para que no pierdas el acceso cuando llegue el momento. ¿Tiene sentido?'
+    }
+  };
+
+  const r = reencuadres[obj] || reencuadres['pensar'];
+
+  const wa = `Hola [nombre], soy [tu nombre].
+
+Quería escribirte después de nuestra conversación porque creo que no fui lo suficientemente claro en un punto clave.
+
+${r.core}
+
+${r.pregunta}
+
+${r.cierre}
+
+Si no es el momento adecuado, también lo entiendo. Solo quería asegurarme de darte la información que mereces para tomar la mejor decisión.
+
+Quedo al pendiente.
+[Tu nombre]`;
+
+  const em = `Asunto: Una cosa que olvidé decirte en nuestra llamada, [nombre]
+
+Hola [nombre],
+
+Gracias por tomarte el tiempo de hablar conmigo. Después de nuestra conversación me quedé pensando en algo que no comuniqué con suficiente claridad.
+
+${r.core}
+
+${r.pregunta}
+
+${r.cierre}
+
+Si en este momento no es la prioridad, lo respeto completamente. Pero si hay algo que pueda hacer para darte más claridad, estoy aquí.
+
+Un saludo,
+[Tu nombre]
+[Tu cargo] · [Tu empresa]
+[Tu teléfono]`;
+
+  return {wa, em};
+}
+
+function renderDonut(score) {
+  const ctx = document.getElementById('donutChart').getContext('2d');
+  const remaining = 100 - score;
+  const color = score >= 70 ? '#3B6D11' : score >= 40 ? '#BA7517' : '#A32D2D';
+  const trackColor = '#1a2e48';
+  if(donutChart) donutChart.destroy();
+  donutChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [score, remaining],
+        backgroundColor: [color, trackColor],
+        borderWidth: 0,
+        borderRadius: score > 0 && score < 100 ? 4 : 0
+      }]
+    },
+    options: {
+      responsive: false,
+      cutout: '72%',
+      plugins: { legend: {display:false}, tooltip: {enabled:false} },
+      animation: {animateRotate: true, duration: 800}
+    }
+  });
+}
+
+function toggleScript() {
+  const body = document.getElementById('script-body');
+  const chev = document.getElementById('script-chevron');
+  const open = body.classList.toggle('open');
+  chev.style.transform = open ? 'rotate(180deg)' : 'rotate(0)';
+}
+
+function switchCh(ch, btn) {
+  currentChannel = ch;
+  document.querySelectorAll('.ch-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('script-ch-label').textContent = ch==='wa' ? 'Mensaje de WhatsApp' : 'Cuerpo del email';
+  document.getElementById('script-text-display').textContent = generatedScripts[ch];
+}
+
+function copyScript() {
+  const txt = generatedScripts[currentChannel];
+  navigator.clipboard.writeText(txt).then(()=>{
+    const el = document.getElementById('copy-confirm');
+    el.style.opacity='1';
+    setTimeout(()=>el.style.opacity='0',2000);
+  });
+}
+
+function resetAudit() {
+  answers = {}; currentQ = 0;
+  if(donutChart){donutChart.destroy();donutChart=null;}
+  document.getElementById('result-wrap').style.display='none';
+  document.getElementById('script-body').classList.remove('open');
+  document.getElementById('script-chevron').style.transform='rotate(0)';
+  document.getElementById('prog').style.width='0%';
+  renderQuestion(0);
+}
+
+renderQuestion(0);
+</script>
+</body>
+</html>
