@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="../favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="../favicon.png">
+<title>Simulador de Libertad Financiera · Ecuador</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root {
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --border-radius-lg: 14px;
+  --border-radius-md: 10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:#06080d;min-height:100vh;padding:16px}
+.bb{background:#0b0e14;border-radius:var(--border-radius-lg);overflow:hidden;color:#c8d8e8}
+.bb-top{padding:20px 24px 16px;border-bottom:0.5px solid #1a2535}
+.bb-eye{font-size:10px;letter-spacing:0.15em;color:#00cc55;text-transform:uppercase;font-weight:500;margin-bottom:4px}
+.bb-h1{font-size:20px;font-weight:500;color:#e8f4ff;line-height:1.2}
+.bb-sub{font-size:11px;color:#3a6a8a;margin-top:3px}
+.bb-flag{display:inline-block;background:#0a2510;border:0.5px solid #1a4a20;border-radius:4px;padding:2px 8px;font-size:10px;color:#00cc55;letter-spacing:0.08em;margin-top:6px}
+.bb-inputs{padding:20px 24px;border-bottom:0.5px solid #1a2535;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.inp-blk{display:flex;flex-direction:column;gap:7px}
+.inp-lbl{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#3a6a8a;font-weight:500}
+.inp-lbl span{color:#00cc55;font-size:10px}
+.inp-row{display:flex;align-items:center;gap:10px}
+.inp-val{font-size:18px;font-weight:500;color:#e8f4ff;min-width:56px;text-align:right}
+input[type=range].sr{flex:1;-webkit-appearance:none;height:3px;background:#1a2f45;border-radius:99px;outline:none;cursor:pointer}
+input[type=range].sr::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#00cc55;cursor:pointer}
+.nfield-wrap{position:relative}
+.nfield-pre{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#3a6a8a;font-size:13px}
+.nfield{background:#0d1520;border:0.5px solid #1e3148;border-radius:var(--border-radius-md);color:#e8f4ff;font-size:16px;font-weight:500;padding:9px 10px 9px 24px;outline:none;width:100%;font-family:var(--font-sans)}
+.nfield:focus{border-color:#00cc55}
+.nfield::placeholder{color:#253545;font-weight:400}
+.sbu-opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.sbu-btn{background:#0d1520;border:0.5px solid #1e3148;border-radius:4px;color:#3a6a8a;font-size:12px;padding:5px 10px;cursor:pointer;transition:all 0.15s}
+.sbu-btn.on{background:#0a2510;border-color:#00cc55;color:#00cc55}
+.btn-calc{display:block;margin:0 24px 20px;width:calc(100% - 48px);background:#00cc55;border:none;border-radius:var(--border-radius-md);padding:13px;color:#0b0e14;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-sans)}
+.btn-calc:hover{background:#00e060}
+.bb-res{padding:20px 24px;display:none}
+.big-nums{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.bnum{background:#0d1520;border-radius:var(--border-radius-md);padding:16px}
+.bnum-lbl{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+.bnum-val{font-size:28px;font-weight:500;line-height:1}
+.bnum-sub{font-size:11px;margin-top:5px;color:#3a6a8a}
+.red{color:#ff3333}
+.green{color:#00cc55}
+.white{color:#e8f4ff}
+.amber{color:#f0b844}
+.cost-breakdown{background:#140a0a;border:0.5px solid #3a1a1a;border-radius:var(--border-radius-md);padding:16px;margin-bottom:14px}
+.cb-head{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ff3333;margin-bottom:10px}
+.cb-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid #1f1010;font-size:13px}
+.cb-row:last-child{border-bottom:none;padding-top:10px;margin-top:2px}
+.cb-key{color:#885555}
+.cb-val{font-weight:500}
+.cb-total{color:#ff3333;font-size:15px;font-weight:500}
+.eq-breakdown{background:#0a140d;border:0.5px solid #1a4a20;border-radius:var(--border-radius-md);padding:16px;margin-bottom:14px}
+.eq-head{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#00cc55;margin-bottom:10px}
+.eq-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid #102010;font-size:13px}
+.eq-row:last-child{border-bottom:none}
+.eq-key{color:#3a6a50}
+.eq-val{font-weight:500;color:#00cc55}
+.cfo-box{background:#050e1a;border:0.5px solid #1a3555;border-left:3px solid #00cc55;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:16px 18px;margin-bottom:14px}
+.cfo-lbl{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#1d6fa8;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.cfo-txt{font-size:14px;color:#a0c4e0;line-height:1.7}
+.cfo-txt strong{color:#e8f4ff;font-weight:500}
+.cfo-txt em{color:#00cc55;font-style:normal;font-weight:500}
+.cfo-txt mark{background:transparent;color:#ff3333;font-weight:500}
+.chart-sec{margin-bottom:14px}
+.chart-lbl{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#3a6a8a;margin-bottom:8px}
+.chart-legend{display:flex;gap:16px;margin-bottom:8px;flex-wrap:wrap}
+.chart-legend span{display:flex;align-items:center;gap:5px;font-size:11px;color:#3a6a8a}
+.chart-legend b{display:inline-block;width:10px;height:10px;border-radius:2px}
+.iess-note{background:#0d1520;border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:14px;font-size:11px;color:#3a6a8a;line-height:1.6}
+.iess-note strong{color:#c8d8e8}
+.btn-reset{width:100%;background:transparent;border:0.5px solid #1e3148;border-radius:var(--border-radius-md);padding:11px;color:#3a6a8a;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:var(--font-sans)}
+.btn-reset:hover{border-color:#3a6a8a;color:#c8d8e8}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+</style>
+</head>
+<body>
+
+<h2 class="sr-only">Simulador de Libertad Financiera por Delegación — Edición Ecuador con cálculo de costo patronal real IESS</h2>
+
+<div class="bb">
+  <div class="bb-top">
+    <div class="bb-eye">CFO Strategy Terminal · Ecuador</div>
+    <div class="bb-h1">Simulador de libertad financiera por delegación</div>
+    <div class="bb-sub">Costo patronal real IESS · Décimos · Punto de equilibrio exacto</div>
+    <div class="bb-flag">Edición Ecuador · SBU 2025 = $482 USD · Código del Trabajo vigente</div>
+  </div>
+
+  <div class="bb-inputs">
+    <div class="inp-blk">
+      <div class="inp-lbl">Facturación mensual actual <span>(USD)</span></div>
+      <div class="nfield-wrap">
+        <span class="nfield-pre">$</span>
+        <input class="nfield" type="number" id="fact" placeholder="5000" min="0" oninput="liveUp()">
+      </div>
+    </div>
+
+    <div class="inp-blk">
+      <div class="inp-lbl">Horas que trabajas por semana</div>
+      <div class="inp-row">
+        <input type="range" class="sr" id="horas-s" min="20" max="100" value="55" step="1" oninput="syncH(this.value)">
+        <span class="inp-val" id="horas-v">55h</span>
+      </div>
+    </div>
+
+    <div class="inp-blk">
+      <div class="inp-lbl">Sueldo del colaborador <span>(en SBU)</span></div>
+      <div class="sbu-opts" id="sbu-opts">
+        <button class="sbu-btn" onclick="setSBU(1,this)">1 SBU<br><span style="font-size:10px;opacity:0.7">$482</span></button>
+        <button class="sbu-btn on" onclick="setSBU(1.5,this)">1.5 SBU<br><span style="font-size:10px;opacity:0.7">$723</span></button>
+        <button class="sbu-btn" onclick="setSBU(2,this)">2 SBU<br><span style="font-size:10px;opacity:0.7">$964</span></button>
+        <button class="sbu-btn" onclick="setSBU(2.5,this)">2.5 SBU<br><span style="font-size:10px;opacity:0.7">$1,205</span></button>
+        <button class="sbu-btn" onclick="setSBU(3,this)">3 SBU<br><span style="font-size:10px;opacity:0.7">$1,446</span></button>
+        <button class="sbu-btn" onclick="setSBU(4,this)">4 SBU<br><span style="font-size:10px;opacity:0.7">$1,928</span></button>
+      </div>
+    </div>
+
+    <div class="inp-blk">
+      <div class="inp-lbl">Tiempo operativo que te libera</div>
+      <div class="inp-row">
+        <input type="range" class="sr" id="lib-s" min="10" max="80" value="40" step="5" oninput="syncL(this.value)">
+        <span class="inp-val" id="lib-v">40%</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:16px 24px 0">
+    <button class="btn-calc" onclick="calcular()">
+      <i class="ti ti-calculator" aria-hidden="true" style="font-size:16px"></i>
+      Calcular punto de equilibrio real
+    </button>
+  </div>
+
+  <div class="bb-res" id="res">
+
+    <div class="big-nums" id="big-nums"></div>
+
+    <div class="cost-breakdown" id="cost-bd"></div>
+
+    <div class="eq-breakdown" id="eq-bd"></div>
+
+    <div class="cfo-box">
+      <div class="cfo-lbl"><i class="ti ti-briefcase" aria-hidden="true" style="font-size:14px"></i> Perspectiva de CFO</div>
+      <div class="cfo-txt" id="cfo-txt"></div>
+    </div>
+
+    <div class="chart-sec">
+      <div class="chart-lbl">Proyección de facturación — antes vs. después (6 meses)</div>
+      <div class="chart-legend">
+        <span><b style="background:#1d6fa8"></b>Sin delegar</span>
+        <span><b style="background:#00cc55"></b>Con delegación</span>
+        <span><b style="display:inline-block;width:18px;height:2px;background:transparent;border-top:2px dashed #ff3333;border-radius:0"></b>Costo patronal real</span>
+      </div>
+      <div style="position:relative;height:190px">
+        <canvas id="pc" role="img" aria-label="Proyección comparativa de facturación con y sin delegación en 6 meses bajo legislación ecuatoriana">Proyección comparativa.</canvas>
+      </div>
+    </div>
+
+    <div class="iess-note">
+      <strong>Nota legal:</strong> Cálculo basado en SBU 2025 = $482. Aporte patronal IESS: 11.15% (Art. 96 Ley de Seguridad Social). Décimo Tercero: sueldo/12 mensualizado (Art. 111 Código del Trabajo). Décimo Cuarto: 1 SBU/12 mensualizado (Art. 113 C.T.). Fondos de Reserva aplican desde el 2do año; no incluidos en este cálculo inicial. Vacaciones: sueldo/24 no incluidas para mantener conservador el escenario de primer año.
+    </div>
+
+    <button class="btn-reset" onclick="resetCalc()">
+      <i class="ti ti-refresh" aria-hidden="true" style="font-size:14px"></i> Nuevo cálculo
+    </button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const SBU = 482;
+let sbuMult = 1.5;
+let pChart = null;
+
+function syncH(v){ document.getElementById('horas-v').textContent = v+'h'; }
+function syncL(v){ document.getElementById('lib-v').textContent = v+'%'; }
+function liveUp(){}
+
+function setSBU(mult, btn){
+  sbuMult = mult;
+  document.querySelectorAll('.sbu-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+function fmt(n){ return '$'+Math.round(n).toLocaleString('en-US'); }
+function fmtD(n){ return '$'+n.toFixed(2); }
+
+function calcular(){
+  const fact = parseFloat(document.getElementById('fact').value)||0;
+  if(!fact){ alert('Ingresa tu facturación mensual para continuar.'); return; }
+
+  const horas = parseFloat(document.getElementById('horas-s').value)||55;
+  const lib = parseFloat(document.getElementById('lib-s').value)||40;
+  const sueldo = Math.round(SBU * sbuMult * 100) / 100;
+
+  const aportePatronal = sueldo * 0.1115;
+  const decimoTercero = sueldo / 12;
+  const decimoCuarto = SBU / 12;
+  const costoPatronalTotal = sueldo + aportePatronal + decimoTercero + decimoCuarto;
+
+  const horasMes = horas * 4.33;
+  const valorHoraActual = fact / horasMes;
+  const horasLiberadas = horasMes * (lib / 100);
+  const factExtra = horasLiberadas * valorHoraActual;
+  const margen50 = factExtra * 0.50;
+  const factNecesaria = costoPatronalTotal / 0.50;
+  const facturacionNueva = fact + factExtra;
+  const valorHoraNueva = (facturacionNueva - costoPatronalTotal) / horasMes;
+  const ticketPromedio = Math.max(300, Math.round(fact / 5));
+  const clientesNecesarios = Math.ceil(factNecesaria / ticketPromedio);
+  const diasBreakeven = Math.max(1, Math.round((factNecesaria / facturacionNueva) * 30));
+  const roi = margen50 > 0 ? Math.round(((margen50 - costoPatronalTotal) / costoPatronalTotal) * 100) : -100;
+
+  document.getElementById('big-nums').innerHTML = [
+    {lbl:'Costo patronal real / mes', val: fmt(Math.round(costoPatronalTotal)), cls:'red', sub:`sueldo neto: ${fmt(sueldo)}`},
+    {lbl:'Horas liberadas / mes', val: Math.round(horasLiberadas)+'h', cls:'green', sub:`de ${Math.round(horasMes)}h totales que trabajas`},
+    {lbl:'Tu hora vale hoy', val: fmt(Math.round(valorHoraActual)), cls:'amber', sub:'antes de contratar'},
+    {lbl:'Tu hora valdrá', val: fmt(Math.round(valorHoraNueva)), cls:'green', sub:'delegando y vendiendo'},
+  ].map(m=>`<div class="bnum"><div class="bnum-lbl" style="color:${m.cls==='red'?'#883333':m.cls==='green'?'#1a6635':'#7a6020'}">${m.lbl}</div><div class="bnum-val ${m.cls}">${m.val}</div><div class="bnum-sub">${m.sub}</div></div>`).join('');
+
+  document.getElementById('cost-bd').innerHTML = `
+    <div class="cb-head"><i class="ti ti-alert-triangle" aria-hidden="true" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Desglose del costo patronal real (lo que realmente pagas)</div>
+    ${[
+      ['Sueldo neto del colaborador', fmtD(sueldo)],
+      ['Aporte patronal IESS 11.15%', fmtD(aportePatronal)],
+      ['Provisión Décimo Tercero (÷12)', fmtD(decimoTercero)],
+      ['Provisión Décimo Cuarto (÷12)', fmtD(decimoCuarto)],
+    ].map(r=>`<div class="cb-row"><span class="cb-key">${r[0]}</span><span class="cb-val red">${r[1]}</span></div>`).join('')}
+    <div class="cb-row"><span class="cb-key" style="color:#e8f4ff;font-weight:500">Total costo patronal mensual real</span><span class="cb-total">${fmtD(costoPatronalTotal)}</span></div>`;
+
+  document.getElementById('eq-bd').innerHTML = `
+    <div class="eq-head"><i class="ti ti-trending-up" aria-hidden="true" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Punto de equilibrio de la contratación</div>
+    ${[
+      ['Facturación extra que generarás', fmt(Math.round(factExtra))],
+      ['Margen (50%) sobre esa facturación', fmt(Math.round(margen50))],
+      ['Facturación mínima para cubrir costo', fmt(Math.round(factNecesaria))],
+      ['Clientes nuevos necesarios / mes', `${clientesNecesarios} × ${fmt(ticketPromedio)} ticket prom.`],
+      ['Días estimados para punto de equilibrio', `${diasBreakeven} días`],
+    ].map(r=>`<div class="eq-row"><span class="eq-key">${r[0]}</span><span class="eq-val">${r[1]}</span></div>`).join('')}`;
+
+  document.getElementById('cfo-txt').innerHTML =
+    `Si contratas a este colaborador, tu costo mensual real bajo la ley ecuatoriana es de <mark>${fmt(Math.round(costoPatronalTotal))}</mark> (no los <strong>${fmt(sueldo)}</strong> del sueldo neto que ves en el recibo). Sin embargo, tu hora de trabajo pasa de valer <strong>${fmt(Math.round(valorHoraActual))}</strong> a <em>${fmt(Math.round(valorHoraNueva))}</em>. Para que este empleado se pague solo, solo necesitas cerrar <em>${clientesNecesarios} cliente${clientesNecesarios!==1?'s':''} adicionale${clientesNecesarios!==1?'s':''}</em> al mes con el tiempo que vas a recuperar. <strong>Deja de operar, empieza a dirigir.</strong>`;
+
+  renderChart(fact, facturacionNueva, costoPatronalTotal);
+  document.getElementById('res').style.display = 'block';
+  document.getElementById('res').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function renderChart(base, nueva, costo){
+  const labels = ['Mes 1','Mes 2','Mes 3','Mes 4','Mes 5','Mes 6'];
+  const sinD = labels.map((_,i)=>Math.round(base*(1+i*0.015)));
+  const conD = labels.map((_,i)=>Math.round(nueva*(1+i*0.03)));
+  const costoLine = Array(6).fill(Math.round(base+costo));
+  const ctx = document.getElementById('pc').getContext('2d');
+  if(pChart) pChart.destroy();
+  pChart = new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[
+      {label:'Sin delegar',data:sinD,borderColor:'#1d6fa8',backgroundColor:'rgba(29,111,168,0.07)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#1d6fa8',fill:true,tension:0.35},
+      {label:'Con delegación',data:conD,borderColor:'#00cc55',backgroundColor:'rgba(0,204,85,0.07)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#00cc55',fill:true,tension:0.35},
+      {label:'Costo patronal real',data:costoLine,borderColor:'#ff3333',backgroundColor:'transparent',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d1520',titleColor:'#3a6a8a',bodyColor:'#e8f4ff',borderColor:'#1a3555',borderWidth:1,callbacks:{label:c=>' '+fmt(c.raw)}}},
+      scales:{
+        x:{ticks:{color:'#2a4a60',font:{size:11}},grid:{color:'#0e1820'},ticks:{autoSkip:false,maxRotation:0}},
+        y:{ticks:{color:'#2a4a60',font:{size:11},callback:v=>'$'+(v>=1000?(v/1000).toFixed(0)+'k':v)},grid:{color:'#0e1820'}}
+      }
+    }
+  });
+}
+
+function resetCalc(){
+  document.getElementById('res').style.display='none';
+  if(pChart){pChart.destroy();pChart=null;}
+  document.getElementById('fact').value='';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
