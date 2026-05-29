@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador de Rentabilidad Agencia</title>
+<style>
+:root {
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --border-radius-lg: 14px;
+  --border-radius-md: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  background: #06080d;
+  color: #e2e8f0;
+  min-height: 100vh;
+  padding: 20px;
+}
+.page-wrap { max-width: 1120px; margin: 0 auto; }
+.dash { background: #0d0f14; border-radius: var(--border-radius-lg); padding: 1.5rem; color: #e2e8f0; }
+.dash-title { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; color: #4ade80; text-transform: uppercase; margin-bottom: 4px; }
+.dash-sub { font-size: 22px; font-weight: 500; color: #f1f5f9; margin-bottom: 1.5rem; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.card-dark { background: #161b27; border: 0.5px solid #2a3148; border-radius: var(--border-radius-md); padding: 1rem; }
+label { display: block; font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+input[type=number], select {
+  width: 100%; background: #0d0f14; border: 0.5px solid #2a3148; border-radius: var(--border-radius-md);
+  color: #e2e8f0; font-size: 15px; padding: 8px 10px; outline: none;
+}
+input[type=number]:focus, select:focus { border-color: #4ade80; }
+select option { background: #0d0f14; }
+.metric-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+.metric-value { font-size: 22px; font-weight: 500; }
+.green { color: #4ade80; }
+.red { color: #f87171; }
+.amber { color: #fbbf24; }
+.muted { color: #94a3b8; }
+.divider { border: none; border-top: 0.5px solid #2a3148; margin: 1rem 0; }
+.thermo-wrap { margin: 1rem 0; }
+.thermo-label { font-size: 11px; color: #64748b; margin-bottom: 6px; display: flex; justify-content: space-between; }
+.thermo-track { height: 14px; background: #1e2538; border-radius: 99px; overflow: hidden; position: relative; }
+.thermo-fill { height: 100%; border-radius: 99px; transition: width 0.4s, background 0.4s; }
+.badge { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 99px; font-weight: 500; }
+.badge-ok { background: #052e16; color: #4ade80; }
+.badge-warn { background: #451a03; color: #fbbf24; }
+.badge-danger { background: #450a0a; color: #f87171; }
+.row-detail { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.5px solid #1e2538; font-size: 13px; }
+.row-detail:last-child { border-bottom: none; }
+.row-key { color: #94a3b8; }
+.row-val { font-weight: 500; }
+.btn-copy { width: 100%; margin-top: 1rem; background: transparent; border: 0.5px solid #4ade80; color: #4ade80; border-radius: var(--border-radius-md); padding: 10px 16px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
+.btn-copy:hover { background: rgba(74,222,128,0.08); }
+.btn-copy:active { transform: scale(0.98); }
+.alert-box { border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; margin-top: 12px; }
+.alert-danger { background: #450a0a; border: 0.5px solid #7f1d1d; color: #fca5a5; }
+.alert-ok { background: #052e16; border: 0.5px solid #14532d; color: #86efac; }
+.chart-wrap { position: relative; height: 200px; margin-top: 12px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+.section-title { font-size: 11px; color: #4ade80; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+@media (max-width: 960px) {
+  .grid3 { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .grid2 { grid-template-columns: 1fr; }
+  body { padding: 12px; }
+}
+</style>
+</head>
+<body>
+<main class="page-wrap">
+
+<h2 class="sr-only">Simulador de rentabilidad real vs. fugas de dinero para agencias de software</h2>
+
+<div class="dash">
+  <div class="dash-title">CFO Dashboard · Agencia de Software</div>
+  <div class="dash-sub">Simulador de Rentabilidad Real</div>
+
+  <div class="grid2" style="margin-bottom:12px;">
+    <div class="card-dark">
+      <label>Horas estimadas del proyecto</label>
+      <input type="number" id="horas" value="200" min="1" max="10000" oninput="calc()">
+    </div>
+    <div class="card-dark">
+      <label>Tarifa por hora cobrada (USD)</label>
+      <input type="number" id="tarifa" value="50" min="1" max="1000" oninput="calc()">
+    </div>
+  </div>
+  <div class="grid2" style="margin-bottom:1.5rem;">
+    <div class="card-dark">
+      <label>Reuniones semanales previstas</label>
+      <input type="number" id="reuniones" value="3" min="0" max="50" oninput="calc()">
+    </div>
+    <div class="card-dark">
+      <label>Factor de intensidad del cliente</label>
+      <select id="factor" onchange="calc()">
+        <option value="0">Cooperador</option>
+        <option value="0.15" selected>Indeciso (+15% retrabajo)</option>
+        <option value="0.30">Micro-manager (+30% reuniones/retrabajo)</option>
+      </select>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title">Termómetro de Margen en Peligro</div>
+
+  <div class="thermo-wrap">
+    <div class="thermo-label">
+      <span>Margen ideal</span>
+      <span id="pct-label">—</span>
+    </div>
+    <div class="thermo-track">
+      <div class="thermo-fill" id="thermo" style="width:0%;"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:#475569;">
+      <span>0% (pérdida total)</span><span>50% (saludable)</span><span>100%</span>
+    </div>
+  </div>
+
+  <div style="margin-top:4px;" id="badge-wrap"></div>
+
+  <hr class="divider">
+  <div class="grid3" style="margin-bottom:1rem;">
+    <div class="card-dark">
+      <div class="metric-label">Ingreso cotizado</div>
+      <div class="metric-value green" id="ingreso-ideal">$0</div>
+    </div>
+    <div class="card-dark">
+      <div class="metric-label">Costo oculto real</div>
+      <div class="metric-value red" id="costo-oculto">$0</div>
+    </div>
+    <div class="card-dark">
+      <div class="metric-label">Ganancia real neta</div>
+      <div class="metric-value" id="ganancia-real" style="color:#f1f5f9">$0</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div class="section-title">Desglose de Fugas</div>
+  <div id="fugas-list"></div>
+
+  <hr class="divider">
+  <div class="section-title">Comparativa Visual — Ideal vs. Real</div>
+  <div class="chart-wrap">
+    <canvas id="barChart" role="img" aria-label="Gráfica comparativa de ingresos ideal versus real con desglose de costos ocultos">Comparativa de ingresos.</canvas>
+  </div>
+  <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:#64748b;flex-wrap:wrap;">
+    <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#4ade80;"></span>Ingreso ideal</span>
+    <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#f87171;"></span>Costo oculto</span>
+    <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#60a5fa;"></span>Ganancia real neta</span>
+  </div>
+
+  <div id="alert-msg"></div>
+
+  <hr class="divider">
+  <div class="section-title">Presupuesto Recomendado (+20%)</div>
+  <div class="grid2">
+    <div class="card-dark">
+      <div class="metric-label">Total cotizado actual</div>
+      <div class="metric-value muted" id="total-actual">$0</div>
+    </div>
+    <div class="card-dark">
+      <div class="metric-label">Deberías cobrar</div>
+      <div class="metric-value green" id="total-recom">$0</div>
+    </div>
+  </div>
+
+  <button class="btn-copy" onclick="copiarResumen()">
+    <i class="ti ti-copy" aria-hidden="true"></i> Copiar resumen ejecutivo para Slack
+  </button>
+  <div id="copy-confirm" style="font-size:12px;color:#4ade80;text-align:center;margin-top:6px;height:16px;"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+let barChart = null;
+
+function fmt(n) {
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+
+function calc() {
+  const horas = parseFloat(document.getElementById('horas').value) || 0;
+  const tarifa = parseFloat(document.getElementById('tarifa').value) || 0;
+  const reunionesSem = parseFloat(document.getElementById('reuniones').value) || 0;
+  const factor = parseFloat(document.getElementById('factor').value) || 0;
+
+  const ingresoIdeal = horas * tarifa;
+
+  const durSemanas = Math.max(1, horas / 40);
+  const hReunionesBase = reunionesSem * 1.5 * durSemanas;
+  const hReunionesExtra = hReunionesBase * factor;
+  const hTotalReunionesCost = (hReunionesBase + hReunionesExtra) * tarifa;
+
+  const hRetrabajo = horas * factor;
+  const costoRetrabajo = hRetrabajo * tarifa;
+
+  const hGestion = horas * 0.08;
+  const costoGestion = hGestion * tarifa;
+
+  const hBuffer = horas * 0.05;
+  const costoBuffer = hBuffer * tarifa;
+
+  const costoOcultoTotal = hTotalReunionesCost + costoRetrabajo + costoGestion + costoBuffer;
+  const gananciaReal = ingresoIdeal - costoOcultoTotal;
+  const margenPct = ingresoIdeal > 0 ? Math.max(0, (gananciaReal / ingresoIdeal) * 100) : 0;
+  const totalRecom = ingresoIdeal * 1.20;
+
+  document.getElementById('ingreso-ideal').textContent = fmt(ingresoIdeal);
+  document.getElementById('costo-oculto').textContent = fmt(costoOcultoTotal);
+
+  const ganEl = document.getElementById('ganancia-real');
+  ganEl.textContent = fmt(gananciaReal);
+  ganEl.className = 'metric-value ' + (gananciaReal < 0 ? 'red' : gananciaReal < ingresoIdeal * 0.2 ? 'amber' : 'green');
+
+  document.getElementById('total-actual').textContent = fmt(ingresoIdeal);
+  document.getElementById('total-recom').textContent = fmt(totalRecom);
+
+  const thermo = document.getElementById('thermo');
+  const pct = Math.min(100, margenPct * 2);
+  thermo.style.width = pct + '%';
+  thermo.style.background = margenPct < 15 ? '#f87171' : margenPct < 30 ? '#fbbf24' : '#4ade80';
+
+  document.getElementById('pct-label').textContent = Math.round(margenPct) + '% de margen real';
+
+  const badgeWrap = document.getElementById('badge-wrap');
+  let badgeClass, badgeText;
+  if (margenPct < 15) { badgeClass = 'badge-danger'; badgeText = 'Margen en zona de peligro crítico'; }
+  else if (margenPct < 30) { badgeClass = 'badge-warn'; badgeText = 'Margen ajustado — revisar cotización'; }
+  else { badgeClass = 'badge-ok'; badgeText = 'Margen saludable'; }
+  badgeWrap.innerHTML = `<span class="badge ${badgeClass}">${badgeText}</span>`;
+
+  const fugas = [
+    { label: 'Reuniones (base + extra por cliente)', val: hTotalReunionesCost, hrs: Math.round(hReunionesBase + hReunionesExtra) },
+    { label: 'Retrabajo por tipo de cliente', val: costoRetrabajo, hrs: Math.round(hRetrabajo) },
+    { label: 'Gestión no cobrada (emails, docs, status)', val: costoGestion, hrs: Math.round(hGestion) },
+    { label: 'Buffer de imprevistos (5%)', val: costoBuffer, hrs: Math.round(hBuffer) },
+  ];
+
+  const fList = document.getElementById('fugas-list');
+  fList.innerHTML = fugas.map(f => `
+    <div class="row-detail">
+      <span class="row-key">${f.label}</span>
+      <span style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:11px;color:#475569;">${f.hrs}h</span>
+        <span class="row-val red">${fmt(f.val)}</span>
+      </span>
+    </div>
+  `).join('');
+
+  const alertEl = document.getElementById('alert-msg');
+  if (gananciaReal < 0) {
+    alertEl.innerHTML = `<div class="alert-box alert-danger"><strong>Alerta crítica:</strong> Estás trabajando a pérdida. Regalas ${fmt(Math.abs(gananciaReal))} en este proyecto sin saberlo.</div>`;
+  } else if (margenPct < 20) {
+    alertEl.innerHTML = `<div class="alert-box alert-danger">Con este margen, un cliente difícil o una semana de retrasos borra tu ganancia entera.</div>`;
+  } else {
+    alertEl.innerHTML = `<div class="alert-box alert-ok">Margen razonable, pero sube la cotización un 20% antes de enviarla. Siempre hay imprevistos.</div>`;
+  }
+
+  renderChart(ingresoIdeal, costoOcultoTotal, Math.max(0, gananciaReal));
+}
+
+function renderChart(ideal, oculto, neto) {
+  const ctx = document.getElementById('barChart').getContext('2d');
+  const data = {
+    labels: ['Ingreso ideal', 'Costo oculto', 'Ganancia neta real'],
+    datasets: [{
+      data: [ideal, oculto, neto],
+      backgroundColor: ['#4ade80', '#f87171', '#60a5fa'],
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  };
+  if (barChart) {
+    barChart.data.datasets[0].data = [ideal, oculto, neto];
+    barChart.update();
+  } else {
+    barChart = new Chart(ctx, {
+      type: 'bar',
+      data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: {
+          callbacks: { label: ctx => ' ' + fmt(ctx.raw) }
+        }},
+        scales: {
+          x: { ticks: { color: '#64748b', font: { size: 11 } }, grid: { color: '#1e2538' } },
+          y: { ticks: { color: '#64748b', font: { size: 11 }, callback: v => '$' + (v/1000).toFixed(0) + 'k' }, grid: { color: '#1e2538' } }
+        }
+      }
+    });
+  }
+}
+
+function copiarResumen() {
+  const horas = document.getElementById('horas').value;
+  const tarifa = document.getElementById('tarifa').value;
+  const factor = document.getElementById('factor');
+  const fText = factor.options[factor.selectedIndex].text;
+  const ideal = document.getElementById('ingreso-ideal').textContent;
+  const oculto = document.getElementById('costo-oculto').textContent;
+  const neto = document.getElementById('ganancia-real').textContent;
+  const recom = document.getElementById('total-recom').textContent;
+  const pct = document.getElementById('pct-label').textContent;
+
+  const txt = `📊 *Análisis de Rentabilidad — Resumen Ejecutivo*
+
+*Parámetros del proyecto:*
+• Horas estimadas: ${horas}h @ ${tarifa} USD/h
+• Perfil de cliente: ${fText}
+
+*Resultados:*
+• Ingreso cotizado: ${ideal}
+• Costos ocultos no cobrados: ${oculto}
+• Ganancia real neta: ${neto}
+• Margen real: ${pct}
+
+*Recomendación:*
+⚠️ Cotización recomendada (+20% buffer): *${recom}*
+No envíes la propuesta sin ajustar el precio. Los costos ocultos de gestión y retrabajo no están incluidos en tu tarifa actual.
+
+_Generado con Simulador de Rentabilidad Real — CFO Dashboard_`;
+
+  navigator.clipboard.writeText(txt).then(() => {
+    const conf = document.getElementById('copy-confirm');
+    conf.textContent = 'Resumen copiado al portapapeles';
+    setTimeout(() => conf.textContent = '', 2500);
+  });
+}
+
+calc();
+</script>
+</main>
+</body>
+</html>
