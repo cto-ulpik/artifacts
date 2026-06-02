@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="../favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="../favicon.png">
+<title>ULPIK · Analizador de Preregistrabilidad</title>
+<script src="../assets/theme.js"></script>
+<link rel="stylesheet" href="../assets/theme.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
+
+html[data-theme="light"] {
+  --bg: #F7F6F3;
+  --surface: #FFFFFF;
+  --surface2: #F0EEE9;
+  --border: #E2DED6;
+  --border2: #CBC7BE;
+  --text: #1A1917;
+  --text2: #6B6760;
+  --text3: #9C9890;
+  --primary-bg: #1A1917;
+  --primary-fg: #fff;
+  --primary-hover: #2d2c2a;
+  --red-bg: #FEF0EE; --red-b: #E8998F; --red-t: #8B2E24; --red-d: #5C1C14;
+  --amb-bg: #FEF5E7; --amb-b: #DFB464; --amb-t: #8B5E15; --amb-d: #5C3A0A;
+  --grn-bg: #EDF7ED; --grn-b: #7BBD7B; --grn-t: #2D6E2D; --grn-d: #1A4A1A;
+  --grn-hover: #D4EDCC;
+  --blue: #2C5F8A;
+  --ai-pill-bg: #EEF4FF; --ai-pill-text: #2255AA; --ai-pill-bd: #B8CFF5;
+  --r: 8px; --rl: 12px;
+}
+html[data-theme="dark"] {
+  --bg: #121210;
+  --surface: #1c1b19;
+  --surface2: #252422;
+  --border: #3a3834;
+  --border2: #4a4844;
+  --text: #eceae6;
+  --text2: #a8a49c;
+  --text3: #7a7670;
+  --primary-bg: #eceae6;
+  --primary-fg: #1a1917;
+  --primary-hover: #d4d2ce;
+  --red-bg: #2a1512; --red-b: #6b3028; --red-t: #f0a8a0; --red-d: #fca5a5;
+  --amb-bg: #2a2010; --amb-b: #6b5020; --amb-t: #f5d08a; --amb-d: #fde68a;
+  --grn-bg: #142818; --grn-b: #2d5c2d; --grn-t: #86efac; --grn-d: #bbf7d0;
+  --grn-hover: #1e3a1e;
+  --blue: #6b9fd4;
+  --ai-pill-bg: #1a2744; --ai-pill-text: #93c5fd; --ai-pill-bd: #2d4270;
+  --r: 8px; --rl: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background 0.25s, color 0.25s;
+}
+
+/* TOP BAR */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 52px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.tbl { display: flex; align-items: center; gap: 10px; }
+.logo { width: 28px; height: 28px; background: var(--primary-bg); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--primary-fg); letter-spacing: -0.5px; }
+.app-name { font-size: 13.5px; font-weight: 500; }
+.app-sub { font-size: 12px; color: var(--text3); }
+.badge { font-size: 11px; padding: 3px 9px; border-radius: 20px;
+  background: var(--surface2); color: var(--text2); border: 1px solid var(--border); font-weight: 500; }
+
+/* CONTAINER */
+.wrap { max-width: 680px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+
+.page-hdr { margin-bottom: 1.75rem; }
+.page-hdr h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; margin-bottom: 5px; }
+.page-hdr p { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.ai-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600;
+  padding: 3px 10px; border-radius: 20px;
+  background: var(--ai-pill-bg); color: var(--ai-pill-text); border: 1px solid var(--ai-pill-bd);
+  margin-bottom: 10px; letter-spacing: 0.02em;
+}
+.ai-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ai-pill-text); animation: pulse 1.8s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* CARD */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--rl); padding: 1.5rem; margin-bottom: 1.25rem;
+}
+.card-hdr {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 1.25rem; padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.card-num {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--primary-bg); color: var(--primary-fg);
+  font-size: 11px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.card-title { font-size: 14px; font-weight: 600; }
+.card-note { font-size: 12px; color: var(--text3); margin-left: auto; }
+
+/* FIELDS */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.fc { grid-column: 1/-1; }
+.fld { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.fld:last-child { margin-bottom: 0; }
+.fld label { font-size: 12px; font-weight: 500; color: var(--text2); }
+.fld input, .fld select, .fld textarea {
+  font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+  padding: 8px 11px; border: 1px solid var(--border);
+  border-radius: var(--r); background: var(--bg); color: var(--text);
+  outline: none; transition: border-color .15s; width: 100%;
+}
+.fld input:focus, .fld select:focus, .fld textarea:focus {
+  border-color: var(--blue); background: var(--surface);
+}
+.fld textarea { resize: none; min-height: 64px; line-height: 1.5; }
+
+/* ANALYZE BUTTON */
+.btn-analyze {
+  width: 100%;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 600;
+  padding: 12px 20px;
+  border-radius: var(--r);
+  border: 1.5px solid var(--primary-bg);
+  background: var(--primary-bg); color: var(--primary-fg);
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 0.25rem;
+}
+.btn-analyze:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+.btn-analyze:disabled { background: var(--border2); border-color: var(--border2); cursor: not-allowed; }
+
+/* ANALYZING STATE */
+.analyzing-box {
+  display: none; text-align: center;
+  padding: 2rem 1rem; color: var(--text2);
+}
+.analyzing-box.show { display: block; }
+.spin {
+  width: 32px; height: 32px; border: 2.5px solid var(--border);
+  border-top-color: var(--text); border-radius: 50%;
+  animation: spin .7s linear infinite; margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.analyzing-steps { font-size: 12px; color: var(--text3); margin-top: 6px; min-height: 18px; }
+
+/* RESULT SECTION */
+.result-section { display: none; margin-top: 0; }
+.result-section.show { display: block; }
+
+.verdict-bar {
+  border-radius: var(--rl); padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem; border: 1.5px solid transparent;
+}
+.verdict-bar.vr { background: var(--red-bg); border-color: var(--red-b); }
+.verdict-bar.va { background: var(--amb-bg); border-color: var(--amb-b); }
+.verdict-bar.vg { background: var(--grn-bg); border-color: var(--grn-b); }
+
+.verdict-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.verdict-ico { font-size: 22px; }
+.verdict-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; opacity: .7; }
+.verdict-title { font-size: 15px; font-weight: 600; margin-top: 1px; }
+.vr .verdict-label, .vr .verdict-title { color: var(--red-d); }
+.va .verdict-label, .va .verdict-title { color: var(--amb-d); }
+.vg .verdict-label, .vg .verdict-title { color: var(--grn-d); }
+
+.verdict-body { font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+.vr .verdict-body { color: var(--red-t); }
+.va .verdict-body { color: var(--amb-t); }
+.vg .verdict-body { color: var(--grn-t); }
+
+/* OUTPUT COPY BOX */
+.output-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--rl); padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.output-hdr {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.output-lbl { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .05em; }
+.btn-copy {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px; font-weight: 600;
+  padding: 6px 14px; border-radius: var(--r);
+  border: 1.5px solid var(--grn-b);
+  background: var(--grn-bg); color: var(--grn-d);
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; gap: 5px;
+}
+.btn-copy:hover { background: var(--grn-hover); }
+.btn-copy.done { background: var(--grn-t); border-color: var(--grn-t); color: var(--primary-fg); }
+
+.output-pre {
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  color: var(--text); background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 1rem 1.1rem;
+  white-space: pre-wrap; line-height: 1.65;
+  max-height: 280px; overflow-y: auto;
+}
+
+/* ACTION ROW */
+.action-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0; }
+.btn-reset {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 500;
+  padding: 9px 16px; border-radius: var(--r);
+  border: 1px solid var(--border2); background: transparent;
+  color: var(--text2); cursor: pointer; transition: all .15s;
+}
+.btn-reset:hover { background: var(--surface2); }
+
+.divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+.error-box {
+  background: var(--red-bg); border: 1px solid var(--red-b);
+  border-radius: var(--r); padding: 10px 14px;
+  font-size: 13px; color: var(--red-t); margin-top: 1rem; display: none;
+}
+.error-box.show { display: block; }
+
+@media (max-width: 580px) {
+  .g2, .g3 { grid-template-columns: 1fr; }
+  .fc { grid-column: 1; }
+  .wrap { padding: 1rem 1rem 4rem; }
+  .topbar { padding: 0 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tbl">
+    <div class="logo">U</div>
+    <span class="app-name">ULPIK</span>
+    <span class="app-sub">&nbsp;· Propiedad Intelectual</span>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span class="badge">Analizador BF</span>
+    <span class="badge" id="fecha-tag"></span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="page-hdr">
+    <div class="ai-pill"><span class="ai-dot"></span> Análisis por IA · Normativa ecuatoriana</div>
+    <h1>Analizador de preregistrabilidad</h1>
+    <p>Ingrese los datos del signo. La IA analiza automáticamente los impedimentos de registro bajo la Ley de Propiedad Intelectual, Decisión 486 y criterios SENADI, y emite su propio dictamen.</p>
+  </div>
+
+  <!-- CARD 1: Datos -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-num">1</div>
+      <span class="card-title">Datos del signo a registrar</span>
+      <span class="card-note">Completar todos los campos</span>
+    </div>
+
+    <div class="fld">
+      <label>Denominación / nombre de la marca</label>
+      <input type="text" id="d-marca" placeholder="Ej: Pisos &amp; Techo Importadora Barreno">
+    </div>
+    <div class="g2">
+      <div class="fld">
+        <label>Clase(s) NIZA</label>
+        <input type="text" id="d-clase" placeholder="Ej: 6, 19, 35">
+      </div>
+      <div class="fld">
+        <label>Tipo de signo</label>
+        <select id="d-tipo">
+          <option value="">— Seleccionar —</option>
+          <option>Denominativo</option>
+          <option>Mixto (denominativo + logotipo)</option>
+          <option>Figurativo</option>
+          <option>Tridimensional</option>
+        </select>
+      </div>
+    </div>
+    <div class="fld">
+      <label>Productos / servicios que identificará</label>
+      <textarea id="d-prod" placeholder="Ej: Productos de construcción, teja española, materiales para instalación de teja, canales de agua lluvia"></textarea>
+    </div>
+    <div class="g3">
+      <div class="fld">
+        <label>¿Incluye logotipo?</label>
+        <select id="d-logo">
+          <option value="">— —</option>
+          <option value="Sí">Sí</option>
+          <option value="No">No</option>
+          <option value="En desarrollo">En desarrollo</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label>Titular / cliente</label>
+        <input type="text" id="d-titular" placeholder="Nombre del cliente">
+      </div>
+      <div class="fld">
+        <label>Asistente responsable</label>
+        <input type="text" id="d-resp" placeholder="Tu nombre">
+      </div>
+    </div>
+    <div class="fld">
+      <label>Descripción del logotipo o elementos gráficos (si aplica)</label>
+      <input type="text" id="d-grafico" placeholder="Ej: casa estilizada en colores azul y blanco, sin emblemas institucionales">
+    </div>
+    <div class="fld">
+      <label>Observaciones del cliente</label>
+      <input type="text" id="d-obscl" placeholder="Urgencia, contexto, instrucciones especiales...">
+    </div>
+  </div>
+
+  <!-- CARD 2: Analizar -->
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-num">2</div>
+      <span class="card-title">Análisis de preregistrabilidad por IA</span>
+    </div>
+
+    <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;line-height:1.6">
+      Al hacer clic, la IA revisa la denominación, clase(s) y productos/servicios, y emite su dictamen conforme a los criterios de la normativa ecuatoriana: prohibiciones absolutas, debilidad marcaria y riesgos de confundibilidad.
+    </p>
+
+    <button class="btn-analyze" id="btn-analizar" onclick="analizar()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Analizar marca
+    </button>
+
+    <div class="analyzing-box" id="analyzing-box">
+      <div class="spin"></div>
+      <div style="font-size:13.5px;font-weight:500;color:var(--text)">Analizando el signo...</div>
+      <div class="analyzing-steps" id="step-txt">Revisando la denominación</div>
+    </div>
+
+    <div class="error-box" id="error-box"></div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="result-section" id="result-section">
+
+    <div class="verdict-bar" id="verdict-bar">
+      <div class="verdict-top">
+        <span class="verdict-ico" id="v-ico"></span>
+        <div>
+          <div class="verdict-label" id="v-label"></div>
+          <div class="verdict-title" id="v-title"></div>
+        </div>
+      </div>
+      <div class="verdict-body" id="v-body"></div>
+    </div>
+
+    <div class="output-box">
+      <div class="output-hdr">
+        <span class="output-lbl">📋 Texto para Bitrix</span>
+        <button class="btn-copy" id="btn-copy" onclick="copiar()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copiar al portapapeles
+        </button>
+      </div>
+      <div class="output-pre" id="output-pre"></div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-analyze" style="width:auto;padding:9px 20px;font-size:13px" onclick="analizar()">
+        Volver a analizar
+      </button>
+      <button class="btn-reset" onclick="reset()">Nuevo análisis</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.getElementById('fecha-tag').textContent = new Date().toLocaleDateString('es-EC', {day:'2-digit',month:'short',year:'numeric'});
+
+const steps = [
+  'Revisando la denominación...',
+  'Evaluando descriptividad y genericidad...',
+  'Verificando topónimos y emblemas...',
+  'Analizando fuerza distintiva...',
+  'Aplicando criterios SENADI...',
+  'Generando dictamen...'
+];
+let stepIdx = 0, stepTimer = null;
+
+function startSteps() {
+  stepIdx = 0;
+  document.getElementById('step-txt').textContent = steps[0];
+  stepTimer = setInterval(() => {
+    stepIdx = (stepIdx + 1) % steps.length;
+    document.getElementById('step-txt').textContent = steps[stepIdx];
+  }, 1400);
+}
+function stopSteps() { clearInterval(stepTimer); }
+
+function v(id) { return (document.getElementById(id)||{}).value?.trim() || ''; }
+
+async function analizar() {
+  const marca = v('d-marca');
+  const clase = v('d-clase');
+  const tipo = v('d-tipo');
+  const prod = v('d-prod');
+  const logo = v('d-logo');
+  const grafico = v('d-grafico');
+
+  if (!marca || !clase || !prod) {
+    showError('Por favor complete al menos: denominación, clase(s) NIZA y productos/servicios.');
+    return;
+  }
+
+  hideError();
+  document.getElementById('btn-analizar').disabled = true;
+  document.getElementById('analyzing-box').classList.add('show');
+  document.getElementById('result-section').classList.remove('show');
+  startSteps();
+
+  const prompt = `Eres un abogado especialista en propiedad intelectual ecuatoriana con amplia experiencia en SENADI. Analiza el siguiente signo distintivo y emite un dictamen de preregistrabilidad conforme a la Ley de Propiedad Intelectual del Ecuador, la Decisión 486 de la Comunidad Andina, y los criterios aplicados por SENADI.
+
+DATOS DEL SIGNO:
+- Denominación: ${marca}
+- Clase(s) NIZA: ${clase}
+- Tipo de signo: ${tipo || 'No especificado'}
+- Productos/servicios: ${prod}
+- Logotipo: ${logo || 'No especificado'}
+${grafico ? '- Descripción elementos gráficos: ' + grafico : ''}
+
+INSTRUCCIONES:
+Analiza los siguientes criterios y emite tu dictamen. Responde ÚNICAMENTE con un objeto JSON con esta estructura exacta, sin texto adicional, sin markdown, sin explicaciones fuera del JSON:
+
+{
+  "veredicto": "ROJO" | "AMARILLO" | "VERDE",
+  "titulo": "Título corto del dictamen (máx 12 palabras)",
+  "impedimentos_absolutos": ["lista de impedimentos absolutos detectados, o array vacío"],
+  "debilidades": ["lista de debilidades marcarias detectadas, o array vacío"],
+  "analisis": "Análisis detallado de 3-5 párrafos: (1) evaluación de distintividad, (2) impedimentos detectados con fundamento jurídico específico, (3) riesgos de confundibilidad si aplica, (4) recomendación para el abogado revisor. Usa lenguaje técnico-jurídico claro.",
+  "recomendacion_cliente": "Mensaje breve (2-3 oraciones) para comunicar al cliente, en tono profesional pero accesible."
+}
+
+CRITERIOS A EVALUAR:
+ROJO (impedimento absoluto) si: denominación genérica/descriptiva sin distintividad, topónimos ecuatorianos (cantones, provincias, parroquias, ciudades), emblemas o banderas institucionales, denominaciones de origen protegidas, signos engañosos o contrarios al orden público.
+AMARILLO (debilidad marcaria) si: único diferenciador es apellido común o término débil, combinación de términos débiles sin fantasía, término extranjero directamente traducible a expresión descriptiva en español, marca notoria conocida con denominación similar, elemento gráfico que imita figuras genéricas del sector.
+VERDE si: signo con distintividad suficiente y sin impedimentos detectables a priori.
+
+Considera que "Importadora", "Distribuidora", "Servicios", "Centro" son términos débiles por sí solos. Apellidos como diferenciador único tienen fuerza marcaria limitada. Analiza cada componente del signo por separado y luego el conjunto.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    stopSteps();
+    document.getElementById('analyzing-box').classList.remove('show');
+    document.getElementById('btn-analizar').disabled = false;
+
+    if (!res.ok || data.error) {
+      showError('Error al conectar con el analizador: ' + (data.error?.message || 'Error desconocido'));
+      return;
+    }
+
+    const rawText = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+    let parsed;
+    try {
+      const clean = rawText.replace(/```json|```/g, '').trim();
+      parsed = JSON.parse(clean);
+    } catch(e) {
+      showError('Error al interpretar la respuesta de la IA. Intente nuevamente.');
+      return;
+    }
+
+    mostrarResultado(parsed);
+
+  } catch(err) {
+    stopSteps();
+    document.getElementById('analyzing-box').classList.remove('show');
+    document.getElementById('btn-analizar').disabled = false;
+    showError('No se pudo conectar con el analizador. Verifique su conexión a internet.');
+  }
+}
+
+function mostrarResultado(d) {
+  const bar = document.getElementById('verdict-bar');
+  bar.className = 'verdict-bar ' + (d.veredicto === 'ROJO' ? 'vr' : d.veredicto === 'AMARILLO' ? 'va' : 'vg');
+
+  const configs = {
+    ROJO:    { ico: '✕', label: 'Impedimento absoluto detectado', pfx: '🔴' },
+    AMARILLO:{ ico: '⚠', label: 'Debilidad marcaria',            pfx: '🟡' },
+    VERDE:   { ico: '✓', label: 'Sin impedimentos detectados',   pfx: '🟢' }
+  };
+  const cfg = configs[d.veredicto] || configs.VERDE;
+
+  document.getElementById('v-ico').textContent = cfg.ico;
+  document.getElementById('v-label').textContent = cfg.label;
+  document.getElementById('v-title').textContent = d.titulo || '';
+  document.getElementById('v-body').textContent = d.analisis || '';
+
+  // Build Bitrix text
+  const fecha = new Date().toLocaleDateString('es-EC', {day:'2-digit', month:'long', year:'numeric'});
+  const resp = v('d-resp') || '(sin responsable)';
+  const titular = v('d-titular') || '(sin titular)';
+  const obscl = v('d-obscl');
+
+  let bitrix = `📋 SOLICITUD DE BÚSQUEDA FONÉTICA — ULPIK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fecha: ${fecha}
+Asistente: ${resp}
+Titular / cliente: ${titular}${obscl ? '\nNotas del cliente: ' + obscl : ''}
+
+DATOS DEL SIGNO
+• Denominación: ${v('d-marca')}
+• Clase(s) NIZA: ${v('d-clase')}
+• Tipo de signo: ${v('d-tipo') || '(no especificado)'}
+• Logotipo: ${v('d-logo') || '(no especificado)'}
+• Productos/servicios:
+  ${v('d-prod')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DICTAMEN IA DE PREREGISTRABILIDAD
+${cfg.pfx} ${d.veredicto}: ${d.titulo}`;
+
+  if (d.impedimentos_absolutos && d.impedimentos_absolutos.length > 0) {
+    bitrix += `\n\nIMPEDIMENTOS ABSOLUTOS DETECTADOS:\n` + d.impedimentos_absolutos.map(i => '• ' + i).join('\n');
+  }
+  if (d.debilidades && d.debilidades.length > 0) {
+    bitrix += `\n\nDEBILIDADES MARCARIAS:\n` + d.debilidades.map(i => '• ' + i).join('\n');
+  }
+
+  bitrix += `\n\nANÁLISIS:\n${d.analisis}`;
+
+  if (d.recomendacion_cliente) {
+    bitrix += `\n\nCOMUNICACIÓN AL CLIENTE:\n${d.recomendacion_cliente}`;
+  }
+
+  bitrix += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Análisis generado por IA. Sujeto a revisión del abogado revisor antes de comunicar al cliente.`;
+
+  document.getElementById('output-pre').textContent = bitrix;
+  document.getElementById('btn-copy').className = 'btn-copy';
+  document.getElementById('btn-copy').innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copiar al portapapeles';
+
+  document.getElementById('result-section').classList.add('show');
+  document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function copiar() {
+  const txt = document.getElementById('output-pre').textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = document.getElementById('btn-copy');
+    btn.className = 'btn-copy done';
+    btn.textContent = '✓  ¡Copiado!';
+    setTimeout(() => {
+      btn.className = 'btn-copy';
+      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copiar al portapapeles';
+    }, 2500);
+  });
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-box');
+  el.textContent = '⚠ ' + msg;
+  el.classList.add('show');
+}
+function hideError() { document.getElementById('error-box').classList.remove('show'); }
+
+function reset() {
+  if (!confirm('¿Iniciar un nuevo análisis? Se borrarán los datos actuales.')) return;
+  ['d-marca','d-clase','d-prod','d-titular','d-resp','d-obscl','d-grafico'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  ['d-tipo','d-logo'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('result-section').classList.remove('show');
+  document.getElementById('analyzing-box').classList.remove('show');
+  document.getElementById('btn-analizar').disabled = false;
+  hideError();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
