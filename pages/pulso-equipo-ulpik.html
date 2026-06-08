@@ -424,19 +424,47 @@ const PIN_CORRECTO = '3301';
 // ══ GOOGLE SHEETS SYNC ══
 // Sheet: https://docs.google.com/spreadsheets/d/14Ubs_VXX_DLa86exaL4XslvCfY7XTKthER4CpYQBmpE
 // Backend: scripts/pulso-equipo-sheets.gs (desplegar como Web App → Cualquier persona)
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdpBxsV6GCZr11DkVfHDOMhAEjzz1Fil4NhGLT7Wna-gd-yT-J7r91YCD114anBIb2jA/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxaZrYx5GM-IQCq6r-mitcDU8dpIebSN9-bNt0WHd_tY8Gdz_S-9BMY_1HSDgsYhnJW5Q/exec';
+
+// Cache: indica si ya se cargaron datos remotos en esta sesión
+let remoteDatosCargados = false;
 
 async function sincronizarConSheets(respuesta) {
   if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') return { ok: false, reason: 'URL no configurada' };
   try {
-    // Usamos GET + parámetro en la URL — único método 100% confiable
-    // con Apps Script desde un dominio externo (evita el problema CORS/no-cors)
-    const url = APPS_SCRIPT_URL + '?payload=' + encodeURIComponent(JSON.stringify(respuesta));
+    const url = APPS_SCRIPT_URL + '?action=save&payload=' + encodeURIComponent(JSON.stringify(respuesta));
     await fetch(url, { method: 'GET', mode: 'no-cors' });
     return { ok: true };
   } catch(e) {
     console.warn('Sheets sync error:', e);
     return { ok: false, reason: e.message };
+  }
+}
+
+// Carga TODAS las respuestas del Sheet y las fusiona en localStorage
+async function cargarDatosSheets() {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') return false;
+  try {
+    const url = APPS_SCRIPT_URL + '?action=get_all';
+    const resp = await fetch(url);
+    const json = await resp.json();
+    if (json.status !== 'ok' || !Array.isArray(json.data)) return false;
+
+    // Reconstruir storage desde los datos del Sheet
+    const storage = {};
+    json.data.forEach(row => {
+      const clave = row.semana || semanaISO(new Date(row.timestamp));
+      if (!storage[clave]) storage[clave] = [];
+      if (!storage[clave].find(r => r.id == row.id)) {
+        storage[clave].push(row);
+      }
+    });
+    saveStorage(storage);
+    remoteDatosCargados = true;
+    return true;
+  } catch(e) {
+    console.warn('Error cargando datos del Sheet:', e);
+    return false;
   }
 }
 const CATEGORIAS = ['PROCESOS','COMUNICACIÓN','CARGA DE TRABAJO','AMBIENTE','SIN SUGERENCIA'];
@@ -945,7 +973,33 @@ function cambiarVista(vista) {
   document.getElementById('app-sofia').style.display = vista==='sofia'?'block':'none';
   document.getElementById('vs-equipo').classList.toggle('active',vista==='equipo');
   document.getElementById('vs-sofia').classList.toggle('active',vista==='sofia');
-  if (vista==='sofia') renderDashboard();
+  if (vista==='sofia') {
+    renderDashboard(); // render inmediato con datos locales
+    cargarYRenderizar(); // luego actualiza desde el Sheet
+  }
+}
+
+async function cargarYRenderizar() {
+  const sfBody = document.getElementById('sf-body') || document.querySelector('.sf-body');
+  // Mostrar indicador de carga sutil
+  const loadBadge = document.createElement('div');
+  loadBadge.id = 'sheets-loading';
+  loadBadge.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#222;border:1px solid rgba(255,90,31,0.4);border-radius:10px;padding:8px 14px;font-size:12px;color:rgba(255,255,255,0.6);z-index:999;display:flex;align-items:center;gap:8px;';
+  loadBadge.innerHTML = '<svg style="animation:spin 1s linear infinite" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FF5A1F" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> Cargando datos del equipo…';
+  document.body.appendChild(loadBadge);
+
+  const ok = await cargarDatosSheets();
+
+  loadBadge.remove();
+  if (ok) {
+    renderDashboard();
+    // Mostrar confirmación breve
+    const okBadge = document.createElement('div');
+    okBadge.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#222;border:1px solid rgba(34,197,94,0.4);border-radius:10px;padding:8px 14px;font-size:12px;color:#22C55E;z-index:999;';
+    okBadge.textContent = '✓ Datos actualizados desde Google Sheets';
+    document.body.appendChild(okBadge);
+    setTimeout(() => okBadge.remove(), 3000);
+  }
 }
 
 function init() {
