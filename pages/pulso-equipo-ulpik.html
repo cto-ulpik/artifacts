@@ -3,11 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="../favicon.png" type="image/png">
-<link rel="apple-touch-icon" href="../favicon.png">
 <title>Pulso del Equipo · Ulpik</title>
-<script src="../assets/theme.js"></script>
-<link rel="stylesheet" href="../assets/theme.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -39,7 +35,6 @@
 }
 .vs-btn:hover { color:white; background:rgba(255,255,255,0.08); }
 .vs-btn.active { background:var(--naranja); color:white; box-shadow:0 2px 8px rgba(255,90,31,0.4); }
-body.artifacts-internal-page .vista-switcher { top: 58px; }
 
 /* ══════════════ VISTA EQUIPO ══════════════ */
 body.vista-equipo { background:#FAFAF8; font-family:'DM Sans',sans-serif; color:#1A1A1A; min-height:100vh; }
@@ -425,6 +420,27 @@ body.vista-sofia { background:var(--dark); font-family:'DM Sans',sans-serif; col
 // ════════════════════════════════════════
 const STORAGE_KEY = 'ulpik_pulso_v2';
 const PIN_CORRECTO = '3301';
+
+// ══ GOOGLE SHEETS SYNC ══
+// Reemplaza esta URL con la URL de tu Web App de Apps Script
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwaO0HPVxCsEjtno2K6ezdumDC_Nxhqa9grDobyBsSs_Jal1PZ1czLJyScz8rtUPCBgGA/exec';
+
+async function sincronizarConSheets(respuesta) {
+  if (!APPS_SCRIPT_URL) return { ok: false, reason: 'URL no configurada' };
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(respuesta),
+      mode: 'no-cors'  // Requerido para Apps Script desde HTML externo
+    });
+    // Con no-cors no podemos leer la respuesta, pero la petición llega
+    return { ok: true };
+  } catch(e) {
+    console.warn('Sheets sync error:', e);
+    return { ok: false, reason: e.message };
+  }
+}
 const CATEGORIAS = ['PROCESOS','COMUNICACIÓN','CARGA DE TRABAJO','AMBIENTE','SIN SUGERENCIA'];
 const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
@@ -842,12 +858,18 @@ async function enviarFormulario() {
     sugerencia, categoria
   };
 
-  // Guardar en semana actual
+  // Guardar en semana actual (localStorage)
   const data = getStorage();
   const clave = semanaActual();
   if (!data[clave]) data[clave]=[];
   data[clave].push(respuesta);
   saveStorage(data);
+
+  // Sincronizar con Google Sheets (en paralelo, no bloqueante)
+  sincronizarConSheets(respuesta).then(result => {
+    if (!result.ok) console.warn('No se pudo sincronizar con Sheets:', result.reason);
+    else console.log('✅ Respuesta guardada en Google Sheets');
+  });
 
   // Gracias
   document.getElementById('eq-form').style.display='none';
