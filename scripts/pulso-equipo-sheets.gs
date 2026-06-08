@@ -133,22 +133,32 @@ function logError(errorMsg, payload) {
 // ════════════════════════════════════════════════════════════
 //  Función de prueba manual (ejecutar desde el editor)
 // ════════════════════════════════════════════════════════════
-function testManual() {
-  const fakeEvent = {
-    postData: {
-      contents: JSON.stringify({
-        id: Date.now(),
-        timestamp: new Date().toISOString(),
-        nombre: 'Test Usuario',
-        score: 8,
-        carga: 'Alta pero bien',
-        claridad: 'Sí siempre',
-        motivacion: 'Muy motivado/a',
-        sugerencia: 'Prueba de integración',
-        categoria: 'PROCESOS'
-      })
-    }
+function datosPrueba_() {
+  return {
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    nombre: 'Test Usuario',
+    score: 8,
+    carga: 'Alta pero bien',
+    claridad: 'Sí siempre',
+    motivacion: 'Muy motivado/a',
+    sugerencia: 'Prueba de integración',
+    categoria: 'PROCESOS'
   };
-  const result = doPost(fakeEvent);
+}
+
+/** Simula POST con JSON en postData (curl / clientes antiguos) */
+function testManual() {
+  const result = doPost({
+    postData: { contents: JSON.stringify(datosPrueba_()) }
+  });
+  Logger.log(result.getContent());
+}
+
+/** Simula POST desde GitHub Pages (form-urlencoded payload=...) */
+function testManualWeb() {
+  const result = doPost({
+    parameter: { payload: JSON.stringify(datosPrueba_()) }
+  });
   Logger.log(result.getContent());
 }
