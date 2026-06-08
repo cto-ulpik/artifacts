@@ -21,60 +21,77 @@ const HEADERS = [
 ];
 
 // ════════════════════════════════════════════════════════════
-//  doPost — recibe el JSON del formulario
+//  doPost — recibe el JSON del formulario (NO ejecutar doPost a mano)
+//  Para probar: ejecutar testManual() desde el editor
 // ════════════════════════════════════════════════════════════
 function doPost(e) {
   try {
-    // Parsear el body JSON
-    const payload = JSON.parse(e.postData.contents);
-
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    let sheet = ss.getSheetByName(SHEET_NAME);
-
-    // Crear hoja si no existe
-    if (!sheet) {
-      sheet = ss.insertSheet(SHEET_NAME);
-      sheet.appendRow(HEADERS);
-      // Dar formato al encabezado
-      const headerRange = sheet.getRange(1, 1, 1, HEADERS.length);
-      headerRange.setBackground('#FF5A1F');
-      headerRange.setFontColor('#FFFFFF');
-      headerRange.setFontWeight('bold');
-      sheet.setFrozenRows(1);
-    }
-
-    // Calcular semana ISO desde el timestamp
-    const semanaISO = calcularSemanaISO(new Date(payload.timestamp));
-
-    // Agregar fila
-    sheet.appendRow([
-      payload.timestamp || new Date().toISOString(),
-      semanaISO,
-      payload.nombre || 'Anónimo/a',
-      payload.score || '',
-      payload.carga || '',
-      payload.claridad || '',
-      payload.motivacion || '',
-      payload.sugerencia || '',
-      payload.categoria || '',
-      payload.id || ''
-    ]);
-
-    // Auto-ajustar columnas
-    sheet.autoResizeColumns(1, HEADERS.length);
-
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'ok' }))
-      .setMimeType(ContentService.MimeType.JSON);
-
+    const payload = parsePayload_(e);
+    guardarRespuesta_(payload);
+    return jsonResponse_({ status: 'ok' });
   } catch (err) {
-    // Registrar error en una hoja de logs
-    logError(err.toString(), e?.postData?.contents || '');
-
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'error', message: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+    logError(err.toString(), stringifyEvent_(e));
+    return jsonResponse_({ status: 'error', message: err.toString() });
   }
+}
+
+/** Lee JSON desde form-urlencoded (payload=...) o body text/plain */
+function parsePayload_(e) {
+  if (!e) {
+    throw new Error('Sin evento HTTP. No ejecutes doPost directamente: usa testManual().');
+  }
+  if (e.parameter && e.parameter.payload) {
+    return JSON.parse(e.parameter.payload);
+  }
+  if (e.postData && e.postData.contents) {
+    return JSON.parse(e.postData.contents);
+  }
+  throw new Error('Petición vacía. Envía el campo "payload" con el JSON.');
+}
+
+function guardarRespuesta_(payload) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAME);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME);
+    sheet.appendRow(HEADERS);
+    const headerRange = sheet.getRange(1, 1, 1, HEADERS.length);
+    headerRange.setBackground('#FF5A1F');
+    headerRange.setFontColor('#FFFFFF');
+    headerRange.setFontWeight('bold');
+    sheet.setFrozenRows(1);
+  }
+
+  const semanaISO = calcularSemanaISO(new Date(payload.timestamp || new Date()));
+
+  sheet.appendRow([
+    payload.timestamp || new Date().toISOString(),
+    semanaISO,
+    payload.nombre || 'Anónimo/a',
+    payload.score || '',
+    payload.carga || '',
+    payload.claridad || '',
+    payload.motivacion || '',
+    payload.sugerencia || '',
+    payload.categoria || '',
+    payload.id || ''
+  ]);
+
+  sheet.autoResizeColumns(1, HEADERS.length);
+}
+
+function jsonResponse_(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function stringifyEvent_(e) {
+  if (!e) return '';
+  if (e.parameter && e.parameter.payload) return e.parameter.payload;
+  if (e.postData && e.postData.contents) return e.postData.contents;
+  return '';
 }
 
 // ════════════════════════════════════════════════════════════

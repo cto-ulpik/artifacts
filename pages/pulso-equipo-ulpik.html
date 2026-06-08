@@ -429,12 +429,12 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwaO0HPVxCsEjtn
 async function sincronizarConSheets(respuesta) {
   if (!APPS_SCRIPT_URL) return { ok: false, reason: 'URL no configurada' };
   try {
-    // text/plain evita preflight CORS y es compatible con Apps Script desde GitHub Pages
+    // form-urlencoded evita preflight CORS; Apps Script lee e.parameter.payload
     await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(respuesta)
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: new URLSearchParams({ payload: JSON.stringify(respuesta) }).toString()
     });
     return { ok: true };
   } catch (e) {
@@ -817,22 +817,14 @@ function selectOpt(group,btn) {
   selections[group]=btn.dataset.val;
 }
 
-async function clasificarSugerencia(texto) {
-  if (!texto||texto.trim().length<5) return 'SIN SUGERENCIA';
-  try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:1000,
-        system:`Clasificas sugerencias de empleados de Ulpik (legaltech Ecuador) en UNA de estas categorías exactas: PROCESOS, COMUNICACIÓN, CARGA DE TRABAJO, AMBIENTE, SIN SUGERENCIA. Responde SOLO la categoría en mayúsculas, sin nada más.`,
-        messages:[{role:'user',content:`Sugerencia: "${texto}"`}]
-      })
-    });
-    const data = await resp.json();
-    const cat = data.content?.[0]?.text?.trim().toUpperCase();
-    return CATEGORIAS.includes(cat)?cat:'SIN SUGERENCIA';
-  } catch(e) { return 'SIN SUGERENCIA'; }
+function clasificarSugerencia(texto) {
+  if (!texto || texto.trim().length < 5) return 'SIN SUGERENCIA';
+  const t = texto.toLowerCase();
+  if (/\b(proceso|flujo|document|sistema|herramienta|ticket|jira|onboarding)\b/.test(t)) return 'PROCESOS';
+  if (/\b(comunicaci|reuni|feedback|alineaci|claridad|informaci)\b/.test(t)) return 'COMUNICACIÓN';
+  if (/\b(carga|horario|deadline|presi|burnout|sobrecarga|turno)\b/.test(t)) return 'CARGA DE TRABAJO';
+  if (/\b(ambiente|clima|equipo|cultura|motivaci|bienestar)\b/.test(t)) return 'AMBIENTE';
+  return 'SIN SUGERENCIA';
 }
 
 async function enviarFormulario() {
@@ -847,7 +839,7 @@ async function enviarFormulario() {
   const nombre = document.getElementById('inp-nombre').value.trim();
   btn.innerHTML=`<div class="eq-submit-loading"><svg class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Procesando…</div>`;
 
-  const categoria = await clasificarSugerencia(sugerencia);
+  const categoria = clasificarSugerencia(sugerencia);
   const clave = semanaActual();
   const respuesta = {
     id: Date.now(),
