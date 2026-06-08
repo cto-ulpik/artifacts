@@ -422,8 +422,9 @@ const STORAGE_KEY = 'ulpik_pulso_v2';
 const PIN_CORRECTO = '3301';
 
 // ══ GOOGLE SHEETS SYNC ══
-// Reemplaza esta URL con la URL de tu Web App de Apps Script
-const APPS_SCRIPT_URL = 'PEGAR_URL_AQUI';
+// Sheet: https://docs.google.com/spreadsheets/d/14Ubs_VXX_DLa86exaL4XslvCfY7XTKthER4CpYQBmpE
+// Backend: scripts/pulso-equipo-sheets.gs (desplegar como Web App → Cualquier persona)
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhxv9jFodkHaww5JBYpguTWgaYJSlJ62fCzsgV_dtpE5OUsLiUVshYY4hVlRkssa6CGg/exec';
 
 async function sincronizarConSheets(respuesta) {
   if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') return { ok: false, reason: 'URL no configurada' };
