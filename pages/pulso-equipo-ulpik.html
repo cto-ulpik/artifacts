@@ -422,22 +422,18 @@ const STORAGE_KEY = 'ulpik_pulso_v2';
 const PIN_CORRECTO = '3301';
 
 // ══ GOOGLE SHEETS SYNC ══
-// Sheet: https://docs.google.com/spreadsheets/d/14Ubs_VXX_DLa86exaL4XslvCfY7XTKthER4CpYQBmpE
-// Backend: scripts/pulso-equipo-sheets.gs (desplegar como Web App → Cualquier persona)
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxCSP1RClnbXJSmK9zvoN_zsMejccKB9MNd_D54HxTHP7rnPhnTrJadknl8U3bulSoquA/exec';
+// Reemplaza esta URL con la URL de tu Web App de Apps Script
+const APPS_SCRIPT_URL = 'PEGAR_URL_AQUI';
 
 async function sincronizarConSheets(respuesta) {
-  if (!APPS_SCRIPT_URL) return { ok: false, reason: 'URL no configurada' };
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') return { ok: false, reason: 'URL no configurada' };
   try {
-    // form-urlencoded evita preflight CORS; Apps Script lee e.parameter.payload
-    await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-      body: new URLSearchParams({ payload: JSON.stringify(respuesta) }).toString()
-    });
+    // Usamos GET + parámetro en la URL — único método 100% confiable
+    // con Apps Script desde un dominio externo (evita el problema CORS/no-cors)
+    const url = APPS_SCRIPT_URL + '?payload=' + encodeURIComponent(JSON.stringify(respuesta));
+    await fetch(url, { method: 'GET', mode: 'no-cors' });
     return { ok: true };
-  } catch (e) {
+  } catch(e) {
     console.warn('Sheets sync error:', e);
     return { ok: false, reason: e.message };
   }
@@ -817,14 +813,22 @@ function selectOpt(group,btn) {
   selections[group]=btn.dataset.val;
 }
 
-function clasificarSugerencia(texto) {
-  if (!texto || texto.trim().length < 5) return 'SIN SUGERENCIA';
-  const t = texto.toLowerCase();
-  if (/\b(proceso|flujo|document|sistema|herramienta|ticket|jira|onboarding)\b/.test(t)) return 'PROCESOS';
-  if (/\b(comunicaci|reuni|feedback|alineaci|claridad|informaci)\b/.test(t)) return 'COMUNICACIÓN';
-  if (/\b(carga|horario|deadline|presi|burnout|sobrecarga|turno)\b/.test(t)) return 'CARGA DE TRABAJO';
-  if (/\b(ambiente|clima|equipo|cultura|motivaci|bienestar)\b/.test(t)) return 'AMBIENTE';
-  return 'SIN SUGERENCIA';
+async function clasificarSugerencia(texto) {
+  if (!texto||texto.trim().length<5) return 'SIN SUGERENCIA';
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:1000,
+        system:`Clasificas sugerencias de empleados de Ulpik (legaltech Ecuador) en UNA de estas categorías exactas: PROCESOS, COMUNICACIÓN, CARGA DE TRABAJO, AMBIENTE, SIN SUGERENCIA. Responde SOLO la categoría en mayúsculas, sin nada más.`,
+        messages:[{role:'user',content:`Sugerencia: "${texto}"`}]
+      })
+    });
+    const data = await resp.json();
+    const cat = data.content?.[0]?.text?.trim().toUpperCase();
+    return CATEGORIAS.includes(cat)?cat:'SIN SUGERENCIA';
+  } catch(e) { return 'SIN SUGERENCIA'; }
 }
 
 async function enviarFormulario() {
@@ -839,33 +843,30 @@ async function enviarFormulario() {
   const nombre = document.getElementById('inp-nombre').value.trim();
   btn.innerHTML=`<div class="eq-submit-loading"><svg class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Procesando…</div>`;
 
-  const categoria = clasificarSugerencia(sugerencia);
-  const clave = semanaActual();
+  const categoria = await clasificarSugerencia(sugerencia);
   const respuesta = {
     id: Date.now(),
     timestamp: new Date().toISOString(),
-    semana: clave,
     nombre: nombre||'Anónimo/a',
     score: selectedScore,
     carga: selections.carga,
     claridad: selections.claridad,
     motivacion: selections.mot,
-    sugerencia,
-    categoria
+    sugerencia, categoria
   };
 
   // Guardar en semana actual (localStorage)
   const data = getStorage();
+  const clave = semanaActual();
   if (!data[clave]) data[clave]=[];
   data[clave].push(respuesta);
   saveStorage(data);
 
-  // Guardar en Google Sheets antes de mostrar gracias
-  btn.innerHTML = `<div class="eq-submit-loading"><svg class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Guardando en Google Sheets…</div>`;
-  const sheetsResult = await sincronizarConSheets(respuesta);
-  if (!sheetsResult.ok) {
-    console.warn('No se pudo sincronizar con Sheets:', sheetsResult.reason);
-  }
+  // Sincronizar con Google Sheets (en paralelo, no bloqueante)
+  sincronizarConSheets(respuesta).then(result => {
+    if (!result.ok) console.warn('No se pudo sincronizar con Sheets:', result.reason);
+    else console.log('✅ Respuesta guardada en Google Sheets');
+  });
 
   // Gracias
   document.getElementById('eq-form').style.display='none';
