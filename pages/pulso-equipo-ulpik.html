@@ -113,6 +113,29 @@ body.vista-sofia { background:var(--dark); font-family:'DM Sans',sans-serif; col
 .sf-clear-btn { background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.35); border-radius:10px; padding:8px 16px; color:var(--rojo); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
 .sf-clear-btn:hover { background:rgba(239,68,68,0.22); }
 
+.sf-sync-wrap { min-width:140px; }
+
+.sf-loading-screen {
+  position:fixed; inset:0; z-index:1100;
+  background:var(--dark);
+  display:flex; align-items:center; justify-content:center;
+  opacity:1; visibility:visible;
+  transition:opacity 0.45s ease, visibility 0.45s ease;
+}
+.sf-loading-screen.hidden {
+  opacity:0; visibility:hidden; pointer-events:none;
+}
+.sf-loading-inner { text-align:center; }
+.sf-loading-spinner {
+  width:44px; height:44px;
+  animation:spin 0.85s linear infinite;
+}
+.sf-loading-text {
+  margin-top:20px;
+  font-size:13px; font-weight:500; letter-spacing:0.04em;
+  color:var(--text-dim);
+}
+
 .sf-body { max-width:1100px; margin:0 auto; padding:28px 32px 60px; }
 .sf-alert { display:none; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.4); border-radius:12px; padding:14px 20px; margin-bottom:24px; font-size:14px; color:var(--rojo); font-weight:500; align-items:center; gap:10px; }
 .sf-alert.active { display:flex; animation:fadeUp 0.3s ease; }
@@ -289,6 +312,16 @@ body.vista-sofia { background:var(--dark); font-family:'DM Sans',sans-serif; col
 
 <!-- ══════════════ VISTA DIAGNÓSTICO ══════════════ -->
 <div id="app-sofia" style="display:none">
+  <div id="sf-loading" class="sf-loading-screen hidden">
+    <div class="sf-loading-inner">
+      <svg class="sf-loading-spinner" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="22" cy="22" r="18" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+        <path d="M22 4a18 18 0 0 1 18 18" stroke="#FF5A1F" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <p class="sf-loading-text">Cargando diagnóstico…</p>
+    </div>
+  </div>
+
   <header class="sf-header">
     <div class="sf-logo-wrap">
       <div>
@@ -312,7 +345,7 @@ body.vista-sofia { background:var(--dark); font-family:'DM Sans',sans-serif; col
       <div class="sf-period-label" id="period-label">–</div>
       <button class="sf-nav-arrow" id="nav-next" onclick="navPeriod(1)">›</button>
     </div>
-    <div style="width:160px"></div><!-- spacer -->
+    <div class="sf-sync-wrap" id="sf-sync-wrap"></div>
   </div>
 
   <div class="sf-body">
@@ -974,32 +1007,22 @@ function cambiarVista(vista) {
   document.getElementById('vs-equipo').classList.toggle('active',vista==='equipo');
   document.getElementById('vs-sofia').classList.toggle('active',vista==='sofia');
   if (vista==='sofia') {
-    renderDashboard(); // render inmediato con datos locales
-    cargarYRenderizar(); // luego actualiza desde el Sheet
+    showSfLoading(true);
+    cargarYRenderizar();
+  } else {
+    showSfLoading(false);
   }
 }
 
+function showSfLoading(show) {
+  const el = document.getElementById('sf-loading');
+  if (el) el.classList.toggle('hidden', !show);
+}
+
 async function cargarYRenderizar() {
-  const sfBody = document.getElementById('sf-body') || document.querySelector('.sf-body');
-  // Mostrar indicador de carga sutil
-  const loadBadge = document.createElement('div');
-  loadBadge.id = 'sheets-loading';
-  loadBadge.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#222;border:1px solid rgba(255,90,31,0.4);border-radius:10px;padding:8px 14px;font-size:12px;color:rgba(255,255,255,0.6);z-index:999;display:flex;align-items:center;gap:8px;';
-  loadBadge.innerHTML = '<svg style="animation:spin 1s linear infinite" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FF5A1F" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> Cargando datos del equipo…';
-  document.body.appendChild(loadBadge);
-
-  const ok = await cargarDatosSheets();
-
-  loadBadge.remove();
-  if (ok) {
-    renderDashboard();
-    // Mostrar confirmación breve
-    const okBadge = document.createElement('div');
-    okBadge.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#222;border:1px solid rgba(34,197,94,0.4);border-radius:10px;padding:8px 14px;font-size:12px;color:#22C55E;z-index:999;';
-    okBadge.textContent = '✓ Datos actualizados desde Google Sheets';
-    document.body.appendChild(okBadge);
-    setTimeout(() => okBadge.remove(), 3000);
-  }
+  await cargarDatosSheets();
+  renderDashboard();
+  showSfLoading(false);
 }
 
 function init() {
