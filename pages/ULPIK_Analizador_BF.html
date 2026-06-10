@@ -393,6 +393,9 @@ body {
 <script>
 document.getElementById('fecha-tag').textContent = new Date().toLocaleDateString('es-EC', {day:'2-digit',month:'short',year:'numeric'});
 
+// Backend: scripts/analizador-bf-openai.gs (Web App → Cualquier persona)
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyinFr21fJ84vVo6hhpc3MNfUuptRdu3pysx3pwvbNydcmmosVNI3ak_-pOlQLyI4McxQ/exec';
+
 const steps = [
   'Revisando la denominación...',
   'Evaluando descriptividad y genericidad...',
@@ -434,44 +437,13 @@ async function analizar() {
   document.getElementById('result-section').classList.remove('show');
   startSteps();
 
-  const prompt = `Eres un abogado especialista en propiedad intelectual ecuatoriana con amplia experiencia en SENADI. Analiza el siguiente signo distintivo y emite un dictamen de preregistrabilidad conforme a la Ley de Propiedad Intelectual del Ecuador, la Decisión 486 de la Comunidad Andina, y los criterios aplicados por SENADI.
-
-DATOS DEL SIGNO:
-- Denominación: ${marca}
-- Clase(s) NIZA: ${clase}
-- Tipo de signo: ${tipo || 'No especificado'}
-- Productos/servicios: ${prod}
-- Logotipo: ${logo || 'No especificado'}
-${grafico ? '- Descripción elementos gráficos: ' + grafico : ''}
-
-INSTRUCCIONES:
-Analiza los siguientes criterios y emite tu dictamen. Responde ÚNICAMENTE con un objeto JSON con esta estructura exacta, sin texto adicional, sin markdown, sin explicaciones fuera del JSON:
-
-{
-  "veredicto": "ROJO" | "AMARILLO" | "VERDE",
-  "titulo": "Título corto del dictamen (máx 12 palabras)",
-  "impedimentos_absolutos": ["lista de impedimentos absolutos detectados, o array vacío"],
-  "debilidades": ["lista de debilidades marcarias detectadas, o array vacío"],
-  "analisis": "Análisis detallado de 3-5 párrafos: (1) evaluación de distintividad, (2) impedimentos detectados con fundamento jurídico específico, (3) riesgos de confundibilidad si aplica, (4) recomendación para el abogado revisor. Usa lenguaje técnico-jurídico claro.",
-  "recomendacion_cliente": "Mensaje breve (2-3 oraciones) para comunicar al cliente, en tono profesional pero accesible."
-}
-
-CRITERIOS A EVALUAR:
-ROJO (impedimento absoluto) si: denominación genérica/descriptiva sin distintividad, topónimos ecuatorianos (cantones, provincias, parroquias, ciudades), emblemas o banderas institucionales, denominaciones de origen protegidas, signos engañosos o contrarios al orden público.
-AMARILLO (debilidad marcaria) si: único diferenciador es apellido común o término débil, combinación de términos débiles sin fantasía, término extranjero directamente traducible a expresión descriptiva en español, marca notoria conocida con denominación similar, elemento gráfico que imita figuras genéricas del sector.
-VERDE si: signo con distintividad suficiente y sin impedimentos detectables a priori.
-
-Considera que "Importadora", "Distribuidora", "Servicios", "Centro" son términos débiles por sí solos. Apellidos como diferenciador único tienen fuerza marcaria limitada. Analiza cada componente del signo por separado y luego el conjunto.`;
+  const payload = { marca, clase, tipo, prod, logo, grafico };
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: new URLSearchParams({ payload: JSON.stringify(payload) }).toString()
     });
 
     const data = await res.json();
@@ -479,22 +451,17 @@ Considera que "Importadora", "Distribuidora", "Servicios", "Centro" son término
     document.getElementById('analyzing-box').classList.remove('show');
     document.getElementById('btn-analizar').disabled = false;
 
-    if (!res.ok || data.error) {
-      showError('Error al conectar con el analizador: ' + (data.error?.message || 'Error desconocido'));
+    if (!res.ok || data.status === 'error') {
+      showError('Error al conectar con el analizador: ' + (data.message || 'Error desconocido'));
       return;
     }
 
-    const rawText = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
-    let parsed;
-    try {
-      const clean = rawText.replace(/```json|```/g, '').trim();
-      parsed = JSON.parse(clean);
-    } catch(e) {
+    if (!data.data) {
       showError('Error al interpretar la respuesta de la IA. Intente nuevamente.');
       return;
     }
 
-    mostrarResultado(parsed);
+    mostrarResultado(data.data);
 
   } catch(err) {
     stopSteps();
