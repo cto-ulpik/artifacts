@@ -394,25 +394,40 @@ const MONTH_SHORT = {1:'Ene',2:'Feb',3:'Mar',4:'Abr',5:'May',6:'Jun',7:'Jul',8:'
 // ═══════════════════════════════════════════
 // DATA — cargada dinámicamente desde Google Sheets
 // ═══════════════════════════════════════════
-const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbwAOjVNxS4x3yOUZvkfJdodGWio_Cd7MbHAeYadkV1JDIAvV3umBim4jy3WmjpMykS1Ew/exec';
+const SHEET_API_URL = 'https://script.google.com/a/macros/ulpik.com/s/AKfycbxmpChyB4icM0B-OGVE-D0bod4D4_xtJlKLlYBL7Yt7odtjVD9_gVnieanc6ne56ton-Q/exec';
 
 let ingSpendee = {}, ingPresup = {}, gastoSpendee = {},
     gastoPresup = {}, gastoByConcepto = {}, estadosFinancieros = {};
 
+function fetchDashboardJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = '_tableroJsonp_' + Date.now();
+    const timer = setTimeout(() => { cleanup(); reject(new Error('Timeout cargando datos')); }, 45000);
+    const script = document.createElement('script');
+
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cb];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[cb] = (data) => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error('No se pudo conectar con Apps Script')); };
+    const sep = url.includes('?') ? '&' : '?';
+    script.src = url + sep + 'callback=' + encodeURIComponent(cb);
+    document.head.appendChild(script);
+  });
+}
+
 async function loadDataFromSheet() {
   try {
-    const resp = await fetch(SHEET_API_URL);
-    console.log('Status:', resp.status, resp.statusText);
-    const text = await resp.text();
-    console.log('Raw response (primeros 500 chars):', text.slice(0, 500));
-    const d = JSON.parse(text);
+    const d = await fetchDashboardJsonp(SHEET_API_URL);
     ingSpendee        = d.ingSpendee        || {};
     ingPresup         = d.ingPresup         || {};
     gastoSpendee      = d.gastoSpendee      || {};
     gastoPresup       = d.gastoPresup       || {};
     gastoByConcepto   = d.gastoByConcepto   || {};
     estadosFinancieros = d.estadosFinancieros || {};
-    console.log('Datos cargados:', { ingSpendee, gastoSpendee, estadosFinancieros });
     return true;
   } catch(err) {
     console.error('Error cargando datos:', err);

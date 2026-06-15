@@ -9,8 +9,16 @@
  */
 function doGet(e) {
   const data = buildDashboardData();
+  const json = JSON.stringify(data);
+  const callback = e && e.parameter && e.parameter.callback;
+  // JSONP: evita CORS desde GitHub Pages u otros dominios externos
+  if (callback && /^[a-zA-Z_$][\w$]*$/.test(callback)) {
+    return ContentService
+      .createTextOutput(callback + '(' + json + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
   return ContentService
-    .createTextOutput(JSON.stringify(data))
+    .createTextOutput(json)
     .setMimeType(ContentService.MimeType.JSON);
 }
 
