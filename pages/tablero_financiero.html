@@ -402,14 +402,17 @@ let ingSpendee = {}, ingPresup = {}, gastoSpendee = {},
 async function loadDataFromSheet() {
   try {
     const resp = await fetch(SHEET_API_URL);
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const d = await resp.json();
+    console.log('Status:', resp.status, resp.statusText);
+    const text = await resp.text();
+    console.log('Raw response (primeros 500 chars):', text.slice(0, 500));
+    const d = JSON.parse(text);
     ingSpendee        = d.ingSpendee        || {};
     ingPresup         = d.ingPresup         || {};
     gastoSpendee      = d.gastoSpendee      || {};
     gastoPresup       = d.gastoPresup       || {};
     gastoByConcepto   = d.gastoByConcepto   || {};
     estadosFinancieros = d.estadosFinancieros || {};
+    console.log('Datos cargados:', { ingSpendee, gastoSpendee, estadosFinancieros });
     return true;
   } catch(err) {
     console.error('Error cargando datos:', err);
@@ -422,6 +425,12 @@ document.addEventListener('DOMContentLoaded', async function() {
   populateFilters();
   renderOverview();
   renderComparativo();
+  const sub = document.querySelector('.header-subtitle');
+  if (sub) {
+    sub.textContent = hasSpendeeData()
+      ? 'Datos consolidados · Spendee + Estados Financieros'
+      : 'Datos consolidados · Estados Financieros (Spendee pendiente en el Sheet)';
+  }
   if (!ok) {
     alert('No se pudieron cargar los datos del tablero. Verifica la conexión o el Apps Script.');
   }
@@ -461,11 +470,36 @@ function getMonthKeys(year) {
       });
     });
   });
+  Object.keys(estadosFinancieros).forEach(k => {
+    if (year === 'all' || k.endsWith('-'+year)) keys.add(k);
+  });
   return [...keys].sort((a,b) => {
     const {m:ma,y:ya} = parseKey(a);
     const {m:mb,y:yb} = parseKey(b);
     return ya !== yb ? ya-yb : ma-mb;
   });
+}
+
+function hasSpendeeData() {
+  return Object.keys(ingSpendee).length > 0 || Object.keys(gastoSpendee).length > 0;
+}
+
+function ingresoForKey(k) {
+  if (hasSpendeeData()) {
+    return currentGrupo === 'all' ? sumByKey(ingSpendee, k) : (ingSpendee[currentGrupo]?.[k] || 0);
+  }
+  return estadosFinancieros[k]?.ingreso || 0;
+}
+
+function gastoForKey(k) {
+  if (hasSpendeeData()) {
+    return currentGrupo === 'all' ? sumByKey(gastoSpendee, k) : (gastoSpendee[currentGrupo]?.[k] || 0);
+  }
+  return estadosFinancieros[k]?.gasto || 0;
+}
+
+function dataSourceLabel() {
+  return hasSpendeeData() ? 'Spendee' : 'Estados Financieros';
 }
 
 function keyToYM(k) {
@@ -587,21 +621,22 @@ function makeOpts(overrides={}) {
 // ═══════════════════════════════════════════
 function renderOverview() {
   const keys = getFilteredKeys();
-  const totalIng = sumGrupo(ingSpendee, currentGrupo, keys);
-  const totalGasto = sumGrupo(gastoSpendee, currentGrupo, keys);
+  const totalIng = keys.reduce((s, k) => s + ingresoForKey(k), 0);
+  const totalGasto = keys.reduce((s, k) => s + gastoForKey(k), 0);
   const totalUtil = totalIng - totalGasto;
   const margen = totalIng > 0 ? totalUtil/totalIng : 0;
+  const src = dataSourceLabel();
 
   document.getElementById('kpi-overview').innerHTML = `
     <div class="kpi-card">
       <div class="kpi-label">Total Ingresos</div>
       <div class="kpi-value teal">${fmt(totalIng)}</div>
-      <div class="kpi-sub">Spendee · ${keys.length} mes(es)</div>
+      <div class="kpi-sub">${src} · ${keys.length} mes(es)</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Total Gastos</div>
       <div class="kpi-value orange">${fmt(totalGasto)}</div>
-      <div class="kpi-sub">Spendee · ${keys.length} mes(es)</div>
+      <div class="kpi-sub">${src} · ${keys.length} mes(es)</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Utilidad Neta</div>
@@ -616,8 +651,8 @@ function renderOverview() {
   `;
 
   const labels = keys.map(k => { const {m,y} = parseKey(k); return MONTH_SHORT[m]+' '+String(y).slice(2); });
-  const ingData  = keys.map(k => currentGrupo==='all' ? sumByKey(ingSpendee,k) : (ingSpendee[currentGrupo]?.[k]||0));
-  const gastoData = keys.map(k => currentGrupo==='all' ? sumByKey(gastoSpendee,k) : (gastoSpendee[currentGrupo]?.[k]||0));
+  const ingData  = keys.map(k => ingresoForKey(k));
+  const gastoData = keys.map(k => gastoForKey(k));
 
   // Ingresos vs Gastos — bar
   destroyChart('chartIngGasto');

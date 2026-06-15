@@ -1,0 +1,197 @@
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD DATA LOADER — IK SAS
+// Expone los datos del Google Sheet como JSON para el dashboard
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * Punto de entrada GET: devuelve el JSON con todos los datos del dashboard.
+ * URL de uso: deploy como "Web App" → ejecutar como "Yo" → acceso "Cualquiera"
+ */
+function doGet(e) {
+  const data = buildDashboardData();
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Construye el objeto completo de datos del dashboard leyendo el Sheet.
+ */
+function buildDashboardData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  return {
+    ingSpendee:        buildGroupedByMonthKey(ss, 'Ingresos2',  'I', 'C', 'N'),
+    ingPresup:         buildGroupedByMonthKey(ss, 'Ingresos2',  'I', 'C', 'L'),
+    gastoSpendee:      buildGroupedByMonthKey(ss, 'Gastos2',    'I', 'C', 'N'),
+    gastoPresup:       buildGroupedByMonthKey(ss, 'Gastos2',    'I', 'C', 'L'),
+    gastoByConcepto:   buildConceptoTotals(ss,   'Gastos2'),
+    estadosFinancieros: buildEstadosFinancieros(ss)
+  };
+}
+
+// ─────────────────────────────────────────────────────────
+// Helpers de lectura
+// ─────────────────────────────────────────────────────────
+
+/**
+ * Lee una hoja y agrupa valores por [Grupo][MesAñoKey].
+ * @param {Spreadsheet} ss
+ * @param {string} sheetName  Nombre de la hoja
+ * @param {string} grupoCol   Letra de la columna Grupo   (ej: 'I')
+ * @param {string} keyCol     Letra de la columna MesAño  (ej: 'C')
+ * @param {string} valorCol   Letra de la columna Valor   (ej: 'N' = Spendee, 'L' = Presup.)
+ * @returns {Object}  { "Marcas": { "1-2024": 1234.56, ... }, ... }
+ */
+function buildGroupedByMonthKey(ss, sheetName, grupoCol, keyCol, valorCol) {
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return {};
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return {};
+
+  // Convertir letras de columna a índices (A=1)
+  const gIdx = colLetterToIndex(grupoCol);
+  const kIdx = colLetterToIndex(keyCol);
+  const vIdx = colLetterToIndex(valorCol);
+
+  // Leer el bloque completo en una sola llamada (mucho más rápido)
+  const maxCol = Math.max(gIdx, kIdx, vIdx);
+  const data = sheet.getRange(2, 1, lastRow - 1, maxCol).getValues();
+
+  const result = {};
+
+  data.forEach(function(row) {
+    const grupo = String(row[gIdx - 1] || '').trim();
+    const key   = String(row[kIdx - 1] || '').trim(); // ej: "1-2024"
+    const valor = parseFloat(row[vIdx - 1]) || 0;
+
+    if (!grupo || !key || valor === 0) return;
+
+    if (!result[grupo]) result[grupo] = {};
+    result[grupo][key] = round2((result[grupo][key] || 0) + valor);
+  });
+
+  return result;
+}
+
+/**
+ * Agrupa gastos por Concepto (col J), sumando todos los meses (all-time).
+ * Equivale al objeto gastoByConcepto del dashboard.
+ */
+function buildConceptoTotals(ss, sheetName) {
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return {};
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return {};
+
+  // Col J = concepto (índice 10), Col N = Spendee (índice 14)
+  const jIdx = colLetterToIndex('J');
+  const nIdx = colLetterToIndex('N');
+  const maxCol = Math.max(jIdx, nIdx);
+
+  const data = sheet.getRange(2, 1, lastRow - 1, maxCol).getValues();
+  const result = {};
+
+  data.forEach(function(row) {
+    const concepto = String(row[jIdx - 1] || '').trim();
+    const valor    = parseFloat(row[nIdx - 1]) || 0;
+    if (!concepto || valor === 0) return;
+    result[concepto] = round2((result[concepto] || 0) + valor);
+  });
+
+  // Ordenar de mayor a menor
+  const sorted = {};
+  Object.entries(result)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([k, v]) => { sorted[k] = v; });
+
+  return sorted;
+}
+
+/**
+ * Lee la hoja "Estados Financieros" y devuelve el objeto:
+ * { "3-2025": { ingreso: X, gasto: Y, utilidad: Z }, ... }
+ *
+ * Estructura de la hoja:
+ *   Col C = Mes y Año key  (ej: "3-2025")
+ *   Col F = Tipo           ("Ingreso" | "Gasto" | "Utilidad")
+ *   Col G = Monto
+ */
+function buildEstadosFinancieros(ss) {
+  const sheet = ss.getSheetByName('Estados Financieros');
+  if (!sheet) return {};
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return {};
+
+  const cIdx = colLetterToIndex('C'); // Mes y Año key
+  const fIdx = colLetterToIndex('F'); // Tipo
+  const gIdx = colLetterToIndex('G'); // Monto
+  const maxCol = Math.max(cIdx, fIdx, gIdx);
+
+  const data = sheet.getRange(2, 1, lastRow - 1, maxCol).getValues();
+  const result = {};
+
+  data.forEach(function(row) {
+    const key   = String(row[cIdx - 1] || '').trim();
+    const tipo  = String(row[fIdx - 1] || '').trim().toLowerCase();
+    const monto = parseFloat(row[gIdx - 1]) || 0;
+
+    if (!key || !tipo || monto === 0) return;
+    if (!result[key]) result[key] = { ingreso: 0, gasto: 0, utilidad: 0 };
+
+    if (tipo === 'ingreso')   result[key].ingreso   = round2(monto);
+    else if (tipo === 'gasto')    result[key].gasto    = round2(monto);
+    else if (tipo === 'utilidad') result[key].utilidad  = round2(monto);
+  });
+
+  return result;
+}
+
+// ─────────────────────────────────────────────────────────
+// Utilidades
+// ─────────────────────────────────────────────────────────
+
+/** Convierte letra(s) de columna a número (A=1, Z=26, AA=27…) */
+function colLetterToIndex(col) {
+  col = col.toUpperCase();
+  let n = 0;
+  for (let i = 0; i < col.length; i++) {
+    n = n * 26 + (col.charCodeAt(i) - 64);
+  }
+  return n;
+}
+
+function round2(n) {
+  return Math.round(n * 100) / 100;
+}
+
+// ─────────────────────────────────────────────────────────
+// Menú + prueba rápida
+// ─────────────────────────────────────────────────────────
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('📊 Dashboard')
+    .addItem('Previsualizar datos JSON', 'previewData')
+    .addToUi();
+}
+
+/** Ejecuta buildDashboardData y muestra un resumen en el log */
+function previewData() {
+  const data = buildDashboardData();
+  const grupos = Object.keys(data.ingSpendee);
+  const meses  = Object.keys(data.estadosFinancieros);
+  const conceptos = Object.keys(data.gastoByConcepto).length;
+
+  const msg =
+    '✅ Datos listos\n' +
+    'Grupos ingresos: ' + grupos.join(', ') + '\n' +
+    'Meses EF: ' + meses.length + ' (' + meses[0] + ' → ' + meses[meses.length-1] + ')\n' +
+    'Conceptos gasto: ' + conceptos;
+
+  Logger.log(JSON.stringify(data, null, 2));
+  SpreadsheetApp.getUi().alert('📊 Dashboard Data', msg, SpreadsheetApp.getUi().ButtonSet.OK);
+}
