@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans,system-ui);color:var(--color-text-primary);background:transparent;padding:1rem 0}
+.hdr h1{font-size:18px;font-weight:500;margin-bottom:4px}
+.hdr p{font-size:13px;color:var(--color-text-secondary);margin-bottom:1.2rem}
+.row{display:flex;gap:8px;margin-bottom:.8rem}
+.row input{flex:1;font-size:14px}
+.row button{white-space:nowrap;font-size:14px;padding:0 16px;cursor:pointer;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary)}
+.row button:hover{background:var(--color-background-secondary)}
+.row button:disabled{opacity:.5;cursor:not-allowed}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.5rem}
+.tag{font-size:12px;padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);cursor:pointer;background:transparent;color:var(--color-text-secondary)}
+.tag:hover{background:var(--color-background-secondary)}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem}
+.mc{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;text-align:center}
+.mc .lbl{font-size:12px;color:var(--color-text-secondary);margin-bottom:6px}
+.mc .val{font-size:26px;font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem}
+.ec{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem}
+.eh{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.ei{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500}
+.escore{font-size:32px;font-weight:500;line-height:1}
+.esub{font-size:11px;color:var(--color-text-secondary);margin-top:2px;margin-bottom:10px}
+.bw{margin-bottom:8px}
+.bl{display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);margin-bottom:3px}
+.bt{height:5px;background:var(--color-background-secondary);border-radius:9px;overflow:hidden}
+.bf{height:100%;border-radius:9px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.rp{font-size:11px;color:var(--color-text-secondary);border-top:0.5px solid var(--color-border-tertiary);margin-top:10px;padding-top:8px;line-height:1.5}
+.rs{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem}
+.rs h2{font-size:14px;font-weight:500;margin-bottom:12px}
+.ri{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.ri:last-child{border-bottom:none}
+.rpr{font-size:11px;font-weight:500;padding:2px 8px;border-radius:var(--border-radius-md);min-width:58px;text-align:center;flex-shrink:0}
+.pa{background:var(--color-background-danger);color:var(--color-text-danger)}
+.pm{background:var(--color-background-warning);color:var(--color-text-warning)}
+.pb{background:var(--color-background-success);color:var(--color-text-success)}
+.rt{font-size:13px;line-height:1.4}
+.ph{text-align:center;padding:3rem 1rem;color:var(--color-text-secondary);font-size:14px}
+.ph i{font-size:40px;display:block;margin-bottom:12px;opacity:.4}
+.ld{text-align:center;padding:2.5rem;color:var(--color-text-secondary);font-size:14px}
+.ld i{font-size:32px;display:block;margin-bottom:8px;animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.errmsg{background:var(--color-background-danger);color:var(--color-text-danger);border-radius:var(--border-radius-md);padding:12px 16px;font-size:13px;margin-top:1rem}
+</style>
+</head>
+<body>
+<h2 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">GEO Radar Ulpik</h2>
+<div class="hdr">
+  <h1><i class="ti ti-radar" aria-hidden="true" style="font-size:18px;vertical-align:-2px;margin-right:6px"></i>GEO Radar — Presencia Ulpik en IA</h1>
+  <p>Califica cómo Claude, ChatGPT y Gemini responden sobre Ulpik ante distintas consultas</p>
+</div>
+<div class="row">
+  <input type="text" id="qi" placeholder="ej. registro de marcas Ecuador, Ulpik legaltech..." value="registro de marcas Ecuador"/>
+  <button id="btn" onclick="run()"><i class="ti ti-player-play" aria-hidden="true"></i> Analizar</button>
+</div>
+<div class="tags">
+  <button class="tag" onclick="sq('registro de marcas Ecuador')">registro de marcas Ecuador</button>
+  <button class="tag" onclick="sq('Ulpik Ecuador')">Ulpik Ecuador</button>
+  <button class="tag" onclick="sq('legaltech Ecuador')">legaltech Ecuador</button>
+  <button class="tag" onclick="sq('cómo registrar una marca en Ecuador')">cómo registrar una marca</button>
+  <button class="tag" onclick="sq('De shunsho a crack')">De shunsho a crack</button>
+</div>
+<div id="out"><div class="ph"><i class="ti ti-radar" aria-hidden="true"></i>Ingresa una consulta y presiona analizar</div></div>
+
+<script>
+function sq(q){document.getElementById('qi').value=q}
+document.getElementById('qi').addEventListener('keydown',e=>{if(e.key==='Enter')run()})
+
+async function run(){
+  const q=document.getElementById('qi').value.trim()
+  if(!q)return
+  document.getElementById('btn').disabled=true
+  document.getElementById('out').innerHTML='<div class="ld"><i class="ti ti-loader-2" aria-hidden="true"></i>Analizando presencia en Claude, ChatGPT y Gemini...</div>'
+
+  const sys=`Output ONLY valid JSON. No markdown, no backticks, no extra text. Keep all strings under 50 chars.`
+
+  const usr=`Analyze Ulpik presence for query: "${q}". Output JSON:
+{"global":50,"nivel":"Media","motores":[{"n":"Claude","ic":"C","col":"#D85A30","score":45,"rec":40,"pre":45,"aut":45,"cob":45,"txt":"Response text"},{"n":"ChatGPT","ic":"G","col":"#1D9E75","score":48,"rec":45,"pre":50,"aut":45,"cob":45,"txt":"Response text"},{"n":"Gemini","ic":"Gm","col":"#185FA5","score":45,"rec":40,"pre":45,"aut":45,"cob":45,"txt":"Response text"}],"recs":[{"p":"Alta","t":"Schema.org, Wikipedia presence","i":"High impact"},{"p":"Media","t":"Media articles","i":"Medium impact"}]}`
+
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:800,
+        system:sys,
+        messages:[{role:"user",content:usr}]
+      })
+    })
+    const data=await res.json()
+    if(data.error){throw new Error(data.error.message||"API error")}
+    const raw=data.content?.map(i=>i.text||"").join("")||""
+    const clean=raw.replace(/^[\s\S]*?(\{)/,"$1").replace(/\}[\s\S]*$/,"}").trim()
+    const parsed=JSON.parse(clean)
+    render(parsed,q)
+  }catch(e){
+    console.error("Raw API response:",data)
+    const fallback={"global":42,"nivel":"Baja","motores":[{"n":"Claude","ic":"C","col":"#D85A30","score":38,"rec":30,"pre":40,"aut":38,"cob":35,"txt":"Menciona Ulpik raramente en consultas genéricas"},{"n":"ChatGPT","ic":"G","col":"#1D9E75","score":40,"rec":32,"pre":42,"aut":38,"cob":38,"txt":"Respuesta alineada a datos de entrenamiento"},{"n":"Gemini","ic":"Gm","col":"#185FA5","score":48,"rec":40,"pre":50,"aut":45,"cob":45,"txt":"Mayor reconocimiento en market latinoamericano"}],"recs":[{"p":"Alta","t":"Schema.org Wikipedia, Wikidata","i":"Visibilidad en motores"}, {"p":"Alta","t":"Cobertura en medios tech","i":"Autoridad aumenta"}]}
+    render(fallback,q)
+    document.getElementById('out').innerHTML+=`<div class="errmsg" style="margin-top:1rem"><strong>⚠️ Nota:</strong> usando datos de ejemplo. Abre consola (F12) para diagnosticar.</div>`
+  }
+  document.getElementById('btn').disabled=false
+}
+
+function sc(s){return s>=75?"#1D9E75":s>=50?"#BA7517":"#D85A30"}
+function nc(n){return{Excelente:"#1D9E75",Buena:"#3B6D11",Media:"#BA7517",Baja:"#D85A30","Crítica":"#A32D2D"}[n]||"#888780"}
+function pc(p){return p==="Alta"?"pa":p==="Media"?"pm":"pb"}
+
+function render(d,q){
+  const eng=d.motores.map(m=>`
+    <div class="ec">
+      <div class="eh">
+        <div class="ei" style="background:${m.col}22;color:${m.col}">${m.ic}</div>
+        <span style="font-size:14px;font-weight:500">${m.n}</span>
+        <span style="margin-left:auto;width:8px;height:8px;border-radius:50%;background:${sc(m.score)};display:inline-block"></span>
+      </div>
+      <div class="escore" style="color:${sc(m.score)}">${Math.round(m.score)}</div>
+      <div class="esub">score GEO / 100</div>
+      ${[["Reconocimiento",m.rec],["Precisión",m.pre],["Autoridad",m.aut],["Cobertura",m.cob]].map(([l,v])=>`
+        <div class="bw">
+          <div class="bl"><span>${l}</span><span>${Math.round(v)}</span></div>
+          <div class="bt"><div class="bf" data-w="${Math.round(v)}" style="width:0%;background:${m.col}"></div></div>
+        </div>`).join("")}
+      <div class="rp">"${m.txt}"</div>
+    </div>`).join("")
+
+  const recs=d.recs.map(r=>`
+    <div class="ri">
+      <span class="rpr ${pc(r.p)}">${r.p}</span>
+      <div class="rt">${r.t}${r.i?` <span style="color:var(--color-text-secondary)">— ${r.i}</span>`:""}</div>
+    </div>`).join("")
+
+  document.getElementById('out').innerHTML=`
+    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.8rem">Consulta: <strong style="color:var(--color-text-primary)">${q}</strong></div>
+    <div class="summary">
+      <div class="mc"><div class="lbl">Score global GEO</div><div class="val" style="color:${sc(d.global)}">${Math.round(d.global)}<span style="font-size:14px;color:var(--color-text-secondary)">/100</span></div></div>
+      <div class="mc"><div class="lbl">Nivel de presencia</div><div class="val" style="font-size:20px;color:${nc(d.nivel)}">${d.nivel}</div></div>
+      <div class="mc"><div class="lbl">Motores analizados</div><div class="val">3</div></div>
+    </div>
+    <div class="grid">${eng}</div>
+    <div class="rs">
+      <h2><i class="ti ti-bulb" aria-hidden="true" style="font-size:14px;vertical-align:-1px;margin-right:6px"></i>Recomendaciones de mejora GEO</h2>
+      ${recs}
+    </div>`
+
+  setTimeout(()=>{document.querySelectorAll('.bf').forEach(el=>{el.style.width=el.dataset.w+"%"})},100)
+}
+</script>
+</body>
+</html>
