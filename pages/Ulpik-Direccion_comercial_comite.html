@@ -18,7 +18,6 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;}
-/* TOPBAR */
 .topbar{position:sticky;top:0;z-index:300;display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:52px;background:var(--dark);border-bottom:1px solid rgba(255,255,255,0.06);}
 .brand{display:flex;align-items:center;gap:10px;}
 .brand-mark{width:28px;height:28px;border-radius:6px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;}
@@ -26,33 +25,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .brand-sep{color:rgba(255,255,255,.20);margin:0 3px;}
 .brand-sub{font-size:11px;color:rgba(255,255,255,.40);}
 .brand-badge{font-family:'DM Mono',monospace;font-size:10px;padding:3px 9px;border-radius:5px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.10);}
-.sem-select{font-family:'DM Mono',monospace;font-size:11px;padding:5px 10px;border-radius:5px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.18);cursor:pointer;outline:none;transition:background .15s;}
+.sem-select{font-family:'DM Mono',monospace;font-size:11px;padding:5px 10px;border-radius:5px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.18);cursor:pointer;outline:none;}
 .sem-select:hover{background:rgba(255,255,255,.14);}
 .sem-select option{background:#2a2a2a;color:#fff;}
-/* LOADING BAR */
 .lbar{position:fixed;top:0;left:0;right:0;height:2px;background:var(--orange);z-index:999;transform:scaleX(0);transform-origin:left;transition:transform .4s ease;}
 .lbar.on{transform:scaleX(0.7);}
-.lbar.done{transform:scaleX(1);transition:transform .2s ease,opacity .3s ease .15s;opacity:0;}
-/* NAV */
+.lbar.done{transform:scaleX(1);transition:transform .2s,opacity .3s .15s;opacity:0;}
 .sec-nav{position:sticky;top:52px;z-index:200;background:var(--dark);border-bottom:1px solid rgba(255,255,255,0.06);padding:0 20px;display:flex;overflow-x:auto;scrollbar-width:none;}
 .sec-nav::-webkit-scrollbar{display:none;}
 .snav-btn{font-family:inherit;font-size:11px;padding:8px 14px;border:none;background:none;cursor:pointer;color:rgba(255,255,255,.38);white-space:nowrap;transition:color .15s;border-bottom:2px solid transparent;margin-bottom:-1px;}
 .snav-btn:hover{color:rgba(255,255,255,.65);}
 .snav-btn.active{color:#fff;font-weight:500;border-bottom-color:var(--orange);}
-/* MAIN */
 .main-wrap{padding:20px 28px 70px;max-width:1440px;margin:0 auto;}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;}
-.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.card-title{font-size:13px;font-weight:600;margin-bottom:4px;}
 .card-note{font-size:11px;color:var(--text3);margin-bottom:12px;}
 .segment{margin-bottom:26px;scroll-margin-top:110px;animation:fadeIn .2s ease;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
 .seg-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 .seg-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:4px;}
 .seg-dot{width:7px;height:7px;border-radius:50%;}
-.seg-title{font-size:13px;font-weight:600;color:var(--text);}
+.seg-title{font-size:13px;font-weight:600;}
 .seg-meta{font-size:11px;color:var(--text3);margin-left:auto;}
-.triple-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;align-items:stretch;}
-.triple-row .card{display:flex;flex-direction:column;}
+.triple-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
 .kpi-strip-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 .kpi-4-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
 .kpi-4-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;}
@@ -76,7 +71,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .si-l{font-size:12px;color:var(--text2);}
 .si-r{font-size:12px;font-weight:600;}
 .divider{height:1px;background:var(--border);margin:12px 0;}
-.chip{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;letter-spacing:.02em;}
+.chip{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;}
 .chip-o{background:rgba(255,37,0,.10);color:var(--orange);}
 .chip-t{background:rgba(0,173,176,.10);color:var(--teal);}
 .chip-p{background:rgba(130,59,218,.10);color:var(--purple);}
@@ -93,10 +88,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .data-table{width:100%;border-collapse:collapse;}
 .data-table thead tr{border-bottom:1px solid var(--border);}
 .data-table th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);padding:4px 10px 8px;text-align:left;}
-.data-table th.r{text-align:right;}
+.data-table th.r,.data-table td.r{text-align:right;}
 .data-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-size:12px;}
 .data-table tr:last-child td{border-bottom:none;}
-.data-table td.r{text-align:right;font-weight:600;}
+.data-table td.r{font-weight:600;}
 .data-table tbody tr:hover td{background:var(--bg3);}
 .t-total td{background:var(--bg3)!important;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);}
 .ibar{display:flex;align-items:center;gap:8px;}
@@ -109,7 +104,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .funnel-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding:0 10px;min-width:40px;}
 .funnel-fill span{font-size:11px;font-weight:600;white-space:nowrap;}
 .funnel-arrow{font-size:11px;color:var(--text3);margin:2px 0 4px;padding-left:150px;}
-/* EMBUDOS DARK */
 .emb-section{background:var(--d-bg);border-radius:var(--radius);overflow:hidden;border:1px solid rgba(255,255,255,0.05);}
 .emb-inner{display:grid;grid-template-columns:1fr 1fr;}
 .funnel-panel{padding:28px 32px 36px;border-right:1px solid var(--d-border);position:relative;overflow:hidden;}
@@ -119,9 +113,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .campaign-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:4px;margin-bottom:10px;font-weight:500;}
 .marcas .campaign-tag{background:rgba(255,37,0,.12);color:var(--orange);border:1px solid rgba(255,37,0,.25);}
 .priv .campaign-tag{background:rgba(0,173,176,.12);color:var(--teal);border:1px solid rgba(0,173,176,.25);}
-.campaign-tag .dot{width:6px;height:6px;border-radius:50%;}
-.marcas .campaign-tag .dot{background:var(--orange);}
-.priv .campaign-tag .dot{background:var(--teal);}
+.campaign-tag .dot{width:6px;height:6px;border-radius:50%;}.marcas .campaign-tag .dot{background:var(--orange);}.priv .campaign-tag .dot{background:var(--teal);}
 .emb-title{font-size:16px;font-weight:700;color:var(--cream);margin-bottom:4px;}
 .emb-sub{font-size:12px;color:var(--d-muted);line-height:1.5;}
 .kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0;}
@@ -131,16 +123,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .priv .d-kpi-card::after{background:linear-gradient(90deg,var(--teal),transparent);}
 .d-kpi-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--d-muted);margin-bottom:4px;}
 .d-kpi-value{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--cream);}
-.marcas .d-kpi-value.accent{color:var(--orange);}
-.priv .d-kpi-value.accent{color:var(--teal);}
+.marcas .d-kpi-value.accent{color:var(--orange);}.priv .d-kpi-value.accent{color:var(--teal);}
 .d-kpi-sub{font-size:10px;color:var(--d-muted);margin-top:2px;}
 .roas-banner{border-radius:10px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
 .marcas .roas-banner{background:linear-gradient(135deg,rgba(255,37,0,.08),rgba(130,59,218,.08));border:1px solid rgba(255,37,0,.2);}
 .priv .roas-banner{background:linear-gradient(135deg,rgba(0,173,176,.08),rgba(130,59,218,.08));border:1px solid rgba(0,173,176,.2);}
 .roas-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--d-muted);}
 .roas-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;}
-.marcas .roas-val{color:var(--orange);}
-.priv .roas-val{color:var(--teal);}
+.marcas .roas-val{color:var(--orange);}.priv .roas-val{color:var(--teal);}
 .roas-revenue{font-family:'DM Mono',monospace;font-size:14px;color:var(--cream);}
 .roas-sub{font-size:11px;color:var(--d-muted);}
 .d-funnel-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--d-muted);margin-bottom:12px;}
@@ -157,7 +147,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .priv .d-conv-badge{background:rgba(0,173,176,.12);color:var(--teal);}
 .d-divider{border:none;border-top:1px solid var(--d-border);margin:20px 0;}
 .d-chart-wrap{background:var(--d-card);border:1px solid var(--d-border);border-radius:10px;padding:16px 16px 12px;margin-bottom:14px;}
-.d-chart-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.d-chart-hdr{margin-bottom:12px;}
 .d-chart-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--d-muted);}
 .panel-note{margin-top:14px;font-size:11px;color:var(--d-muted);background:var(--d-card);padding:10px 13px;border-radius:0 6px 6px 0;line-height:1.55;}
 .marcas .panel-note{border-left:3px solid rgba(255,37,0,.4);}
@@ -169,9 +159,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .evo-period{font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:2px;}
 .evo-val{font-size:13px;font-weight:700;}
 .evo-pct{font-size:9px;margin-top:1px;}
-/* ERROR / EMPTY */
-.err-box{background:rgba(255,37,0,.05);border:1px solid rgba(255,37,0,.20);border-radius:10px;padding:20px 24px;font-size:12px;color:var(--text2);}
-.err-box strong{color:var(--orange);display:block;margin-bottom:4px;}
+.no-data{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 20px;text-align:center;background:var(--bg3);border-radius:8px;border:1px dashed var(--border);}
+.no-data-icon{font-size:24px;margin-bottom:8px;opacity:.5;}
+.no-data-text{font-size:11px;color:var(--text3);}
+.no-data-sub{font-size:10px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace;}
 </style>
 </head>
 <body>
@@ -220,33 +211,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 </div>
 
 <script>
-// ╔══════════════════════════════════════════════════════╗
-// ║  ⚙  CONFIGURACIÓN — reemplaza con tu URL           ║
-// ╚══════════════════════════════════════════════════════╝
+// ╔══════════════════════════════════════════════════╗
+// ║  ⚙  CONFIGURACIÓN                              ║
+// ╚══════════════════════════════════════════════════╝
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1A0BgFNjObhmCnI-W2XJlwAt9ir2rWtn9CxPIHfJD7wmOYLaSZyohkjOW52hFXqyr/exec';
 
-// ─── ESTADO ───────────────────────────────────────────
+// ── GLOBALS ───────────────────────────────────────
 let charts = {};
 Chart.defaults.font.family = "'DM Sans', sans-serif";
-
-// ─── HELPERS ──────────────────────────────────────────
 const $  = id => document.getElementById(id);
-const fmt = n  => '$' + Number(n||0).toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2});
-const pct = (a,b) => b > 0 ? (a/b*100).toFixed(2) : '0.00';
+const fmt = n => '$' + Number(n||0).toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2});
 const sumF = (arr,k) => arr.reduce((s,r)=>s+Number(r[k]||0),0);
-const clamp = (v,mn,mx) => Math.min(Math.max(v,mn),mx);
-const colAsesor = a => a==='Martín'?'var(--orange)': a==='Javier'?'rgba(130,59,218,.8)': a==='Nela'?'rgba(0,173,176,.8)':'rgba(160,160,160,.6)';
+const clamp = (v,a,b) => Math.min(Math.max(v,a),b);
+const colA = a => a==='Martín'?'var(--orange)':a==='Javier'?'rgba(130,59,218,.8)':a==='Nela'?'rgba(0,173,176,.8)':a==='Clau'?'rgba(22,163,74,.8)':a==='Andrea'?'rgba(192,120,0,.8)':'rgba(160,160,160,.6)';
+const MESES = {1:'Ene',2:'Feb',3:'Mar',4:'Abr',5:'May',6:'Jun',7:'Jul',8:'Ago',9:'Sep',10:'Oct',11:'Nov',12:'Dic'};
 
-function killChart(k){ if(charts[k]){try{charts[k].destroy();}catch(e){} delete charts[k];} }
-
-function loadBar(on){
-  const b=$('lbar');
-  if(on){b.className='lbar on';}
-  else{b.className='lbar done';setTimeout(()=>b.className='lbar',600);}
+function killChart(k){if(charts[k]){try{charts[k].destroy();}catch(e){}delete charts[k];}}
+function loadBar(on){const b=$('lbar');if(on){b.className='lbar on';}else{b.className='lbar done';setTimeout(()=>b.className='lbar',600);}}
+function noData(msg='Sin datos configurados', sub=''){
+  return `<div class="no-data"><div class="no-data-icon">📋</div><div class="no-data-text">${msg}</div>${sub?`<div class="no-data-sub">${sub}</div>`:''}</div>`;
 }
 
-// ─── NAV ──────────────────────────────────────────────
-const SEC_IDS = ['s-kpi','s-budgets','s-asesores','s-evo','s-embudos','s-convenio','s-upsell','s-disc','s-pi','s-legal'];
+// ── NAV ───────────────────────────────────────────
+const SEC_IDS=['s-kpi','s-budgets','s-asesores','s-evo','s-embudos','s-convenio','s-upsell','s-disc','s-pi','s-legal'];
 function navTo(id,btn){
   $(id).scrollIntoView({behavior:'smooth',block:'start'});
   document.querySelectorAll('.snav-btn').forEach(b=>b.classList.remove('active'));
@@ -258,31 +245,32 @@ window.addEventListener('scroll',()=>{
   document.querySelectorAll('.snav-btn').forEach((b,i)=>b.classList.toggle('active',SEC_IDS[i]===cur));
 },{passive:true});
 
-// ─── FETCH PRINCIPAL ──────────────────────────────────
+// ── FETCH ─────────────────────────────────────────
 async function loadData(semana){
   loadBar(true);
   try{
-    const url = APPS_SCRIPT_URL + (semana?'?semana='+encodeURIComponent(semana):'');
-    const res  = await fetch(url);
-    const data = await res.json();
-    if(data.error) throw new Error(data.error);
-    updateSelector(data.semanas, data.semana_actual);
+    const url=APPS_SCRIPT_URL+(semana?'?semana='+encodeURIComponent(semana):'');
+    const res=await fetch(url);
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    updateSelector(data.semanas,data.semana_actual);
     renderAll(data);
   }catch(e){
-    $('s-kpi').innerHTML=`<div class="err-box"><strong>Error de conexión</strong>Reemplaza APPS_SCRIPT_URL con tu URL de Apps Script.<br><code style="font-size:10px;">${e.message}</code></div>`;
-  }finally{
-    loadBar(false);
-  }
+    $('s-kpi').innerHTML=`<div style="padding:20px;background:rgba(255,37,0,.05);border:1px solid rgba(255,37,0,.2);border-radius:10px;color:var(--orange);">
+      <strong>Error de conexión</strong><br><span style="font-size:11px;color:var(--text2);">${e.message}</span></div>`;
+  }finally{loadBar(false);}
 }
 
 function updateSelector(semanas,actual){
   const sel=$('semSelect');
-  sel.innerHTML=(semanas||[]).map(s=>`<option value="${s.semana_id}"${s.semana_id===actual?' selected':''}>${s.label}</option>`).join('');
+  // Sort: most recent first in selector
+  const sorted=[...(semanas||[])].reverse();
+  sel.innerHTML=sorted.map(s=>`<option value="${s.semana_id}"${s.semana_id===actual?' selected':''}>${s.label}</option>`).join('');
   const cur=(semanas||[]).find(s=>s.semana_id===actual);
   $('semBadge').textContent=cur?.badge||actual||'—';
 }
 
-// ─── CÓMPUTOS ─────────────────────────────────────────
+// ── CÓMPUTOS ──────────────────────────────────────
 function compute(d){
   const v=d.ventas||[], ch=d.chats||{}, edu=d.educacion||{}, pp=d.priv_pagos||[], ps=d.priv_stats||{}, m=d.metas||{};
   const vMarcas=v.filter(x=>x.categoria==='Marcas');
@@ -290,10 +278,14 @@ function compute(d){
   const totalEdu=Number(edu.monto||0), totalPriv=sumF(pp,'monto');
   const total=totalLegal+totalEdu+totalPriv;
   const metaM=Number(m.meta_marcas||0), metaE=Number(m.meta_edu||0);
-  const pctM=metaM>0?totalM/metaM*100:0, pctE=metaE>0?totalEdu/metaE*100:0;
+  const pctM=metaM>0?totalM/metaM*100:null;
+  const pctE=metaE>0?totalEdu/metaE*100:null;
 
-  // per asesor
-  const names=[...new Set([...v.map(x=>x.asesor).filter(Boolean),'Martín','Javier','Nela','Pau'])];
+  // Ads — filter zero rows
+  const adsClean=(d.ads||[]).filter(a=>a.gasto>0||a.conv_wpp>0||a.clics>0);
+
+  // Per asesor
+  const names=[...new Set([...v.map(x=>x.asesor).filter(Boolean)])];
   const ad={};
   names.forEach(a=>{
     const av=v.filter(x=>x.asesor===a), avm=av.filter(x=>x.categoria==='Marcas');
@@ -305,75 +297,90 @@ function compute(d){
   });
   const maxM=Math.max(...names.map(a=>ad[a].monto),1);
 
-  // días
+  // Días
   const diasMap={};
   v.forEach(x=>{diasMap[x.fecha]=(diasMap[x.fecha]||0)+Number(x.monto||0);});
-  const dias=Object.keys(diasMap).sort();
+  const dias=Object.keys(diasMap).sort((a,b)=>new Date(a.split('/').reverse().join('-'))-new Date(b.split('/').reverse().join('-')));
 
-  // productos
+  // Productos
   const prodMap={};
   v.forEach(x=>{if(!prodMap[x.producto])prodMap[x.producto]={ventas:0,monto:0};prodMap[x.producto].ventas++;prodMap[x.producto].monto+=Number(x.monto||0);});
 
-  return{v,ch,edu,pp,ps,m,vMarcas,totalM,totalLegal,totalEdu,totalPriv,total,metaM,metaE,pctM,pctE,names,ad,maxM,diasMap,dias,prodMap};
+  // DISC agrupado
+  const discMap={};
+  (d.disc||[]).forEach(row=>{
+    const k=String(row.mes||'—');
+    if(!discMap[k])discMap[k]={mes:MESES[parseInt(k)]||k,agendados:0,presentados:Number(row.presentados||0),ventas:Number(row.ventas||0)};
+    else{discMap[k].presentados+=Number(row.presentados||0);discMap[k].ventas+=Number(row.ventas||0);}
+    discMap[k].agendados++;
+  });
+  const discData=Object.values(discMap);
+
+  return{v,ch,edu,pp,ps,m,vMarcas,totalM,totalLegal,totalEdu,totalPriv,total,metaM,metaE,pctM,pctE,names,ad,maxM,diasMap,dias,prodMap,adsClean,discData};
 }
 
-// ─── RENDER ALL ───────────────────────────────────────
 function renderAll(d){
   const c=compute(d);
-  rKPIs(d,c); rPresupuestos(d,c); rAsesores(d,c);
-  rEvolutivo(d); rEmbudos(d,c);
-  rConvenio(d.convenio||{}); rUpsell(d.upsell||{});
-  rDisc(d.disc||[]); rPI(d.pi||{}); rLegal(d,c);
+  rKPIs(d,c);rPresupuestos(d,c);rAsesores(d,c);
+  rEvolutivo(d);rEmbudos(d,c);
+  rConvenio(d.convenio||{});rUpsell(d.upsell||{});
+  rDisc(c.discData);rPI(d.pi||{});rLegal(d,c);
 }
 
-// ══════════════ §1 KPIs ═══════════════════════════════
+// ══════════ §1 KPIs ══════════════════════════════
 function rKPIs(d,c){
   const{totalM,pctM,metaM,totalEdu,pctE,metaE,totalPriv,total,totalLegal,v,edu,ps}=c;
+  const hasMeta=metaM>0;
   const diff=totalM-metaM;
-  const wC=pctM>=100?'var(--green)':pctM>=80?'var(--warn)':'var(--orange)';
-  const kC=pctM>=100?'c-green':'c-warn';
+  const wC=!hasMeta?'var(--teal)':pctM>=100?'var(--green)':pctM>=80?'var(--warn)':'var(--orange)';
+  const kC=!hasMeta?'c-teal':pctM>=100?'c-green':'c-warn';
+
+  const marcasBar=hasMeta?`
+    <div class="pbar" style="margin-top:10px;"><div class="pbar-fill" style="width:${clamp(pctM,0,100)}%;background:${wC};"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;">
+      <span>Meta ${fmt(metaM)}</span>
+      <span style="color:${wC};font-weight:600;">${pctM>=100?'✓ meta superada':'⚠ faltan '+fmt(Math.abs(diff))}</span></div>`
+    :`<div style="margin-top:10px;font-size:10px;color:var(--text3);padding:5px 8px;background:var(--bg3);border-radius:4px;">Sin meta configurada en PRESUPUESTOS</div>`;
+
+  const eduBar=pctE!==null?`
+    <div class="pbar" style="margin-top:10px;"><div class="pbar-fill" style="width:${clamp(pctE,0,100)}%;background:var(--purple);"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;">
+      <span>Meta ${fmt(metaE)}</span><span style="color:var(--purple);font-weight:600;">${Number(pctE).toFixed(1)}% ${pctE>=100?'✓':''}</span></div>`
+    :`<div style="margin-top:10px;font-size:10px;color:var(--text3);padding:5px 8px;background:var(--bg3);border-radius:4px;">Sin meta configurada</div>`;
+
   $('s-kpi').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">01</span><span class="seg-dot" style="background:var(--orange);"></span>
     <span class="seg-title">KPIs Clave</span>
-    <span class="seg-meta">${v.length} ventas · ${fmt(totalLegal)} legal · ${fmt(totalEdu)} educación</span></div>
+    <span class="seg-meta">${v.length} ventas · ${fmt(totalLegal)} legal · ${fmt(totalEdu)||'sin datos edu'}</span></div>
   <div class="kpi-strip-3">
     <div class="kpi-4-card ${kC}">
-      <div class="kpi-4-label">% Meta semanal — Marcas</div>
-      <div class="kpi-4-val" style="color:${wC};">${Number(pctM).toFixed(2)}%</div>
-      <div class="kpi-4-sub">${fmt(totalM)} / meta ${fmt(metaM)}</div>
-      <div class="kpi-4-sub2">${diff>=0?'+':''}${fmt(diff)} · ${c.vMarcas.length} ventas marcas</div>
-      <div style="margin-top:10px;">
-        <div class="pbar"><div class="pbar-fill" style="width:${clamp(pctM,0,100)}%;background:${wC};"></div></div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;">
-          <span>0%</span><span style="color:${wC};font-weight:600;">${pctM>=100?'✓ meta superada':'⚠ faltan '+fmt(Math.abs(diff))}</span></div></div></div>
+      <div class="kpi-4-label">${hasMeta?'% Meta semanal — Marcas':'Total facturado — Marcas'}</div>
+      <div class="kpi-4-val" style="color:${wC};">${hasMeta?Number(pctM).toFixed(1)+'%':fmt(totalM)}</div>
+      <div class="kpi-4-sub">${hasMeta?fmt(totalM)+' / meta '+fmt(metaM):c.vMarcas.length+' ventas · '+fmt(totalM)}</div>
+      <div class="kpi-4-sub2">${c.vMarcas.length} ventas marcas · ${[...new Set(c.vMarcas.map(x=>x.asesor))].length} asesores</div>
+      ${marcasBar}</div>
     <div class="kpi-4-card c-purple">
       <div class="kpi-4-label">Educación</div>
-      <div class="kpi-4-val cp">${Number(pctE).toFixed(2)}%</div>
-      <div class="kpi-4-sub">${fmt(totalEdu)} · ${edu.producto||'—'} · ${edu.inscritos||0} inscritos</div>
-      <div class="kpi-4-sub2">Meta ${fmt(metaE)} · ${edu.downsell||0} downsell · ${edu.upsell||0} upsell · ${edu.becas||0} becas</div>
-      <div style="margin-top:10px;">
-        <div class="pbar"><div class="pbar-fill" style="width:${clamp(pctE,0,100)}%;background:var(--purple);"></div></div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;">
-          <span>Meta ${fmt(metaE)}</span><span style="color:var(--purple);font-weight:600;">${Number(pctE).toFixed(2)}% ${pctE>=100?'✓ superada':''}</span></div></div></div>
+      <div class="kpi-4-val cp">${pctE!==null?Number(pctE).toFixed(1)+'%':edu.inscritos>0?edu.inscritos+' inscritos':'—'}</div>
+      <div class="kpi-4-sub">${totalEdu>0?fmt(totalEdu)+' · ':''}${edu.producto||'Cursos'} · ${edu.inscritos||0} inscritos</div>
+      <div class="kpi-4-sub2">${edu.downsell||0} downsell · ${edu.upsell||0} upsell · ${edu.becas||0} becas</div>
+      ${eduBar}</div>
     <div class="kpi-4-card c-teal">
-      <div class="kpi-4-label">Gran total</div>
-      <div class="kpi-4-val ct">${fmt(total)}</div>
-      <div class="kpi-4-sub">Legal ${fmt(totalLegal)} + Edu ${fmt(totalEdu)} + Priv ${fmt(totalPriv)}</div>
-      <div class="kpi-4-sub2">Priv activos: ${ps.activos||0} · churn: ${ps.churn||0}</div>
-      <div style="margin-top:10px;">
-        <div class="pbar"><div class="pbar-fill" style="width:100%;background:var(--teal);"></div></div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;">
-          <span>Combinado</span><span style="color:var(--teal);font-weight:600;">${edu.producto||'—'}</span></div></div></div>
+      <div class="kpi-4-label">Total del período</div>
+      <div class="kpi-4-val ct">${fmt(totalLegal)}</div>
+      <div class="kpi-4-sub">Legal ${fmt(totalLegal)}${totalEdu>0?' + Edu '+fmt(totalEdu):''}${totalPriv>0?' + Priv '+fmt(totalPriv):''}</div>
+      <div class="kpi-4-sub2">Priv activos: ${ps.activos||'—'} · churn: ${ps.churn||0}</div>
+      <div style="margin-top:10px;"><div class="pbar"><div class="pbar-fill" style="width:100%;background:var(--teal);"></div></div></div></div>
   </div>`;
 }
 
-// ══════════════ §2-4 Presupuestos ═════════════════════
+// ══════════ §2-4 Presupuestos ════════════════════
 function rPresupuestos(d,c){
-  const{totalM,pctM,metaM,totalEdu,pctE,metaE,totalPriv,dias,diasMap,v,vMarcas,edu,ps,pp}=c;
-  const diasVals=dias.map(d=>diasMap[d]);
+  const{totalM,metaM,pctM,totalEdu,pctE,metaE,totalPriv,dias,diasMap,v,vMarcas,edu,ps,pp}=c;
+  const diasVals=dias.map(f=>diasMap[f]);
   const maxD=Math.max(...diasVals,1);
   const diasColors=diasVals.map(v=>v===0?'rgba(190,188,184,.25)':v===maxD?'rgba(255,37,0,.65)':'rgba(22,163,74,.55)');
-  const diasListHtml=dias.map(dia=>{const val=diasMap[dia];const vtas=v.filter(x=>x.fecha===dia).length;
+  const diasList=dias.map(dia=>{const val=diasMap[dia];const vtas=v.filter(x=>x.fecha===dia).length;
     return `<div class="si"><span class="si-l">${dia}</span><span class="si-r ${val===0?'cs':val===maxD?'cw':'cg'}">${val===0?'$0.00':fmt(val)+' · '+vtas+' venta'+(vtas!==1?'s':'')}</span></div>`;}).join('');
 
   $('s-budgets').innerHTML=`
@@ -381,221 +388,237 @@ function rPresupuestos(d,c){
     <span class="seg-title">Cumplimiento de presupuesto</span><span class="seg-meta">Comparativo · Marcas · Educación</span></div>
   <div class="triple-row">
     <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-        <div class="card-title">Comparativo mensual</div><span class="chip chip-d" style="font-size:9px;">Marcas + Educación</span></div>
-      <div class="card-note">Período actual vs anteriores</div>
+      <div class="card-title">Comparativo mensual</div>
+      <div class="card-note">Evolución histórica de ingresos legales</div>
       <div style="position:relative;height:200px;"><canvas id="compChart"></canvas></div>
       <div class="divider"></div><div id="compLegend" style="display:flex;flex-direction:column;gap:6px;"></div></div>
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-        <div class="card-title">Marcas</div><span class="chip chip-w">${Number(pctM).toFixed(2)}% meta sem.</span></div>
-      <div class="card-note">${vMarcas.length} ventas · meta ${fmt(metaM)}</div>
+        <div class="card-title">Marcas</div>
+        <span class="chip ${pctM!==null?(pctM>=100?'chip-g':'chip-w'):'chip-t'}">${pctM!==null?Number(pctM).toFixed(1)+'% meta':'Sin meta'}</span></div>
+      <div class="card-note">${vMarcas.length} ventas · ${pctM!==null?'meta '+fmt(metaM):'Configura meta en PRESUPUESTOS'}</div>
       <div style="background:rgba(255,37,0,.04);border:1px solid rgba(255,37,0,.15);border-radius:8px;padding:14px 16px;margin-bottom:12px;">
-        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:4px;">Total facturado</div>
-        <div style="font-size:28px;font-weight:700;color:var(--orange);letter-spacing:-1.5px;line-height:1;font-family:'DM Mono',monospace;">${fmt(totalM)}</div>
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Total facturado</div>
+        <div style="font-size:28px;font-weight:700;color:var(--orange);letter-spacing:-1.5px;font-family:'DM Mono',monospace;">${fmt(totalM)}</div>
         <div style="font-size:10px;color:var(--text3);margin-top:4px;">${vMarcas.length} ventas · ticket ${fmt(vMarcas.length>0?totalM/vMarcas.length:0)}</div>
-        <div class="pbar" style="margin-top:8px;"><div class="pbar-fill" style="width:${clamp(pctM,0,100)}%;background:var(--warn);"></div></div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>Meta ${fmt(metaM)}</span><span style="color:var(--warn);font-weight:600;">${Number(pctM).toFixed(2)}%</span></div></div>
+        ${pctM!==null?`<div class="pbar" style="margin-top:8px;"><div class="pbar-fill" style="width:${clamp(pctM,0,100)}%;background:var(--warn);"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>Meta ${fmt(metaM)}</span><span style="color:var(--warn);font-weight:600;">${Number(pctM).toFixed(1)}%</span></div>`:''}</div>
       <div style="position:relative;height:90px;margin-bottom:10px;"><canvas id="marcasMiniChart"></canvas></div>
-      <div class="divider"></div>${diasListHtml}</div>
+      <div class="divider"></div>${diasList}</div>
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-        <div class="card-title">Educación + Priv</div><span class="chip chip-g">${Number(pctE).toFixed(2)}% meta</span></div>
-      <div class="card-note">${edu.producto||'—'} + Ulpik Priv · Meta ${fmt(metaE)}</div>
+        <div class="card-title">Educación + Priv</div>
+        <span class="chip ${pctE!==null?(pctE>=100?'chip-g':'chip-w'):(edu.inscritos>0?'chip-p':'chip-d')}">${pctE!==null?Number(pctE).toFixed(1)+'% meta':edu.inscritos>0?edu.inscritos+' inscritos':'Sin datos'}</span></div>
+      <div class="card-note">${edu.producto||'Cursos'} + Ulpik Priv</div>
+      ${edu.inscritos>0||totalEdu>0?`
       <div style="background:rgba(130,59,218,.05);border:1px solid rgba(130,59,218,.18);border-radius:8px;padding:14px 16px;margin-bottom:12px;">
-        <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Total Educación</div>
-        <div style="font-size:28px;font-weight:700;color:var(--purple);letter-spacing:-1.5px;line-height:1;font-family:'DM Mono',monospace;">${fmt(totalEdu)}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:4px;">${edu.inscritos||0} inscritos · ${edu.downsell||0} downsell · ${edu.upsell||0} upsell</div>
-        <div class="pbar" style="margin-top:8px;"><div class="pbar-fill" style="width:${clamp(pctE,0,100)}%;background:var(--purple);"></div></div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>Meta ${fmt(metaE)}</span><span style="color:var(--green);font-weight:600;">${Number(pctE).toFixed(2)}% ${pctE>=100?'✓ superada':''}</span></div></div>
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">${edu.producto||'Total Educación'}</div>
+        <div style="font-size:28px;font-weight:700;color:var(--purple);letter-spacing:-1.5px;font-family:'DM Mono',monospace;">${totalEdu>0?fmt(totalEdu):edu.inscritos+' inscritos'}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">${edu.inscritos||0} inscritos · ${edu.downsell||0} downsell · ${edu.upsell||0} upsell · ${edu.becas||0} becas</div>
+        ${totalEdu>0&&pctE!==null?`<div class="pbar" style="margin-top:8px;"><div class="pbar-fill" style="width:${clamp(pctE,0,100)}%;background:var(--purple);"></div></div>`:''}
+        ${totalEdu===0?`<div style="margin-top:8px;font-size:10px;color:var(--warn);padding:4px 8px;background:rgba(192,120,0,.08);border-radius:4px;">⚠ Monto en $0 — revisar columna en INSCRITOS CURSOS</div>`:''}</div>`
+      :`<div style="margin-bottom:12px;">${noData('Sin datos de educación en este período','Verifica hoja INSCRITOS CURSOS')}</div>`}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-        <div style="background:rgba(130,59,218,.05);border-radius:8px;border:1px solid rgba(130,59,218,.15);padding:12px 14px;">
-          <div style="font-size:10px;color:var(--purple);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">${edu.producto||'Educación'}</div>
-          <div style="font-size:20px;font-weight:700;color:var(--purple);font-family:'DM Mono',monospace;">${fmt(totalEdu)}</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:3px;">${edu.inscritos||0} inscritos</div></div>
         <div style="background:rgba(0,173,176,.05);border-radius:8px;border:1px solid rgba(0,173,176,.20);padding:12px 14px;">
           <div style="font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Ulpik Priv</div>
-          <div style="font-size:20px;font-weight:700;color:var(--teal);font-family:'DM Mono',monospace;">${fmt(totalPriv)}</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:3px;">${pp.length} pagos</div></div></div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
-        <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Activos</div><div class="num-md ct">${ps.activos||0}</div></div>
-        <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Retraso</div><div class="num-md cw">${ps.retraso||0}</div></div>
-        <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Hábiles</div><div class="num-md cg">${ps.habiles||0}</div></div>
-        <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Churn</div><div class="num-md cs">${ps.churn||0}</div></div></div></div></div>`;
+          <div style="font-size:20px;font-weight:700;color:var(--teal);font-family:'DM Mono',monospace;">${totalPriv>0?fmt(totalPriv):pp.length+' miembros'}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:3px;">${pp.length} pagos${totalPriv===0?' · monto pendiente de configurar':''}</div></div>
+        <div style="background:var(--bg3);border-radius:8px;border:1px solid var(--border);padding:12px 14px;">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Estado Priv</div>
+          <div style="font-size:14px;font-weight:600;">${ps.activos||'—'} activos</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:3px;">${ps.retraso||0} retraso · ${ps.churn||0} churn</div></div></div></div></div>`;
 
-  // charts
+  // Comparativo chart
   killChart('comp');
   const hist=d.historico_mensual||[];
   if(hist.length){
+    const last12=hist.slice(-12);
     charts['comp']=new Chart($('compChart').getContext('2d'),{
-      type:'bar',data:{labels:hist.map(h=>h.label),
-        datasets:[{label:'Legal',data:hist.map(h=>Number(h.legal||0)),backgroundColor:'rgba(192,120,0,.75)',borderRadius:4,barPercentage:.55},
-                  {label:'Edu',data:hist.map(h=>Number(h.edu||0)),backgroundColor:'rgba(130,59,218,.70)',borderRadius:4,barPercentage:.55}]},
+      type:'bar',data:{labels:last12.map(h=>h.label),
+        datasets:[{label:'Legal',data:last12.map(h=>Number(h.legal||0)),backgroundColor:'rgba(255,37,0,.65)',borderRadius:4,barPercentage:.7},
+                  {label:'Edu',data:last12.map(h=>Number(h.edu||0)),backgroundColor:'rgba(130,59,218,.55)',borderRadius:4,barPercentage:.7}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>' '+fmt(x.raw)}}},
-        scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#9e9e9e'}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#9e9e9e',callback:v=>'$'+v.toLocaleString()}}}}});
-    $('compLegend').innerHTML=hist.map(h=>`<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11px;">${h.label}</span><span style="font-size:12px;font-weight:700;font-family:'DM Mono',monospace;">${fmt(Number(h.legal||0)+Number(h.edu||0))}</span></div>`).join('');
+        scales:{x:{grid:{display:false},ticks:{font:{size:9},color:'#9e9e9e'}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#9e9e9e',callback:v=>'$'+v.toLocaleString()}}}}});
+    // Show last 3 in legend
+    $('compLegend').innerHTML=hist.slice(-3).reverse().map(h=>`<div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:11px;">${h.label}</span>
+      <span style="font-size:12px;font-weight:700;font-family:'DM Mono',monospace;">${fmt(Number(h.legal||0)+Number(h.edu||0))}</span></div>`).join('');
   }
   killChart('marcasMini');
   if(dias.length){
     charts['marcasMini']=new Chart($('marcasMiniChart').getContext('2d'),{
       type:'bar',data:{labels:dias,datasets:[{data:diasVals,backgroundColor:diasColors,borderRadius:4,barPercentage:.7}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>' '+fmt(x.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:9},color:'#9e9e9e'}},y:{display:false}}}});
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>' '+fmt(x.raw)}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:9},color:'#9e9e9e'}},y:{display:false}}}});
   }
 }
 
-// ══════════════ §5 Asesores ═══════════════════════════
+// ══════════ §5 Asesores ══════════════════════════
 function rAsesores(d,c){
   const{names,ad,maxM,totalLegal,v,m}=c;
   const meta=Number(m.meta_conv||5);
   const rows=names.map(a=>{
-    const x=ad[a]; const bw=maxM>0?(x.monto/maxM*100).toFixed(1):0;
-    return `<tr><td style="font-weight:600;${x.monto===0?'color:var(--text3);':''}">${a}</td>
-      <td><div class="ibar"><div class="ibar-track"><div class="ibar-fill" style="width:${bw}%;background:${colAsesor(a)};"></div></div><span class="ibar-val">${fmt(x.monto)}</span></div></td>
-      <td class="r" style="font-size:14px;font-weight:700;color:${colAsesor(a)};">${x.ventas}</td>
+    const x=ad[a];const bw=maxM>0?(x.monto/maxM*100).toFixed(1):0;
+    return `<tr><td style="font-weight:600;">${a}</td>
+      <td><div class="ibar"><div class="ibar-track"><div class="ibar-fill" style="width:${bw}%;background:${colA(a)};"></div></div><span class="ibar-val">${fmt(x.monto)}</span></div></td>
+      <td class="r" style="font-size:14px;font-weight:700;color:${colA(a)};">${x.ventas}</td>
       <td class="r" style="font-family:'DM Mono',monospace;">${x.ventas>0?fmt(x.ticket):'—'}</td>
-      <td class="r" style="color:${colAsesor(a)};">${x.pct}%</td>
-      <td style="font-size:11px;color:var(--text3);">${x.chats} chats</td></tr>`;}).join('');
+      <td class="r" style="color:${colA(a)};">${x.pct}%</td>
+      <td style="font-size:11px;color:var(--text3);">${x.chats>0?x.chats+' chats':'—'}</td></tr>`;}).join('');
 
   const convAs=names.filter(a=>ad[a].chats>0);
-  const convCards=convAs.map((a,i)=>{
-    const x=ad[a]; const cv=Number(x.conv||0); const over=cv>=meta;
-    const col=over?'var(--green)':'var(--warn)';
-    return `<div style="padding:14px 16px;${i<convAs.length-1?'border-right:1px solid var(--border);':''}">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <span style="font-size:12px;font-weight:600;">${a}</span>
-        <span style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:${col};">${cv}%</span></div>
-      <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;border:1px solid var(--border);margin-bottom:6px;">
-        <div style="width:${clamp(cv/30*100,0,100)}%;height:100%;background:${col};border-radius:3px;min-width:4px;"></div></div>
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);">
-        <span>${x.ventasMarcas} marcas / ${x.chats} chats</span>
-        <span style="color:${col};font-weight:600;">${over?'✓ sobre meta':'⚠ bajo meta'}</span></div></div>`;}).join('');
+  const convSection=convAs.length?`
+    <div style="margin-top:14px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+      <div style="padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:11px;font-weight:600;">Conversión por asesor</span>
+        <span style="font-size:10px;color:var(--text3);">Objetivo: <strong style="color:var(--green);">${meta}.00%</strong></span></div>
+      <div style="display:grid;grid-template-columns:repeat(${convAs.length},1fr);">
+        ${convAs.map((a,i)=>{const x=ad[a];const cv=Number(x.conv||0);const over=cv>=meta;const col=over?'var(--green)':'var(--warn)';
+          return `<div style="padding:14px 16px;${i<convAs.length-1?'border-right:1px solid var(--border);':''}">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+              <span style="font-size:12px;font-weight:600;">${a}</span>
+              <span style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:${col};">${cv}%</span></div>
+            <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;border:1px solid var(--border);margin-bottom:6px;">
+              <div style="width:${clamp(cv/30*100,0,100)}%;height:100%;background:${col};border-radius:3px;min-width:4px;"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);">
+              <span>${x.ventasMarcas}v / ${x.chats} chats</span>
+              <span style="color:${col};font-weight:600;">${over?'✓ sobre meta':'⚠ bajo meta'}</span></div></div>`;}).join('')}
+      </div></div>`
+    :`<div class="warn-box" style="margin-top:14px;"><div class="a-title" style="color:var(--warn);">Tasa de conversión no disponible</div>
+      <div class="a-body">Carga los datos de CONTACTADOS LEGAL con columnas <strong>Mes y Año</strong>, <strong>Responsable</strong> y <strong>Chats</strong>.</div></div>`;
 
   $('s-asesores').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">05</span><span class="seg-dot" style="background:var(--teal);"></span>
-    <span class="seg-title">Gestión Individual — Asesores Marcas</span><span class="seg-meta">Chats · Ventas · Monto</span></div>
+    <span class="seg-title">Gestión Individual — Asesores</span><span class="seg-meta">Ventas · Monto · Participación</span></div>
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="card-title" style="margin:0;">Rendimiento por asesor</div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <span class="chip chip-d">${names.filter(a=>ad[a].ventas>0).length} asesores activos</span>
+        <span class="chip chip-d">${names.length} asesores</span>
         <span style="font-size:10px;color:var(--text3);">Total: <strong class="co">${fmt(totalLegal)}</strong></span></div></div>
     <table class="data-table">
       <thead><tr><th>Asesor</th><th>Monto</th><th class="r">Ventas</th><th class="r">Ticket prom.</th><th class="r">Part.</th><th>Chats</th></tr></thead>
       <tbody>${rows}
         <tr class="t-total"><td>TOTAL</td><td><span style="font-family:'DM Mono',monospace;font-size:12px;">${fmt(totalLegal)}</span></td>
-          <td class="r co">${v.length}</td><td class="r" style="font-family:'DM Mono',monospace;font-size:12px;">${fmt(v.length>0?totalLegal/v.length:0)}</td><td class="r cs">100%</td><td></td></tr>
-      </tbody></table>
-    ${convCards?`<div style="margin-top:14px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
-      <div style="padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-size:11px;font-weight:600;">Conversión por asesor</span>
-        <span style="font-size:10px;color:var(--text3);">Objetivo: <strong style="color:var(--green);">${meta}.00%</strong></span></div>
-      <div style="display:grid;grid-template-columns:repeat(${convAs.length},1fr);gap:0;">${convCards}</div>
-      <div style="padding:8px 16px;background:var(--bg3);border-top:1px solid var(--border);font-size:10px;color:var(--text3);">Conversión = ventas Marcas / chats registrados</div></div>`:''}
-  </div>`;
+          <td class="r co">${v.length}</td><td class="r" style="font-family:'DM Mono',monospace;font-size:12px;">${fmt(v.length>0?totalLegal/v.length:0)}</td>
+          <td class="r cs">100%</td><td></td></tr></tbody></table>
+    ${convSection}</div>`;
 }
 
-// ══════════════ §6 Evolutivo ══════════════════════════
+// ══════════ §6 Evolutivo ═════════════════════════
 function rEvolutivo(d){
   const evo=d.evolutivo||[];
-  const cells=evo.map((e,i)=>{
-    const p=e.meta>0?e.ingresos/e.meta*100:0; const isCur=i===evo.length-1;
-    const cls=p>=100?'best':'warn';
+  const hasMeta=evo.some(e=>e.meta>0);
+  const last6=evo.slice(-6);
+
+  const cells=last6.map((e,i)=>{
+    const isCur=i===last6.length-1;
+    const pv=hasMeta&&e.meta>0?e.ingresos/e.meta*100:null;
+    const cls=pv===null?'neutral':pv>=100?'best':'warn';
     return `<div class="evo-cell ${isCur?'warn':cls}" style="${isCur?'border-color:rgba(255,37,0,.30);':''}">
       <div class="evo-period" style="${isCur?'color:var(--orange);font-weight:600;':''}">${e.label}${isCur?' ←':''}</div>
-      <div class="evo-val ${p>=100?'cg':'co'}">${fmt(e.ingresos)}</div>
-      <div class="evo-pct ${p>=100?'cg':'co'}">${p.toFixed(1)}% ${p>=100?'✓':'✗'}</div></div>`;}).join('');
+      <div class="evo-val ${pv===null?'cs':pv>=100?'cg':'co'}">${fmt(e.ingresos)}</div>
+      ${pv!==null?`<div class="evo-pct ${pv>=100?'cg':'co'}">${pv.toFixed(1)}% ${pv>=100?'✓':'✗'}</div>`:''}
+    </div>`;}).join('');
 
   $('s-evo').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">06</span><span class="seg-dot" style="background:var(--orange);"></span>
-    <span class="seg-title">Evolutivo — Ingresos semana a semana</span><span class="seg-meta">${evo.length} semanas</span></div>
+    <span class="seg-title">Evolutivo — Ingresos mensuales</span><span class="seg-meta">${evo.length} meses · ${evo[0]?.label} → ${evo[evo.length-1]?.label}</span></div>
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <div class="card-title" style="margin:0;">Ingresos totales · semana a semana</div>
-      <div style="display:flex;gap:10px;">
-        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);"><span style="width:10px;height:2px;background:var(--orange);display:inline-block;"></span>Ingresos</div>
-        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);"><span style="width:10px;height:2px;background:var(--green);opacity:.5;display:inline-block;"></span>Meta</div></div></div>
+      <div class="card-title" style="margin:0;">Ingresos totales · mes a mes</div></div>
     <div style="position:relative;height:200px;"><canvas id="evoChart"></canvas></div>
-    <div class="evo-mini" style="grid-template-columns:repeat(${Math.min(evo.length,6)},1fr);">${cells}</div></div>`;
+    <div class="evo-mini" style="grid-template-columns:repeat(${last6.length},1fr);">${cells}</div></div>`;
 
   killChart('evo');
   if(evo.length){
+    const datasets=[{label:'Ingresos',data:evo.map(e=>e.ingresos),borderColor:'#ff2500',backgroundColor:'rgba(255,37,0,.07)',borderWidth:2,
+      pointBackgroundColor:evo.map(e=>hasMeta&&e.meta>0?(e.ingresos>=e.meta?'#16a34a':'#ff2500'):'#ff2500'),pointRadius:3,tension:.35,fill:true}];
+    if(hasMeta)datasets.push({label:'Meta',data:evo.map(e=>e.meta),borderColor:'rgba(22,163,74,.5)',borderWidth:1.5,borderDash:[4,4],pointRadius:0,fill:false});
     charts['evo']=new Chart($('evoChart').getContext('2d'),{
-      type:'line',data:{labels:evo.map(e=>e.label),
-        datasets:[{label:'Ingresos',data:evo.map(e=>e.ingresos),borderColor:'#ff2500',backgroundColor:'rgba(255,37,0,.07)',borderWidth:2,
-          pointBackgroundColor:evo.map(e=>e.ingresos>=(e.meta||0)?'#16a34a':'#ff2500'),pointRadius:4,tension:.35,fill:true},
-          {label:'Meta',data:evo.map(e=>e.meta),borderColor:'rgba(22,163,74,.5)',borderWidth:1.5,borderDash:[4,4],pointRadius:0,fill:false}]},
+      type:'line',data:{labels:evo.map(e=>e.label),datasets},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>' '+fmt(x.raw)}}},
-        scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#9e9e9e'}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#9e9e9e',callback:v=>'$'+v.toLocaleString()}}}}});
+        scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#9e9e9e',maxTicksLimit:12}},
+          y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#9e9e9e',callback:v=>'$'+v.toLocaleString()}}}}});
   }
 }
 
-// ══════════════ §7 Embudos ════════════════════════════
+// ══════════ §7 Embudos ═══════════════════════════
 function rEmbudos(d,c){
-  const ads=d.ads||[], pp=d.priv_pagos||[], ps=d.priv_stats||{};
-  const gasto=sumF(ads,'gasto'), conv=sumF(ads,'conv_wpp'), clics=sumF(ads,'clics'), alc=sumF(ads,'alcance');
+  const{adsClean,vMarcas,totalM,pp,ps,totalPriv}=c;
+  const hasAds=adsClean.length>0;
+  const gasto=sumF(adsClean,'gasto'),conv=sumF(adsClean,'conv_wpp'),clics=sumF(adsClean,'clics'),alc=sumF(adsClean,'alcance');
   const cpr=conv>0?(gasto/conv).toFixed(2):0;
-  const roas=gasto>0?(c.totalM/gasto).toFixed(1):0;
-  const privGasto=Number(ps.gasto||0), privConv=Number(ps.conv_wpp||0);
-  const privCPR=privConv>0?(privGasto/privConv).toFixed(2):0;
+  const roas=gasto>0?(totalM/gasto).toFixed(1):0;
+  const privG=Number(ps.gasto||0),privC=Number(ps.conv_wpp||0);
+  const privCPR=privC>0?(privG/privC).toFixed(2):0;
+
+  const marcasFunnel=hasAds
+    ?`<div class="kpi-strip">
+        <div class="d-kpi-card"><div class="d-kpi-label">Gasto</div><div class="d-kpi-value accent">${fmt(gasto)}</div><div class="d-kpi-sub">${adsClean.length} días</div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">CPR</div><div class="d-kpi-value">$${cpr}</div><div class="d-kpi-sub">${conv} conv. WPP</div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">ROAS</div><div class="d-kpi-value accent">${roas}×</div></div></div>
+      <div class="roas-banner">
+        <div><div class="roas-label">ROAS</div><div class="roas-val">${roas}×</div></div>
+        <div style="text-align:right;"><div class="roas-sub">Marcas facturadas</div><div class="roas-revenue">${fmt(totalM)}</div></div></div>
+      <div class="d-funnel-title">Embudo</div><div id="mstg"></div>
+      <hr class="d-divider">
+      <div class="d-chart-wrap"><div class="d-chart-hdr"><div class="d-chart-label">Conv. WPP diarias</div></div>
+        <div style="position:relative;height:130px;"><canvas id="adsChart"></canvas></div></div>`
+    :`<div style="margin-top:16px;padding:24px;text-align:center;background:var(--d-card);border:1px dashed var(--d-border);border-radius:10px;">
+        <div style="font-size:22px;margin-bottom:8px;">📊</div>
+        <div style="font-size:12px;color:var(--d-muted);">Sin datos de Ads para este período</div>
+        <div style="font-size:10px;color:var(--d-muted);margin-top:4px;font-family:'DM Mono',monospace;">Carga RESULTADOS ADS con columna "Mes y Año"</div></div>
+      <div style="margin-top:16px;background:var(--d-card);border:1px solid var(--d-border);border-radius:10px;padding:14px 16px;">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--d-muted);margin-bottom:8px;">Ventas Marcas — período</div>
+        <div style="font-size:22px;font-weight:700;color:var(--orange);font-family:'DM Mono',monospace;">${fmt(totalM)}</div>
+        <div style="font-size:11px;color:var(--d-muted);margin-top:4px;">${vMarcas.length} ventas cerradas</div></div>`;
 
   $('s-embudos').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">07</span><span class="seg-dot" style="background:#ff2500;"></span>
-    <span class="seg-title">Embudos — Marcas &amp; Ulpik Priv · Ads</span><span class="seg-meta">${ads.length} días con datos</span></div>
+    <span class="seg-title">Embudos — Marcas &amp; Ulpik Priv</span>
+    <span class="seg-meta">${hasAds?adsClean.length+' días con datos':'Sin datos de Ads'}</span></div>
   <div class="emb-section"><div class="emb-inner">
     <div class="funnel-panel marcas">
       <div class="campaign-tag"><span class="dot"></span>Marcas</div>
       <div class="emb-title">Marcas – Leads a WPP</div>
-      <div class="emb-sub">${ads.length} días activos · ${fmt(gasto)} gasto total</div>
-      <div class="kpi-strip">
-        <div class="d-kpi-card"><div class="d-kpi-label">Gasto</div><div class="d-kpi-value accent">${fmt(gasto)}</div><div class="d-kpi-sub">${ads.length} días</div></div>
-        <div class="d-kpi-card"><div class="d-kpi-label">CPR</div><div class="d-kpi-value">$${cpr}</div><div class="d-kpi-sub">${conv} conv. WPP</div></div>
-        <div class="d-kpi-card"><div class="d-kpi-label">ROAS</div><div class="d-kpi-value accent">${roas}×</div><div class="d-kpi-sub">${fmt(c.totalM)} ingreso</div></div></div>
-      <div class="roas-banner">
-        <div><div class="roas-label">ROAS</div><div class="roas-val">${roas}×</div></div>
-        <div style="text-align:right;"><div class="roas-sub">Marcas facturadas</div><div class="roas-revenue">${fmt(c.totalM)}</div>
-          <div class="roas-sub">${c.vMarcas.length} ventas · gasto ${fmt(gasto)}</div></div></div>
-      <div class="d-funnel-title">Embudo</div><div id="mstg"></div>
-      <hr class="d-divider">
-      <div class="d-chart-wrap">
-        <div class="d-chart-hdr"><div class="d-chart-label">Conv. WPP diarias</div></div>
-        <div style="position:relative;height:130px;"><canvas id="adsChart"></canvas></div></div></div>
+      <div class="emb-sub">${hasAds?adsClean.length+' días activos · '+fmt(gasto)+' gasto':'Datos pendientes en RESULTADOS ADS'}</div>
+      ${marcasFunnel}</div>
     <div class="funnel-panel priv">
       <div class="campaign-tag"><span class="dot"></span>Ulpik Priv</div>
-      <div class="emb-title">Ulpik Priv – Mensajes WPP</div>
-      <div class="emb-sub">${fmt(privGasto)} gasto · ${privConv} conv. WPP</div>
+      <div class="emb-title">Ulpik Priv – Comunidad</div>
+      <div class="emb-sub">${pp.length} miembros registrados en este período</div>
       <div class="kpi-strip">
-        <div class="d-kpi-card"><div class="d-kpi-label">Gasto</div><div class="d-kpi-value accent">${fmt(privGasto)}</div></div>
-        <div class="d-kpi-card"><div class="d-kpi-label">Conv. WPP</div><div class="d-kpi-value">${privConv}</div></div>
-        <div class="d-kpi-card"><div class="d-kpi-label">CPR</div><div class="d-kpi-value">$${privCPR}</div></div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">Gasto Ads</div><div class="d-kpi-value accent">${privG>0?fmt(privG):'—'}</div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">Conv. WPP</div><div class="d-kpi-value">${privC||'—'}</div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">Pagos</div><div class="d-kpi-value">${pp.length}</div></div></div>
       <div class="roas-banner">
-        <div><div class="roas-label">Pagos Hotmart</div><div class="roas-val">${pp.length}</div></div>
-        <div style="text-align:right;"><div class="roas-sub">Miembros hábiles</div><div class="roas-revenue">${ps.habiles||0}</div>
-          <div class="roas-sub">${ps.churn||0} churn · ${fmt(c.totalPriv)}</div></div></div>
-      <div class="d-funnel-title">Estado comunidad</div><div id="pstg"></div>
-      <hr class="d-divider">
-      <div style="background:var(--d-card);border:1px solid var(--d-border);border-radius:10px;padding:14px 16px;">
-        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--d-muted);margin-bottom:10px;">Pagos Hotmart (${pp.length} · ${fmt(c.totalPriv)})</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">${pp.map(p=>`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--d-text);"><span>${p.nombre}</span><span style="color:var(--d-muted);">${p.fecha} · ${fmt(p.monto)} · cuota ${p.cuota}</span></div>`).join('')}</div></div>
-      <div class="panel-note">ℹ️ ${ps.habiles||0} miembros hábiles · ${ps.activos||0} activos · ${ps.retraso||0} en retraso · ${ps.churn||0} churn</div></div>
+        <div><div class="roas-label">Miembros</div><div class="roas-val">${pp.length}</div></div>
+        <div style="text-align:right;"><div class="roas-sub">Hábiles / Activos</div>
+          <div class="roas-revenue">${ps.habiles||'—'} / ${ps.activos||'—'}</div>
+          <div class="roas-sub">${totalPriv>0?fmt(totalPriv)+' facturado':'Configura columnas en FACTURACION'}</div></div></div>
+      <div class="d-funnel-title">Miembros del período</div>
+      <div style="background:var(--d-card);border:1px solid var(--d-border);border-radius:10px;padding:14px 16px;max-height:280px;overflow-y:auto;">
+        ${pp.length?pp.map(p=>`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--d-text);padding:4px 0;border-bottom:1px solid var(--d-border);">
+          <span>${p.nombre}</span>
+          <span style="color:var(--d-muted);">${p.fecha||'—'} · cuota ${p.cuota}</span></div>`).join('')
+          :`<div style="text-align:center;padding:16px;color:var(--d-muted);font-size:11px;">Sin pagos en este período</div>`}
+      </div>
+      <div class="panel-note">ℹ️ Montos en $0 → verifica columna "Dinero que representa" en FACTURACION ULPIK PRIV</div></div>
   </div></div>`;
 
-  buildStg('mstg','marcas',[
-    {name:'Alcance',sub:'total',label:Number(alc).toLocaleString(),val:alc,conv:'↓ clics enlace'},
-    {name:'Clics enlace',sub:'a WhatsApp',label:Number(clics).toLocaleString(),val:clics,conv:'↓ conv. WPP'},
-    {name:'Conv. WPP',sub:'leads',label:String(conv),val:conv,conv:'↓ venta'},
-    {name:'Ventas cerradas',sub:'',label:String(c.vMarcas.length),val:c.vMarcas.length,conv:null}]);
-  buildStg('pstg','priv',[
-    {name:'Alcance',sub:'',label:Number(ps.alcance||0).toLocaleString(),val:Number(ps.alcance||1),conv:'↓ conv. WPP'},
-    {name:'Conv. WPP',sub:'leads',label:String(privConv),val:privConv,conv:'↓ pagos'},
-    {name:'Pagos Hotmart',sub:'recurrentes',label:String(pp.length),val:pp.length,conv:null}]);
-
-  killChart('ads');
-  if(ads.length){
+  if(hasAds){
+    buildStg('mstg','marcas',[
+      {name:'Alcance',sub:'',label:Number(alc).toLocaleString(),val:alc,conv:'↓ clics'},
+      {name:'Clics enlace',sub:'a WPP',label:Number(clics).toLocaleString(),val:clics,conv:'↓ conv. WPP'},
+      {name:'Conv. WPP',sub:'leads',label:String(conv),val:conv,conv:'↓ venta'},
+      {name:'Ventas',sub:'cerradas',label:String(vMarcas.length),val:vMarcas.length,conv:null}]);
+    killChart('ads');
     charts['ads']=new Chart($('adsChart').getContext('2d'),{
-      data:{labels:ads.map(a=>a.fecha),
-        datasets:[{type:'bar',label:'Conv.WPP',data:ads.map(a=>a.conv_wpp),backgroundColor:'rgba(255,37,0,.75)',borderRadius:3,yAxisID:'y',order:2},
-                  {type:'bar',label:'Clics',data:ads.map(a=>a.clics),backgroundColor:'rgba(130,59,218,.35)',borderRadius:3,yAxisID:'y',order:3},
-                  {type:'line',label:'Gasto',data:ads.map(a=>a.gasto),borderColor:'rgba(248,237,226,.7)',borderWidth:1.5,borderDash:[4,3],pointRadius:3,pointBackgroundColor:'rgba(248,237,226,.9)',yAxisID:'y2',fill:false,order:1}]},
+      data:{labels:adsClean.map(a=>a.fecha||''),
+        datasets:[{type:'bar',label:'Conv.WPP',data:adsClean.map(a=>a.conv_wpp),backgroundColor:'rgba(255,37,0,.75)',borderRadius:3,yAxisID:'y',order:2},
+                  {type:'bar',label:'Clics',data:adsClean.map(a=>a.clics),backgroundColor:'rgba(130,59,218,.35)',borderRadius:3,yAxisID:'y',order:3},
+                  {type:'line',label:'Gasto',data:adsClean.map(a=>a.gasto),borderColor:'rgba(248,237,226,.7)',borderWidth:1.5,borderDash:[4,3],pointRadius:3,pointBackgroundColor:'rgba(248,237,226,.9)',yAxisID:'y2',fill:false,order:1}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
         scales:{y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{font:{size:9},color:'#7a7068'}},
           y2:{position:'right',grid:{display:false},ticks:{font:{size:9},color:'rgba(248,237,226,.5)',callback:v=>'$'+v}}}}});
@@ -603,7 +626,7 @@ function rEmbudos(d,c){
 }
 
 function buildStg(id,cls,stages){
-  const el=$(id); if(!el) return;
+  const el=$(id);if(!el)return;
   const max=stages[0]?.val||1;
   el.innerHTML=stages.map((s,i)=>{
     const p=Math.max(s.val/max*100,3);
@@ -612,112 +635,103 @@ function buildStg(id,cls,stages){
       ${i<stages.length-1&&s.conv?`<div class="d-conv-badge">${s.conv}</div>`:''}`}).join('');
 }
 
-// ══════════════ §8 Convenio ═══════════════════════════
+// ══════════ §8 Convenio ══════════════════════════
 function rConvenio(cv){
-  const{contactados:ct=0,respondieron:re=0,llamadas:ll=0,convenios:co=0,ultima_gestion:ug='—'}=cv;
-  const p1=ct>0?(re/ct*100).toFixed(1):0, p2=re>0?(ll/re*100).toFixed(1):0, p3=ll>0?(co/ll*100).toFixed(1):0;
+  const empty=!cv||Object.keys(cv).length===0;
   $('s-convenio').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">08</span><span class="seg-dot" style="background:var(--teal);"></span>
-    <span class="seg-title">Convenio Diseñadores</span><span class="seg-meta">Última gestión: ${ug}</span></div>
+    <span class="seg-title">Convenio Diseñadores</span><span class="seg-meta">${empty?'Sin datos':'Última gestión: '+(cv.ultima_gestion||'—')}</span></div>
   <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <div class="card-title" style="margin:0;">Convenio Diseñadores</div><span class="chip chip-o">Última gestión ${ug}</span></div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
-      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Contactados</div><div class="num-lg">${ct}</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Respondieron</div><div class="num-lg co">${re}</div><div style="font-size:10px;color:var(--text3);">${p1}%</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Llamadas</div><div class="num-lg ct">${ll}</div><div style="font-size:10px;color:var(--text3);">${p2}%</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.06);border-color:rgba(0,173,176,.20);"><div class="kpi-label ct">Convenios</div><div class="num-lg ct">${co}</div><div style="font-size:10px;color:var(--text3);">${p3}%</div></div></div>
-    <div class="funnel-row"><span class="funnel-label">Contactados</span><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:rgba(255,37,0,.12);"><span class="co">${ct}</span></div></div></div>
-    <div class="funnel-arrow">↓ ${p1}% responden</div>
-    <div class="funnel-row"><span class="funnel-label">Respondieron</span><div class="funnel-track"><div class="funnel-fill" style="width:${p1}%;background:rgba(255,37,0,.22);min-width:40px;"><span class="co">${re}</span></div></div></div>
-    <div class="funnel-arrow">↓ ${p2}% llamada</div>
-    <div class="funnel-row"><span class="funnel-label">Llamadas</span><div class="funnel-track"><div class="funnel-fill" style="width:${ct>0?ll/ct*100:3}%;background:rgba(0,173,176,.35);min-width:40px;"><span class="ct">${ll}</span></div></div></div>
-    <div class="funnel-arrow">↓ ${p3}% convenio</div>
-    <div class="funnel-row"><span class="funnel-label">Convenio</span><div class="funnel-track"><div class="funnel-fill" style="width:${ct>0?co/ct*100:3}%;background:var(--teal);min-width:40px;"><span>${co}</span></div></div></div>
-    <div class="warn-box" style="margin-top:12px;"><div class="a-title" style="color:var(--warn);">⏸ Estado actual</div>
-      <div class="a-body">Última gestión: ${ug}. ${co} diseñadores con convenio o en proceso pendientes de activación.</div></div></div>`;
+    <div class="card-title" style="margin-bottom:12px;">Convenio Diseñadores</div>
+    ${empty?noData('Sin datos en GESTION CONVENIO DISEÑADORES','Verifica que la hoja tenga columnas: Contactados, Respondieron, Llamadas, Convenios'):
+    `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Contactados</div><div class="num-lg">${cv.contactados||0}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Respondieron</div><div class="num-lg co">${cv.respondieron||0}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Llamadas</div><div class="num-lg ct">${cv.llamadas||0}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.06);border-color:rgba(0,173,176,.20);"><div class="kpi-label ct">Convenios</div><div class="num-lg ct">${cv.convenios||0}</div></div></div>`
+    }</div>`;
 }
 
-// ══════════════ §9 Upsell ═════════════════════════════
+// ══════════ §9 Upsell ════════════════════════════
 function rUpsell(up){
-  const{aprobadas:ap=0,en_proceso:ep=0,negadas:ng=0,estado:es='Pausado',ultima_gestion:ug='—'}=up;
+  const{aprobadas:ap=0,en_proceso:ep=0,negadas:ng=0,estado:es='—',ultima_gestion:ug='—'}=up;
   $('s-upsell').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">09</span><span class="seg-dot" style="background:var(--text3);"></span>
     <span class="seg-title">Upsell</span><span class="seg-meta">Estado: ${es}</span></div>
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div class="card-title" style="margin:0;">Upsell · Estado actual</div><span class="chip chip-o">${es} desde ${ug}</span></div>
-    <div style="display:flex;gap:16px;align-items:flex-start;">
-      <div style="display:flex;flex-direction:column;align-items:center;padding:20px;text-align:center;min-width:140px;">
-        <div style="width:50px;height:50px;border-radius:50%;background:rgba(255,37,0,.08);border:1px solid rgba(255,37,0,.20);display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:20px;">⏸</div>
-        <div style="font-size:12px;font-weight:600;">Sin gestión</div></div>
-      <div style="flex:1;"><div class="sec-label">Cartera referencia</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-          <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(130,59,218,.05);border-color:rgba(130,59,218,.15);"><div class="kpi-label">Aprobadas</div><div class="num-md cp">${ap}</div></div>
-          <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.05);border-color:rgba(0,173,176,.15);"><div class="kpi-label">En proceso</div><div class="num-md ct">${ep}</div></div>
-          <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Negadas</div><div class="num-md cs">${ng}</div></div></div></div></div></div>`;
+      <div class="card-title" style="margin:0;">Upsell · Estado actual</div><span class="chip chip-o">${es}</span></div>
+    ${ap===0&&ep===0&&ng===0?noData('Sin datos en GESTION UPSELL','Verifica columnas: Aprobadas, En proceso, Negadas, Estado'):
+    `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(130,59,218,.05);"><div class="kpi-label">Aprobadas</div><div class="num-lg cp">${ap}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.05);"><div class="kpi-label">En proceso</div><div class="num-lg ct">${ep}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Negadas</div><div class="num-lg cs">${ng}</div></div></div>`
+    }</div>`;
 }
 
-// ══════════════ §10 DISC ══════════════════════════════
-function rDisc(disc){
-  const tot=disc.reduce((s,d)=>s+Number(d.agendados||0),0);
-  const pres=disc.reduce((s,d)=>s+Number(d.presentados||0),0);
-  const vts=disc.reduce((s,d)=>s+Number(d.ventas||0),0);
-  const maxAg=Math.max(...disc.map(d=>Number(d.agendados||0)),1);
+// ══════════ §10 DISC ═════════════════════════════
+function rDisc(discData){
+  const tot=discData.reduce((s,d)=>s+d.agendados,0);
+  const pres=discData.reduce((s,d)=>s+d.presentados,0);
+  const vts=discData.reduce((s,d)=>s+d.ventas,0);
+  const maxAg=Math.max(...discData.map(d=>d.agendados),1);
+
   $('s-disc').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">10</span><span class="seg-dot" style="background:var(--purple);"></span>
-    <span class="seg-title">Taller DISC</span><span class="seg-meta">${tot} agendados histórico</span></div>
+    <span class="seg-title">Taller DISC</span><span class="seg-meta">${tot} agendados histórico · ${vts===0?'0 ventas':vts+' ventas'}</span></div>
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="card-title" style="margin:0;">Taller DISC · Funnel histórico</div>
       <span class="chip chip-o">${vts===0?'0% conversión':vts+' ventas'}</span></div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
-      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Agendados total</div><div class="num-lg">${tot}</div></div>
+    ${tot===0?noData('Sin datos en TALLER DISC','Verifica que la hoja tenga columna Mes con el número de mes'):
+    `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Agendados</div><div class="num-lg">${tot}</div></div>
       <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Se presentaron</div><div class="num-lg cw">${pres}</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(255,37,0,.04);border-color:rgba(255,37,0,.15);"><div class="kpi-label co">Ventas</div><div class="num-lg cs">${vts}</div></div></div>
-    ${disc.map(d=>`<div class="funnel-row"><span class="funnel-label">${d.mes} (${d.agendados} ag.)</span>
-      <div class="funnel-track"><div class="funnel-fill" style="width:${Number(d.agendados)/maxAg*100}%;background:rgba(130,59,218,.35);"><span class="cp">${d.agendados}</span></div></div></div>`).join('')}
-    <div class="alert-box" style="margin-top:12px;"><div class="a-title" style="color:var(--orange);">⚠ Rotura de funnel</div>
-      <div class="a-body">Solo ${pres} de ${tot} agendados se presentaron (${tot>0?(pres/tot*100).toFixed(1):0}%). Revisar protocolo de confirmación pre-taller.</div></div></div>`;
+      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(255,37,0,.04);"><div class="kpi-label co">Ventas</div><div class="num-lg cs">${vts}</div></div></div>
+    ${discData.map(d=>`<div class="funnel-row"><span class="funnel-label">${d.mes} (${d.agendados} ag.)</span>
+      <div class="funnel-track"><div class="funnel-fill" style="width:${d.agendados/maxAg*100}%;background:rgba(130,59,218,.35);">
+        <span class="cp">${d.agendados}</span></div></div></div>`).join('')}
+    ${pres===0&&tot>0?`<div class="warn-box" style="margin-top:12px;"><div class="a-title" style="color:var(--warn);">⚠ Asistencia sin registrar</div>
+      <div class="a-body">Agrega columna "Se presentó" (Sí/No) en TALLER DISC para ver la tasa de asistencia.</div></div>`:''}`
+    }</div>`;
 }
 
-// ══════════════ §11 Test PI ═══════════════════════════
+// ══════════ §11 Test PI ══════════════════════════
 function rPI(pi){
   const{leads:le=0,contactados:co=0,respondieron:re=0,negociacion:ne=0,ventas_cerradas:vc=0}=pi;
-  const sg=le-co;
   $('s-pi').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">11</span><span class="seg-dot" style="background:var(--purple);"></span>
     <span class="seg-title">Test PI</span><span class="seg-meta">${le} leads · ${ne} en negociación · ${vc} ventas</span></div>
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="card-title" style="margin:0;">Test PI · Funnel</div>
-      <div style="display:flex;gap:8px;"><span class="chip chip-p">${vc} ventas</span><span class="chip chip-w">${ne} en negociación</span></div></div>
+      <div style="display:flex;gap:8px;"><span class="chip chip-p">${le} leads</span><span class="chip chip-w">${ne} en negociación</span></div></div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
       <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Leads</div><div class="num-lg cp">${le}</div></div>
       <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Contactados</div><div class="num-lg ct">${co}</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Respondieron</div><div class="num-lg ct">${re}</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(130,59,218,.06);border-color:rgba(130,59,218,.20);"><div class="kpi-label cp">Negociación</div><div class="num-lg cw">${ne}</div></div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Negociación</div><div class="num-lg cw">${ne}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(22,163,74,.06);"><div class="kpi-label cg">Ventas</div><div class="num-lg cg">${vc}</div></div></div>
     <div class="funnel-row"><span class="funnel-label">Leads totales</span><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:rgba(130,59,218,.15);"><span class="cp">${le}</span></div></div></div>
-    <div class="funnel-arrow">↓ ${co} contactados (${le>0?(co/le*100).toFixed(1):0}%) — ${sg} sin gestionar</div>
-    <div class="funnel-row"><span class="funnel-label">Contactados</span><div class="funnel-track"><div class="funnel-fill" style="width:${le>0?co/le*100:3}%;background:rgba(130,59,218,.30);min-width:40px;"><span class="cp">${co}</span></div></div></div>
-    <div class="funnel-row"><span class="funnel-label">Negociación</span><div class="funnel-track"><div class="funnel-fill" style="width:${le>0?ne/le*100:3}%;background:var(--warn);min-width:40px;"><span>${ne}</span></div></div></div>
-    <div class="funnel-row"><span class="funnel-label">Ventas cerradas</span><div class="funnel-track"><div class="funnel-fill" style="width:${le>0?vc/le*100:3}%;background:var(--text3);min-width:30px;"><span style="color:#fff;">${vc}</span></div></div></div>
-    ${sg>0?`<div class="info-box" style="margin-top:10px;"><div class="a-title" style="color:var(--purple);">💡 Oportunidad: ${sg} leads sin gestionar</div>
-      <div class="a-body">Con la tasa histórica de conversión contacto→venta, gestionar estos leads esta semana representa una oportunidad real de cierres.</div></div>`:''}</div>`;
+    <div class="funnel-arrow">↓ ${le>0?(co/le*100).toFixed(0):0}% contactados</div>
+    <div class="funnel-row"><span class="funnel-label">Contactados</span><div class="funnel-track"><div class="funnel-fill" style="width:${le>0?clamp(co/le*100,3,100):3}%;background:rgba(130,59,218,.30);min-width:40px;"><span class="cp">${co}</span></div></div></div>
+    <div class="funnel-row"><span class="funnel-label">Negociación</span><div class="funnel-track"><div class="funnel-fill" style="width:${le>0?clamp(ne/le*100,3,100):3}%;background:var(--warn);min-width:40px;"><span>${ne}</span></div></div></div>
+    <div class="funnel-row"><span class="funnel-label">Ventas cerradas</span><div class="funnel-track"><div class="funnel-fill" style="width:${le>0?clamp(vc/le*100,3,100):3}%;background:var(--green);min-width:30px;"><span style="color:#fff;">${vc}</span></div></div></div>
+    ${co===0&&le>0?`<div class="info-box" style="margin-top:12px;"><div class="a-title" style="color:var(--purple);">💡 ${le} leads sin gestionar</div>
+      <div class="a-body">Agrega columna "Estado" en GESTION TEST PI para ver contactados/negociación/ventas.</div></div>`:''}
+  </div>`;
 }
 
-// ══════════════ §12 Ventas LEGAL ══════════════════════
+// ══════════ §12 Ventas LEGAL ═════════════════════
 function rLegal(d,c){
-  const{v,totalLegal,totalM,prodMap}=c;
+  const{v,totalLegal,vMarcas,prodMap}=c;
   const tickProm=v.length>0?totalLegal/v.length:0;
   const topP=Object.entries(prodMap).sort((a,b)=>b[1].monto-a[1].monto)[0];
   const chips=Object.entries(prodMap).map(([p,x])=>{
     const pv=totalLegal>0?(x.monto/totalLegal*100).toFixed(1):0;
     return `<div style="display:flex;align-items:center;gap:5px;font-size:11px;"><span class="chip chip-o" style="font-size:9px;">${p}</span>${x.ventas}v · ${fmt(x.monto)} · ${pv}%</div>`;}).join('');
   const rows=v.map(x=>`<tr><td>${x.fecha}</td>
-    <td style="font-weight:600;color:${colAsesor(x.asesor||'')};">${x.asesor||'—'}</td>
-    <td>${x.categoria}</td>
-    <td><span class="chip chip-o" style="font-size:9px;">${x.producto}</span></td>
+    <td style="font-weight:600;color:${colA(x.asesor||'')};">${x.asesor||'—'}</td>
+    <td>${x.categoria}</td><td><span class="chip chip-o" style="font-size:9px;">${x.producto}</span></td>
     <td class="r co" style="font-family:'DM Mono',monospace;">${fmt(x.monto)}</td></tr>`).join('');
 
   $('s-legal').innerHTML=`
@@ -725,20 +739,28 @@ function rLegal(d,c){
     <span class="seg-title">Ventas LEGAL — Detalle completo</span><span class="seg-meta">${v.length} transacciones · ${fmt(totalLegal)}</span></div>
   <div class="card" style="padding:0;overflow:hidden;">
     <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);">
-      <div style="padding:16px 20px;border-right:1px solid var(--border);"><div class="kpi-label">Total</div><div style="font-size:22px;font-weight:700;color:var(--orange);font-family:'DM Mono',monospace;">${fmt(totalLegal)}</div><div style="font-size:10px;color:var(--text3);">${v.length} transacciones</div></div>
-      <div style="padding:16px 20px;border-right:1px solid var(--border);"><div class="kpi-label">Marcas</div><div style="font-size:22px;font-weight:700;color:var(--orange);font-family:'DM Mono',monospace;">${fmt(totalM)}</div><div style="font-size:10px;color:var(--text3);">${c.vMarcas.length} ventas</div></div>
-      <div style="padding:16px 20px;border-right:1px solid var(--border);"><div class="kpi-label">Ticket promedio</div><div style="font-size:22px;font-weight:700;color:var(--teal);font-family:'DM Mono',monospace;">${fmt(tickProm)}</div></div>
-      <div style="padding:16px 20px;"><div class="kpi-label">Mejor producto</div><div style="font-size:14px;font-weight:600;margin-top:4px;">${topP?topP[0]:'—'}</div><div style="font-size:10px;color:var(--text3);">${topP?topP[1].ventas+'v · '+fmt(topP[1].monto):''}</div></div></div>
+      <div style="padding:16px 20px;border-right:1px solid var(--border);"><div class="kpi-label">Total</div>
+        <div style="font-size:22px;font-weight:700;color:var(--orange);font-family:'DM Mono',monospace;">${fmt(totalLegal)}</div>
+        <div style="font-size:10px;color:var(--text3);">${v.length} transacciones</div></div>
+      <div style="padding:16px 20px;border-right:1px solid var(--border);"><div class="kpi-label">Solo Marcas</div>
+        <div style="font-size:22px;font-weight:700;color:var(--orange);font-family:'DM Mono',monospace;">${fmt(c.totalM)}</div>
+        <div style="font-size:10px;color:var(--text3);">${vMarcas.length} ventas</div></div>
+      <div style="padding:16px 20px;border-right:1px solid var(--border);"><div class="kpi-label">Ticket promedio</div>
+        <div style="font-size:22px;font-weight:700;color:var(--teal);font-family:'DM Mono',monospace;">${fmt(tickProm)}</div></div>
+      <div style="padding:16px 20px;"><div class="kpi-label">Mejor producto</div>
+        <div style="font-size:14px;font-weight:600;margin-top:4px;">${topP?topP[0]:'—'}</div>
+        <div style="font-size:10px;color:var(--text3);">${topP?topP[1].ventas+'v · '+fmt(topP[1].monto):''}</div></div></div>
     <div style="padding:0 20px 20px;">
       <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:14px 0 8px;">Resumen por producto</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">${chips}</div>
-      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:6px 0 8px;">Detalle por transacción</div>
       <table class="data-table" style="font-size:11px;">
         <thead><tr><th>Fecha</th><th>Asesor</th><th>Categoría</th><th>Producto</th><th class="r">Monto</th></tr></thead>
-        <tbody>${rows}<tr class="t-total"><td colspan="4">TOTAL · ${v.length} TRANSACCIONES</td><td class="r co" style="font-family:'DM Mono',monospace;">${fmt(totalLegal)}</td></tr></tbody></table></div></div>`;
+        <tbody>${rows}
+          <tr class="t-total"><td colspan="4">TOTAL · ${v.length} TRANSACCIONES</td>
+            <td class="r co" style="font-family:'DM Mono',monospace;">${fmt(totalLegal)}</td></tr></tbody></table></div></div>`;
 }
 
-// ─── INIT ─────────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────
 loadData();
 </script>
 </body>
