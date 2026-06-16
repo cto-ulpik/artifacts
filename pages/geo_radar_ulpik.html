@@ -77,33 +77,46 @@ async function run(){
   document.getElementById('btn').disabled=true
   document.getElementById('out').innerHTML='<div class="ld"><i class="ti ti-loader-2" aria-hidden="true"></i>Analizando presencia en Claude, ChatGPT y Gemini...</div>'
 
-  const sys=`Output ONLY valid JSON. No markdown, no backticks, no extra text. Keep all strings under 50 chars.`
+  // Muestra local: pega tu key aquí. NO subir a GitHub (en producción usar Apps Script proxy).
+  const OPENAI_API_KEY = 'PEGAR_KEY_AQUI';
 
-  const usr=`Analyze Ulpik presence for query: "${q}". Output JSON:
-{"global":50,"nivel":"Media","motores":[{"n":"Claude","ic":"C","col":"#D85A30","score":45,"rec":40,"pre":45,"aut":45,"cob":45,"txt":"Response text"},{"n":"ChatGPT","ic":"G","col":"#1D9E75","score":48,"rec":45,"pre":50,"aut":45,"cob":45,"txt":"Response text"},{"n":"Gemini","ic":"Gm","col":"#185FA5","score":45,"rec":40,"pre":45,"aut":45,"cob":45,"txt":"Response text"}],"recs":[{"p":"Alta","t":"Schema.org, Wikipedia presence","i":"High impact"},{"p":"Media","t":"Media articles","i":"Medium impact"}]}`
+  const sys = `Output ONLY valid JSON. No markdown, no backticks, no extra text. Keep all strings under 50 chars.`;
 
-  try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        model:"claude-sonnet-4-6",
-        max_tokens:800,
-        system:sys,
-        messages:[{role:"user",content:usr}]
+  const usr = `Analyze Ulpik presence for query: "${q}". Output JSON:
+{"global":50,"nivel":"Media","motores":[{"n":"Claude","ic":"C","col":"#D85A30","score":45,"rec":40,"pre":45,"aut":45,"cob":45,"txt":"Response text"},{"n":"ChatGPT","ic":"G","col":"#1D9E75","score":48,"rec":45,"pre":50,"aut":45,"cob":45,"txt":"Response text"},{"n":"Gemini","ic":"Gm","col":"#185FA5","score":45,"rec":40,"pre":45,"aut":45,"cob":45,"txt":"Response text"}],"recs":[{"p":"Alta","t":"Schema.org, Wikipedia presence","i":"High impact"},{"p":"Media","t":"Media articles","i":"Medium impact"}]}`;
+
+  try {
+    if (!OPENAI_API_KEY || OPENAI_API_KEY === 'PEGAR_KEY_AQUI') {
+      throw new Error('Configura OPENAI_API_KEY en el archivo (solo local, no subir a GitHub).');
+    }
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + OPENAI_API_KEY
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 800,
+        temperature: 0.3,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: sys },
+          { role: 'user', content: usr }
+        ]
       })
-    })
-    const data=await res.json()
-    if(data.error){throw new Error(data.error.message||"API error")}
-    const raw=data.content?.map(i=>i.text||"").join("")||""
-    const clean=raw.replace(/^[\s\S]*?(\{)/,"$1").replace(/\}[\s\S]*$/,"}").trim()
-    const parsed=JSON.parse(clean)
-    render(parsed,q)
-  }catch(e){
-    console.error("Raw API response:",data)
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error?.message || 'Error de API OpenAI');
+    const raw = data.choices?.[0]?.message?.content || '';
+    const clean = raw.replace(/^[\s\S]*?(\{)/, '$1').replace(/\}[\s\S]*$/, '}').trim();
+    const parsed = JSON.parse(clean);
+    render(parsed, q);
+  } catch (e) {
+    console.error('GEO Radar error:', e);
     const fallback={"global":42,"nivel":"Baja","motores":[{"n":"Claude","ic":"C","col":"#D85A30","score":38,"rec":30,"pre":40,"aut":38,"cob":35,"txt":"Menciona Ulpik raramente en consultas genéricas"},{"n":"ChatGPT","ic":"G","col":"#1D9E75","score":40,"rec":32,"pre":42,"aut":38,"cob":38,"txt":"Respuesta alineada a datos de entrenamiento"},{"n":"Gemini","ic":"Gm","col":"#185FA5","score":48,"rec":40,"pre":50,"aut":45,"cob":45,"txt":"Mayor reconocimiento en market latinoamericano"}],"recs":[{"p":"Alta","t":"Schema.org Wikipedia, Wikidata","i":"Visibilidad en motores"}, {"p":"Alta","t":"Cobertura en medios tech","i":"Autoridad aumenta"}]}
     render(fallback,q)
-    document.getElementById('out').innerHTML+=`<div class="errmsg" style="margin-top:1rem"><strong>⚠️ Nota:</strong> usando datos de ejemplo. Abre consola (F12) para diagnosticar.</div>`
+    document.getElementById('out').innerHTML += `<div class="errmsg" style="margin-top:1rem"><strong>⚠️ Nota:</strong> usando datos de ejemplo. ${e.message}</div>`;
   }
   document.getElementById('btn').disabled=false
 }
