@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ulpik — Dirección Comercial · SEM2 JUN 2026</title>
+<title>Ulpik — Dirección Comercial</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -18,6 +18,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;}
+/* TOPBAR */
 .topbar{position:sticky;top:0;z-index:300;display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:52px;background:var(--dark);border-bottom:1px solid rgba(255,255,255,0.06);}
 .brand{display:flex;align-items:center;gap:10px;}
 .brand-mark{width:28px;height:28px;border-radius:6px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;}
@@ -25,16 +26,26 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .brand-sep{color:rgba(255,255,255,.20);margin:0 3px;}
 .brand-sub{font-size:11px;color:rgba(255,255,255,.40);}
 .brand-badge{font-family:'DM Mono',monospace;font-size:10px;padding:3px 9px;border-radius:5px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.10);}
+.sem-select{font-family:'DM Mono',monospace;font-size:11px;padding:5px 10px;border-radius:5px;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.18);cursor:pointer;outline:none;transition:background .15s;}
+.sem-select:hover{background:rgba(255,255,255,.14);}
+.sem-select option{background:#2a2a2a;color:#fff;}
+/* LOADING BAR */
+.lbar{position:fixed;top:0;left:0;right:0;height:2px;background:var(--orange);z-index:999;transform:scaleX(0);transform-origin:left;transition:transform .4s ease;}
+.lbar.on{transform:scaleX(0.7);}
+.lbar.done{transform:scaleX(1);transition:transform .2s ease,opacity .3s ease .15s;opacity:0;}
+/* NAV */
 .sec-nav{position:sticky;top:52px;z-index:200;background:var(--dark);border-bottom:1px solid rgba(255,255,255,0.06);padding:0 20px;display:flex;overflow-x:auto;scrollbar-width:none;}
 .sec-nav::-webkit-scrollbar{display:none;}
 .snav-btn{font-family:inherit;font-size:11px;padding:8px 14px;border:none;background:none;cursor:pointer;color:rgba(255,255,255,.38);white-space:nowrap;transition:color .15s;border-bottom:2px solid transparent;margin-bottom:-1px;}
 .snav-btn:hover{color:rgba(255,255,255,.65);}
 .snav-btn.active{color:#fff;font-weight:500;border-bottom-color:var(--orange);}
+/* MAIN */
 .main-wrap{padding:20px 28px 70px;max-width:1440px;margin:0 auto;}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;}
 .card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
 .card-note{font-size:11px;color:var(--text3);margin-bottom:12px;}
-.segment{margin-bottom:26px;scroll-margin-top:110px;}
+.segment{margin-bottom:26px;scroll-margin-top:110px;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
 .seg-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 .seg-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:4px;}
 .seg-dot{width:7px;height:7px;border-radius:50%;}
@@ -56,7 +67,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .kpi-4-sub2{font-size:10px;color:var(--text3);margin-top:2px;}
 .kpi-card{background:var(--bg3);border-radius:var(--radius-sm);padding:12px 14px;border:1px solid var(--border);}
 .kpi-label{font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em;}
-.num-sm{font-size:14px;font-weight:600;}
 .num-md{font-size:18px;font-weight:500;letter-spacing:-.2px;}
 .num-lg{font-size:20px;font-weight:500;letter-spacing:-.3px;}
 .pbar{height:6px;background:var(--bg3);border-radius:3px;margin:6px 0 3px;overflow:hidden;border:1px solid var(--border);}
@@ -76,7 +86,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .alert-box{background:rgba(255,37,0,.04);border:1px solid rgba(255,37,0,.20);border-radius:8px;padding:11px 14px;}
 .info-box{background:rgba(130,59,218,.04);border:1px solid rgba(130,59,218,.18);border-radius:8px;padding:11px 14px;}
 .warn-box{background:rgba(255,165,0,.05);border:1px solid rgba(255,165,0,.22);border-radius:8px;padding:11px 14px;}
-.highlight-box{background:linear-gradient(135deg,rgba(22,163,74,.06),rgba(0,173,176,.06));border:1px solid rgba(22,163,74,.25);border-radius:8px;padding:11px 14px;}
 .a-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
 .a-body{font-size:11px;color:var(--text2);line-height:1.55;}
 .co{color:var(--orange);}.ct{color:var(--teal);}.cp{color:var(--purple);}.cs{color:var(--text3);}.cg{color:var(--green);}.cw{color:var(--warn);}
@@ -105,8 +114,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .emb-inner{display:grid;grid-template-columns:1fr 1fr;}
 .funnel-panel{padding:28px 32px 36px;border-right:1px solid var(--d-border);position:relative;overflow:hidden;}
 .funnel-panel:last-child{border-right:none;}
-.funnel-panel.marcas::before{content:'';position:absolute;top:-80px;right:-80px;width:280px;height:280px;background:radial-gradient(circle,rgba(255,37,0,0.16) 0%,transparent 70%);pointer-events:none;}
-.funnel-panel.priv::before{content:'';position:absolute;top:-80px;left:-80px;width:280px;height:280px;background:radial-gradient(circle,rgba(0,173,176,0.16) 0%,transparent 70%);pointer-events:none;}
+.funnel-panel.marcas::before{content:'';position:absolute;top:-80px;right:-80px;width:280px;height:280px;background:radial-gradient(circle,rgba(255,37,0,.16) 0%,transparent 70%);pointer-events:none;}
+.funnel-panel.priv::before{content:'';position:absolute;top:-80px;left:-80px;width:280px;height:280px;background:radial-gradient(circle,rgba(0,173,176,.16) 0%,transparent 70%);pointer-events:none;}
 .campaign-tag{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:4px;margin-bottom:10px;font-weight:500;}
 .marcas .campaign-tag{background:rgba(255,37,0,.12);color:var(--orange);border:1px solid rgba(255,37,0,.25);}
 .priv .campaign-tag{background:rgba(0,173,176,.12);color:var(--teal);border:1px solid rgba(0,173,176,.25);}
@@ -150,37 +159,41 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .d-chart-wrap{background:var(--d-card);border:1px solid var(--d-border);border-radius:10px;padding:16px 16px 12px;margin-bottom:14px;}
 .d-chart-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .d-chart-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--d-muted);}
-.d-legend{display:flex;gap:10px;}
-.d-leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--d-muted);}
-.d-leg-dot{width:7px;height:7px;border-radius:50%;}
 .panel-note{margin-top:14px;font-size:11px;color:var(--d-muted);background:var(--d-card);padding:10px 13px;border-radius:0 6px 6px 0;line-height:1.55;}
 .marcas .panel-note{border-left:3px solid rgba(255,37,0,.4);}
 .priv .panel-note{border-left:3px solid rgba(0,173,176,.4);}
-.evo-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
+.evo-mini{display:grid;gap:6px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
 .evo-cell{text-align:center;padding:8px 4px;border-radius:6px;}
 .evo-cell.best{background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.22);}
 .evo-cell.warn{background:rgba(192,120,0,.05);border:1px solid rgba(192,120,0,.22);}
-.evo-cell.neutral{background:var(--bg3);border:1px solid var(--border);}
 .evo-period{font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:2px;}
 .evo-val{font-size:13px;font-weight:700;}
 .evo-pct{font-size:9px;margin-top:1px;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
-.segment{animation:fadeIn .2s ease;}
+/* ERROR / EMPTY */
+.err-box{background:rgba(255,37,0,.05);border:1px solid rgba(255,37,0,.20);border-radius:10px;padding:20px 24px;font-size:12px;color:var(--text2);}
+.err-box strong{color:var(--orange);display:block;margin-bottom:4px;}
 </style>
 </head>
 <body>
+
+<div class="lbar" id="lbar"></div>
 
 <div class="topbar">
   <div class="brand">
     <div class="brand-mark">U</div>
     <span class="brand-title">Ulpik</span>
     <span class="brand-sep">/</span>
-    <span class="brand-sub">Dirección Comercial · SEM2 Junio</span>
+    <span class="brand-sub">Dirección Comercial</span>
   </div>
-  <div class="brand-badge">SEM2 JUN 2026 · 8–12 Jun</div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <select class="sem-select" id="semSelect" onchange="loadData(this.value)">
+      <option>Cargando...</option>
+    </select>
+    <div class="brand-badge" id="semBadge">—</div>
+  </div>
 </div>
 
-<div class="sec-nav" id="secNav">
+<div class="sec-nav">
   <button class="snav-btn active" onclick="navTo('s-kpi',this)">KPIs</button>
   <button class="snav-btn" onclick="navTo('s-budgets',this)">Presupuestos</button>
   <button class="snav-btn" onclick="navTo('s-asesores',this)">Asesores</button>
@@ -194,726 +207,539 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 </div>
 
 <div class="main-wrap">
-
-  <!-- §1 KPIs -->
-  <div class="segment" id="s-kpi">
-    <div class="seg-hdr">
-      <span class="seg-num">01</span>
-      <span class="seg-dot" style="background:var(--orange);"></span>
-      <span class="seg-title">KPIs Clave — SEM2 Junio 2026</span>
-      <span class="seg-meta">12 ventas · $3,952.00 legal · $29,745.00 educación</span>
-    </div>
-    <div class="kpi-strip-3">
-      <div class="kpi-4-card c-warn">
-        <div class="kpi-4-label">% Meta semanal — Marcas</div>
-        <div class="kpi-4-val cw">58.43%</div>
-        <div class="kpi-4-sub">$2,954.00 / meta semanal $5,055.35</div>
-        <div class="kpi-4-sub2">–$2,101.35 · 8 ventas marcas · 3 asesores activos</div>
-        <div style="margin-top:10px;">
-          <div class="pbar"><div class="pbar-fill" style="width:58.43%;background:var(--warn);"></div></div>
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>0%</span><span style="color:var(--warn);font-weight:600;">⚠ bajo meta — faltan $2,101.35</span></div>
-        </div>
-      </div>
-      <div class="kpi-4-card c-purple">
-        <div class="kpi-4-label">Educación — Junio</div>
-        <div class="kpi-4-val cp">139.35%</div>
-        <div class="kpi-4-sub">$29,745.00 · Empresario 10x CLAUDE · 90 inscritos</div>
-        <div class="kpi-4-sub2">Meta mensual $21,346.00 · superada · 12 downsell · 1 upsell · 5 becas</div>
-        <div style="margin-top:10px;">
-          <div class="pbar"><div class="pbar-fill" style="width:100%;background:var(--purple);"></div></div>
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>Meta $21,346.00</span><span style="color:var(--purple);font-weight:600;">139.35% ✓ meta superada</span></div>
-        </div>
-      </div>
-      <div class="kpi-4-card c-teal">
-        <div class="kpi-4-label">Gran total SEM2 Junio</div>
-        <div class="kpi-4-val ct">$33,847.48</div>
-        <div class="kpi-4-sub">Legal $3,952.00 + Edu $29,745.00 + Priv $150.48</div>
-        <div class="kpi-4-sub2">Acum. jun legal: $7,603 · Priv jun: $275.88 · vs Mayo 2026 cierre: $22,819.50</div>
-        <div style="margin-top:10px;">
-          <div class="pbar"><div class="pbar-fill" style="width:100%;background:var(--teal);"></div></div>
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>Edu domina por lanzamiento</span><span style="color:var(--teal);font-weight:600;">Empresario 10x CLAUDE</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- §2-4 PRESUPUESTOS -->
-  <div class="segment" id="s-budgets">
-    <div class="seg-hdr">
-      <span class="seg-num">02 – 04</span>
-      <span class="seg-dot" style="background:var(--text3);"></span>
-      <span class="seg-title">Cumplimiento de presupuesto — Comparativo · Marcas · Educación</span>
-      <span class="seg-meta">SEM2 Junio 2026</span>
-    </div>
-    <div class="triple-row">
-
-      <!-- Comparativo -->
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <div class="card-title">Comparativo mensual</div>
-          <span class="chip chip-d" style="font-size:9px;">Marcas + Educación</span>
-        </div>
-        <div class="card-note">Jun 2026 (SEM1+SEM2) vs May 2026 vs Jun 2025</div>
-        <div style="position:relative;height:200px;"><canvas id="compChart"></canvas></div>
-        <div class="divider"></div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div style="display:flex;align-items:center;gap:6px;font-size:11px;">
-              <span style="width:8px;height:8px;border-radius:2px;background:rgba(22,163,74,0.75);display:inline-block;"></span>
-              <span>Jun 2026 <span class="chip chip-w" style="font-size:9px;">SEM1+SEM2</span></span>
-            </div>
-            <span style="font-size:12px;font-weight:700;font-family:'DM Mono',monospace;color:var(--warn);">$33,847.48</span>
-          </div>
-          <div style="display:flex;gap:16px;padding-left:14px;">
-            <span style="font-size:10px;color:var(--text3);">Legal $7,603.00</span>
-            <span style="font-size:10px;color:var(--text3);">Educación $29,745.00</span>
-            <span style="font-size:10px;color:var(--text3);">Priv $275.88</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div style="display:flex;align-items:center;gap:6px;font-size:11px;">
-              <span style="width:8px;height:8px;border-radius:2px;background:rgba(190,188,184,0.65);display:inline-block;"></span>
-              <span>May 2026 <span class="chip chip-g" style="font-size:9px;">cerrado</span></span>
-            </div>
-            <span style="font-size:12px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text2);">$22,819.50</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div style="display:flex;align-items:center;gap:6px;font-size:11px;">
-              <span style="width:8px;height:8px;border-radius:2px;background:rgba(190,188,184,0.35);display:inline-block;"></span>
-              <span>Jun 2025</span>
-            </div>
-            <span style="font-size:12px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text3);">$15,461.16</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Marcas -->
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <div class="card-title">Marcas — SEM2 Junio</div>
-          <span class="chip chip-w">58.43% meta sem.</span>
-        </div>
-        <div class="card-note">Propiedad intelectual · 8 ventas · meta semanal $5,055.35</div>
-        <div style="background:rgba(255,37,0,.04);border:1px solid rgba(255,37,0,.15);border-radius:8px;padding:14px 16px;margin-bottom:12px;">
-          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:4px;">Total facturado SEM2</div>
-          <div style="font-size:28px;font-weight:700;color:var(--orange);letter-spacing:-1.5px;line-height:1;font-family:'DM Mono',monospace;">$2,954.00</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:4px;">8 ventas marcas · ticket prom. $369.25</div>
-          <div class="pbar" style="margin-top:8px;"><div class="pbar-fill" style="width:58.43%;background:var(--warn);"></div></div>
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>Meta sem. $5,055.35</span><span style="color:var(--warn);font-weight:600;">58.43% — $2,101.35 bajo</span></div>
-        </div>
-        <div style="position:relative;height:90px;margin-bottom:10px;"><canvas id="marcasMiniChart"></canvas></div>
-        <div class="divider"></div>
-        <div class="si"><span class="si-l">Lun 08/06</span><span class="si-r cs">$0.00</span></div>
-        <div class="si"><span class="si-l">Mar 09/06</span><span class="si-r cg">$480.00 · 1 venta</span></div>
-        <div class="si"><span class="si-l">Mié 10/06</span><span class="si-r cs">$0.00</span></div>
-        <div class="si"><span class="si-l">Jue 11/06</span><span class="si-r cg">$960.00 · 2 ventas</span></div>
-        <div class="si"><span class="si-l">Vie 12/06</span><span class="si-r cw">$1,514.00 · 5 ventas</span></div>
-      </div>
-
-      <!-- Educación -->
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <div class="card-title">Educación + Priv — SEM2 Junio</div>
-          <span class="chip chip-g">139.35% meta</span>
-        </div>
-        <div class="card-note">Empresario 10x CLAUDE + Ulpik Priv · Meta mensual $21,346.00</div>
-        <div style="background:rgba(130,59,218,.05);border:1px solid rgba(130,59,218,.18);border-radius:8px;padding:14px 16px;margin-bottom:12px;">
-          <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Total Educación Junio (lanzamiento)</div>
-          <div style="font-size:28px;font-weight:700;color:var(--purple);letter-spacing:-1.5px;line-height:1;font-family:'DM Mono',monospace;">$29,745.00</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:4px;">Empresario 10x CLAUDE · 73 inscritos + 12 downsell + 1 upsell + 5 becas</div>
-          <div class="pbar" style="margin-top:8px;"><div class="pbar-fill" style="width:100%;background:var(--purple);"></div></div>
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>Meta mensual $21,346.00</span><span style="color:var(--green);font-weight:600;">139.35% ✓ superada</span></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-          <div style="background:rgba(130,59,218,.05);border-radius:8px;border:1px solid rgba(130,59,218,.15);padding:12px 14px;">
-            <div style="font-size:10px;color:var(--purple);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Empresario 10x</div>
-            <div style="font-size:20px;font-weight:700;color:var(--purple);font-family:'DM Mono',monospace;">$29,745</div>
-            <div style="font-size:10px;color:var(--text3);margin-top:3px;">90 inscritos · lanzamiento junio</div>
-          </div>
-          <div style="background:rgba(0,173,176,.05);border-radius:8px;border:1px solid rgba(0,173,176,.20);padding:12px 14px;">
-            <div style="font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Ulpik Priv</div>
-            <div style="font-size:20px;font-weight:700;color:var(--teal);font-family:'DM Mono',monospace;">$275.88</div>
-            <div style="font-size:10px;color:var(--text3);margin-top:3px;">SEM1 $125.40 + SEM2 $150.48 · 11 pagos jun</div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
-          <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Activos</div><div class="num-md ct">30</div><div style="font-size:9px;color:var(--text3);">jun snapshot</div></div>
-          <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Retraso</div><div class="num-md cw">3</div></div>
-          <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Hábiles</div><div class="num-md cg">33</div><div style="font-size:9px;color:var(--text3);">1er pago &gt;$8</div></div>
-          <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Churn</div><div class="num-md cs">0</div></div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- §5 ASESORES -->
-  <div class="segment" id="s-asesores">
-    <div class="seg-hdr">
-      <span class="seg-num">05</span>
-      <span class="seg-dot" style="background:var(--teal);"></span>
-      <span class="seg-title">Gestión Individual — Asesores Marcas · SEM2 Junio</span>
-      <span class="seg-meta">Chats · Ventas · Monto · Participación</span>
-    </div>
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <div class="card-title" style="margin:0;">Rendimiento por asesor · SEM2 Jun 2026 · 8–12 junio</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <span class="chip chip-d">3 asesores activos</span>
-          <span style="font-size:10px;color:var(--text3);">Total sem: <strong class="co">$3,952.00</strong></span>
-        </div>
-      </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Asesor</th><th>Monto SEM2</th><th class="r">N° ventas</th>
-            <th class="r">Ticket prom.</th><th class="r">Participación</th><th>Nota</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="font-weight:600;">Martín</td>
-            <td><div class="ibar"><div class="ibar-track"><div class="ibar-fill" style="width:100%;background:var(--orange);"></div></div><span class="ibar-val">$1,942.00</span></div></td>
-            <td class="r" style="font-size:14px;font-weight:700;color:var(--orange);">6</td>
-            <td class="r" style="font-family:'DM Mono',monospace;">$323.67</td>
-            <td class="r co">49.1%</td>
-            <td style="font-size:11px;color:var(--text3);">4 marcas + 2 BB · 14 chats registrados</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;">Javier</td>
-            <td><div class="ibar"><div class="ibar-track"><div class="ibar-fill" style="width:24.3%;background:rgba(130,59,218,.7);"></div></div><span class="ibar-val">$960.00</span></div></td>
-            <td class="r" style="font-size:14px;font-weight:600;color:var(--purple);">3</td>
-            <td class="r" style="font-family:'DM Mono',monospace;">$320.00</td>
-            <td class="r cp">24.3%</td>
-            <td style="font-size:11px;color:var(--text3);">2 marcas + 1 BB SAS · 70 chats registrados</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;">Nela</td>
-            <td><div class="ibar"><div class="ibar-track"><div class="ibar-fill" style="width:24.3%;background:rgba(0,173,176,.7);"></div></div><span class="ibar-val">$960.00</span></div></td>
-            <td class="r" style="font-size:14px;font-weight:600;color:var(--teal);">2</td>
-            <td class="r" style="font-family:'DM Mono',monospace;">$480.00</td>
-            <td class="r ct">24.3%</td>
-            <td style="font-size:11px;color:var(--text3);">2x Pack BF+Marca · 38 chats registrados</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--text3);">Pau</td>
-            <td><div class="ibar"><div class="ibar-track"><div class="ibar-fill" style="width:0%;background:rgba(0,173,176,.3);"></div></div><span class="ibar-val cs">$0.00</span></div></td>
-            <td class="r cs">0</td>
-            <td class="r cs" style="font-family:'DM Mono',monospace;">—</td>
-            <td class="r cs">0%</td>
-            <td style="font-size:11px;color:var(--text3);">Sin ventas esta semana</td>
-          </tr>
-          <tr class="t-total">
-            <td>TOTAL</td>
-            <td><span style="font-family:'DM Mono',monospace;font-size:12px;">$3,952.00</span></td>
-            <td class="r co">12</td>
-            <td class="r" style="font-family:'DM Mono',monospace;font-size:12px;">$329.33</td>
-            <td class="r cs">100%</td>
-            <td></td>
-          </tr>
-        </tbody>
-      </table>
-      <div style="display:flex;gap:10px;margin-top:14px;">
-        <div class="info-box" style="flex:1;">
-          <div class="a-title" style="color:var(--purple);">📊 Equipo más distribuido esta semana</div>
-          <div class="a-body">Martín (49.1%), Javier (24.3%) y Nela (24.3%) reparten el ingreso de forma más equilibrada que en SEM1. Javier registró 70 chats — máximo de actividad del equipo.</div>
-        </div>
-        <div class="alert-box" style="flex:1;">
-          <div class="a-title" style="color:var(--orange);">⚠ Conversión Javier: 2.9% — 70 chats · 2 ventas marcas</div>
-          <div class="a-body">70 contactos gestionados con solo 2 cierres en marcas (2.9%). Por debajo del objetivo 5.00%. Martín 28.6% (4/14) y Nela pendiente de vincular chats con cierres.</div>
-        </div>
-      </div>
-      <!-- RECUADRO CONVERSIÓN POR ASESOR -->
-      <div style="margin-top:14px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
-        <div style="padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-          <span style="font-size:11px;font-weight:600;color:var(--text);">Conversión por asesor — SEM2 8–12 jun</span>
-          <span style="font-size:10px;color:var(--text3);">Objetivo equipo: <strong style="color:var(--green);">5.00%</strong></span>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;">
-          <!-- Martín -->
-          <div style="padding:14px 16px;border-right:1px solid var(--border);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <span style="font-size:12px;font-weight:600;">Martín</span>
-              <span style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--green);">28.57%</span>
-            </div>
-            <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;border:1px solid var(--border);margin-bottom:6px;">
-              <div style="width:100%;height:100%;background:var(--green);border-radius:3px;"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);">
-              <span>4 ventas (marcas) / 14 chats</span>
-              <span style="color:var(--green);font-weight:600;">✓ sobre meta</span>
-            </div>
-          </div>
-          <!-- Nela -->
-          <div style="padding:14px 16px;border-right:1px solid var(--border);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <span style="font-size:12px;font-weight:600;">Nela</span>
-              <span style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--teal);">5.26%</span>
-            </div>
-            <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;border:1px solid var(--border);margin-bottom:6px;">
-              <div style="width:5.26%;height:100%;background:var(--teal);border-radius:3px;min-width:4px;"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);">
-              <span>2 ventas (marcas) / 38 chats</span>
-              <span style="color:var(--teal);font-weight:600;">✓ sobre meta</span>
-            </div>
-          </div>
-          <!-- Javier -->
-          <div style="padding:14px 16px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-              <span style="font-size:12px;font-weight:600;">Javier</span>
-              <span style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--warn);">2.86%</span>
-            </div>
-            <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;border:1px solid var(--border);margin-bottom:6px;">
-              <div style="width:2.86%;height:100%;background:var(--warn);border-radius:3px;min-width:4px;"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);">
-              <span>2 ventas (marcas) / 70 chats</span>
-              <span style="color:var(--warn);font-weight:600;">⚠ bajo meta</span>
-            </div>
-          </div>
-        </div>
-        <div style="padding:8px 16px;background:var(--bg3);border-top:1px solid var(--border);font-size:10px;color:var(--text3);">
-          Conversión calculada sobre ventas de <strong>Marcas</strong> vs. chats registrados en CONTACTADOS_LEGAL · Pau sin chats ni ventas esta semana
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- §6 EVOLUTIVO -->
-  <div class="segment" id="s-evo">
-    <div class="seg-hdr">
-      <span class="seg-num">06</span>
-      <span class="seg-dot" style="background:var(--orange);"></span>
-      <span class="seg-title">Evolutivo — Ingresos semana a semana · Mayo → Jun SEM2</span>
-      <span class="seg-meta">6 semanas · meta semanal jun $5,055.35</span>
-    </div>
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div class="card-title" style="margin:0;">Ingresos totales · semana a semana</div>
-        <div style="display:flex;gap:10px;">
-          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);"><span style="width:10px;height:2px;background:var(--orange);display:inline-block;"></span>Ingresos</div>
-          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);"><span style="width:10px;height:2px;background:var(--green);opacity:.5;display:inline-block;border-top:1px dashed;"></span>Meta</div>
-        </div>
-      </div>
-      <div style="position:relative;height:200px;"><canvas id="evoChart"></canvas></div>
-      <div class="evo-mini">
-        <div class="evo-cell best">
-          <div class="evo-period">SEM2 11–15 May</div>
-          <div class="evo-val cg">$6,449.00</div>
-          <div class="evo-pct cg">128.2% — mejor</div>
-        </div>
-        <div class="evo-cell best">
-          <div class="evo-period">SEM1 4–8 May</div>
-          <div class="evo-val cg">$5,149.50</div>
-          <div class="evo-pct cg">102.4% ✓</div>
-        </div>
-        <div class="evo-cell warn">
-          <div class="evo-period">SEM4 25–29 May</div>
-          <div class="evo-val cw">$4,863.00</div>
-          <div class="evo-pct cw">96.7% ⚠</div>
-        </div>
-        <div class="evo-cell warn">
-          <div class="evo-period">SEM1 1–5 Jun</div>
-          <div class="evo-val co">$3,354.00</div>
-          <div class="evo-pct co">66.3% ✗</div>
-        </div>
-        <div class="evo-cell warn" style="border-color:rgba(255,37,0,.30);">
-          <div class="evo-period" style="color:var(--orange);font-weight:600;">SEM2 8–12 Jun ←</div>
-          <div class="evo-val co">$2,954.00</div>
-          <div class="evo-pct co">58.4% ✗ bajo meta</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- §7 EMBUDOS -->
-  <div class="segment" id="s-embudos">
-    <div class="seg-hdr">
-      <span class="seg-num">07</span>
-      <span class="seg-dot" style="background:#ff2500;"></span>
-      <span class="seg-title">Embudos — Marcas &amp; Ulpik Priv · Ads SEM2 Jun 2026</span>
-      <span class="seg-meta">Datos disponibles: 8–12 Jun · cuenta AND activa · 5 días datos</span>
-    </div>
-    <div class="emb-section">
-      <div class="emb-inner">
-        <div class="funnel-panel marcas">
-          <div class="campaign-tag"><span class="dot"></span>Marcas · Nueva Garantía</div>
-          <div class="emb-title">Marcas – Leads a WPP</div>
-          <div class="emb-sub">Campañas Marcas (3 variantes) · Cuenta AND<br>Datos disponibles: 8–12 Jun · $132.19 gasto SEM2</div>
-          <div class="kpi-strip">
-            <div class="d-kpi-card"><div class="d-kpi-label">Gasto SEM2</div><div class="d-kpi-value accent">$132.19</div><div class="d-kpi-sub">8–12 junio (5 días activos)</div></div>
-            <div class="d-kpi-card"><div class="d-kpi-label">CPR SEM2</div><div class="d-kpi-value">$1.28</div><div class="d-kpi-sub">103 conv. WPP</div></div>
-            <div class="d-kpi-card"><div class="d-kpi-label">ROAS SEM2</div><div class="d-kpi-value accent">22.3×</div><div class="d-kpi-sub">$2,954 / $132.19</div></div>
-          </div>
-          <div class="roas-banner">
-            <div><div class="roas-label">ROAS semana</div><div class="roas-val">22.3×</div></div>
-            <div style="text-align:right;"><div class="roas-sub">Marcas facturadas SEM2</div><div class="roas-revenue">$2,954.00</div><div class="roas-sub" style="margin-top:2px;">8 ventas · gasto $132.19 · 5 días activos</div></div>
-          </div>
-          <div class="d-funnel-title">Embudo SEM2 junio</div>
-          <div id="marcas-stages"></div>
-          <hr class="d-divider">
-          <div class="d-chart-wrap">
-            <div class="d-chart-hdr">
-              <div class="d-chart-label">Conv. WPP diarias · SEM2 Jun (5 días activos · cuenta AND)</div>
-              <div class="d-legend">
-                <div class="d-leg-item"><div class="d-leg-dot" style="background:#ff2500;"></div>Conv. WPP</div>
-                <div class="d-leg-item"><div class="d-leg-dot" style="background:#823bda;"></div>Clics enlace</div>
-                <div class="d-leg-item"><div class="d-leg-dot" style="background:rgba(248,237,226,.5);"></div>Gasto $</div>
-              </div>
-            </div>
-            <div style="position:relative;height:130px;"><canvas id="marcasAdsChart"></canvas></div>
-          </div>
-          <div class="panel-note">✅ Cuenta AND ya estabilizada en SEM2. 5 días con datos completos. 3 campañas activas (v2, Junio 2026, clásica). Gasto SEM2: $132.19 · Conv. WPP: 103 · Alcance: 40,801 · Clics: 622. ROAS 22.3× eficiente.</div>
-        </div>
-        <div class="funnel-panel priv">
-          <div class="campaign-tag"><span class="dot"></span>Ulpik Priv · WPP 2025</div>
-          <div class="emb-title">Ulpik Priv – Mensajes WPP</div>
-          <div class="emb-sub">Campañas Ulpik Priv (Junio 2026 + Número original) · Meta Ads<br>Datos disponibles: 8–12 Jun · $14.63 gasto</div>
-          <div class="kpi-strip">
-            <div class="d-kpi-card"><div class="d-kpi-label">Gasto SEM2</div><div class="d-kpi-value accent">$14.63</div><div class="d-kpi-sub">acumulado sem2</div></div>
-            <div class="d-kpi-card"><div class="d-kpi-label">Conv. WPP</div><div class="d-kpi-value">23</div><div class="d-kpi-sub">conversaciones</div></div>
-            <div class="d-kpi-card"><div class="d-kpi-label">CPR</div><div class="d-kpi-value">$0.64</div><div class="d-kpi-sub">costo por lead</div></div>
-          </div>
-          <div class="roas-banner">
-            <div><div class="roas-label">Pagos Hotmart SEM2</div><div class="roas-val">6</div></div>
-            <div style="text-align:right;"><div class="roas-sub">Miembros hábiles</div><div class="roas-revenue">33</div><div class="roas-sub" style="margin-top:2px;">0 churn · $150.48 facturado</div></div>
-          </div>
-          <div class="d-funnel-title">Estado comunidad — SEM2 junio</div>
-          <div id="priv-stages"></div>
-          <hr class="d-divider">
-          <div style="background:var(--d-card);border:1px solid var(--d-border);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
-            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--d-muted);margin-bottom:10px;">Pagos Hotmart SEM2 jun (6 pagos · $150.48)</div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--d-text);"><span>Paolo Echeverria</span><span style="color:var(--d-muted);">8/06 · $25.08 · cuota 1</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--d-text);"><span>Carlos G. Velasco Taipicaña</span><span style="color:var(--d-muted);">9/06 · $25.08 · cuota 1</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--d-text);"><span>Víctor Daniel Campos Aldas</span><span style="color:var(--d-muted);">9/06 · $25.08 · cuota 1</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--d-text);"><span>José Enrique Delgado Caputi</span><span style="color:var(--d-muted);">10/06 · $25.08 · cuota 1</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--d-text);"><span>Jorge Oswaldo Quevedo Cuenca</span><span style="color:var(--d-muted);">11/06 · $25.08 · cuota 1</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--d-text);"><span>Antony René Bravo Lopez</span><span style="color:var(--d-muted);">11/06 · $25.08 · cuota 1</span></div>
-            </div>
-          </div>
-          <div class="panel-note">ℹ️ 33 miembros hábiles (primer pago &gt;$8) · 30 activos · 3 en retraso. 6 pagos recurrentes Hotmart esta semana. Total SEM2: $150.48. CPR $0.64 — eficiencia mejorada vs SEM1.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- §8 CONVENIO -->
-  <div class="segment" id="s-convenio">
-    <div class="seg-hdr">
-      <span class="seg-num">08</span>
-      <span class="seg-dot" style="background:var(--teal);"></span>
-      <span class="seg-title">Convenio Diseñadores — SEM2 Junio 2026</span>
-      <span class="seg-meta">Sin actividad · última gestión 17 abr 2026</span>
-    </div>
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <div class="card-title" style="margin:0;">Convenio Diseñadores</div>
-        <span class="chip chip-o">Sin gestión desde 17 abr 2026</span>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
-        <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Contactados</div><div class="num-lg">43</div></div>
-        <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Respondieron</div><div class="num-lg co">20</div><div style="font-size:10px;color:var(--text3);">46.5%</div></div>
-        <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Llamadas</div><div class="num-lg ct">12</div><div style="font-size:10px;color:var(--text3);">60.0%</div></div>
-        <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.06);border-color:rgba(0,173,176,.20);"><div class="kpi-label ct">Convenios / proc.</div><div class="num-lg ct">10</div><div style="font-size:10px;color:var(--text3);">83.3%</div></div>
-      </div>
-      <div class="funnel-row"><span class="funnel-label">Contactados</span><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:rgba(255,37,0,.12);"><span class="co">43</span></div></div></div>
-      <div class="funnel-arrow">↓ 46.5% responden</div>
-      <div class="funnel-row"><span class="funnel-label">Respondieron</span><div class="funnel-track"><div class="funnel-fill" style="width:46.5%;background:rgba(255,37,0,.22);"><span class="co">20</span></div></div></div>
-      <div class="funnel-arrow">↓ 60.0% llamada</div>
-      <div class="funnel-row"><span class="funnel-label">Llamadas</span><div class="funnel-track"><div class="funnel-fill" style="width:27.9%;background:rgba(0,173,176,.35);"><span class="ct">12</span></div></div></div>
-      <div class="funnel-arrow">↓ 83.3% convenio</div>
-      <div class="funnel-row"><span class="funnel-label">Convenio / Proc.</span><div class="funnel-track"><div class="funnel-fill" style="width:23.3%;background:var(--teal);"><span>10</span></div></div></div>
-      <div class="warn-box" style="margin-top:12px;">
-        <div class="a-title" style="color:var(--warn);">⏸ Sin actividad en mayo</div>
-        <div class="a-body">Última gestión: 17 abril 2026. 10 diseñadores en proceso o con convenio firmado pendientes de activación.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- §9 UPSELL -->
-  <div class="segment" id="s-upsell">
-    <div class="seg-hdr">
-      <span class="seg-num">09</span>
-      <span class="seg-dot" style="background:var(--text3);"></span>
-      <span class="seg-title">Upsell — SEM2 Junio 2026</span>
-      <span class="seg-meta">Estado: Pausado desde 24 abr 2026</span>
-    </div>
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div class="card-title" style="margin:0;">Upsell · Estado actual</div>
-        <span class="chip chip-o">Pausado desde 24 abr 2026</span>
-      </div>
-      <div style="display:flex;gap:16px;align-items:flex-start;">
-        <div style="display:flex;flex-direction:column;align-items:center;padding:20px;text-align:center;min-width:150px;">
-          <div style="width:50px;height:50px;border-radius:50%;background:rgba(255,37,0,.08);border:1px solid rgba(255,37,0,.20);display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:20px;">⏸</div>
-          <div style="font-size:12px;font-weight:600;color:var(--text);">Sin gestión</div>
-          <div style="font-size:10px;color:var(--text3);">todo mayo 2026</div>
-        </div>
-        <div style="flex:1;">
-          <div style="font-size:11px;color:var(--text2);margin-bottom:12px;">Sin actividad registrada en el archivo de gestión Upsell durante todo mayo 2026.</div>
-          <div class="sec-label">Cartera referencia (estado abr)</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-            <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(130,59,218,.05);border-color:rgba(130,59,218,.15);"><div class="kpi-label">Aprobadas</div><div class="num-md cp">587</div></div>
-            <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.05);border-color:rgba(0,173,176,.15);"><div class="kpi-label">En proceso</div><div class="num-md ct">289</div></div>
-            <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Negadas</div><div class="num-md cs">36</div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- §10 TALLER DISC -->
-  <div class="segment" id="s-disc">
-    <div class="seg-hdr">
-      <span class="seg-num">10</span>
-      <span class="seg-dot" style="background:var(--purple);"></span>
-      <span class="seg-title">Taller DISC — SEM2 Junio 2026</span>
-      <span class="seg-meta">29 agendados histórico · 0% conversión</span>
-    </div>
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <div class="card-title" style="margin:0;">Taller DISC · Funnel histórico</div>
-        <span class="chip chip-o">0% conversión histórica</span>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
-        <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Agendados total</div><div class="num-lg">29</div></div>
-        <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Jun agendados</div><div class="num-lg cp">2</div></div>
-        <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Se presentaron</div><div class="num-lg cw">2</div><div style="font-size:10px;color:var(--text3);">histórico total</div></div>
-        <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(255,37,0,.04);border-color:rgba(255,37,0,.15);"><div class="kpi-label co">Ventas</div><div class="num-lg cs">0</div></div>
-      </div>
-      <div class="funnel-row"><span class="funnel-label">Marzo (7 ag.)</span><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:rgba(130,59,218,.20);"><span class="cp">7</span></div></div></div>
-      <div class="funnel-row"><span class="funnel-label">Abril (14 ag.)</span><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:rgba(130,59,218,.35);"><span class="cp">14</span></div></div></div>
-      <div class="funnel-row"><span class="funnel-label">Mayo (6 ag.)</span><div class="funnel-track"><div class="funnel-fill" style="width:43%;background:rgba(130,59,218,.50);"><span class="cp">6</span></div></div></div>
-      <div class="funnel-row"><span class="funnel-label">Junio (2 ag.)</span><div class="funnel-track"><div class="funnel-fill" style="width:16%;background:rgba(130,59,218,.70);"><span class="cp">2</span></div></div></div>
-      <div style="margin-top:10px;font-size:11px;color:var(--text2);background:var(--bg3);padding:10px 13px;border-radius:6px;border:1px solid var(--border);">
-        <strong>Jun (agendados SEM1):</strong> Jenny Taipe (ag. 02/06 · no se presentó) · Diego Rosero (ag. 01/06 · no se presentó) — Sin nuevos agendados en SEM2.
-      </div>
-      <div class="alert-box" style="margin-top:12px;">
-        <div class="a-title" style="color:var(--orange);">⚠ Rotura de funnel persistente en 4 meses</div>
-        <div class="a-body">Solo 2 de 29 agendados (6.9%) se presentaron en todo el histórico Mar–Jun. Cuello de botella crítico entre agendamiento y asistencia. Se requiere revisión del protocolo de confirmación y seguimiento pre-taller.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- §11 TEST PI -->
-  <div class="segment" id="s-pi">
-    <div class="seg-hdr">
-      <span class="seg-num">11</span>
-      <span class="seg-dot" style="background:var(--purple);"></span>
-      <span class="seg-title">Test PI — SEM2 Junio 2026</span>
-      <span class="seg-meta">22 leads jun · 2 en negociación · 0 ventas</span>
-    </div>
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <div class="card-title" style="margin:0;">Test PI · Funnel junio 2026</div>
-        <div style="display:flex;gap:8px;"><span class="chip chip-p">0 ventas jun</span><span class="chip chip-w">2 en negociación</span></div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
-        <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Leads jun</div><div class="num-lg cp">22</div></div>
-        <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Contactados</div><div class="num-lg ct">2</div><div style="font-size:10px;color:var(--text3);">9.09%</div></div>
-        <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Respondieron</div><div class="num-lg ct">2</div><div style="font-size:10px;color:var(--text3);">100% de contactados</div></div>
-        <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(130,59,218,.06);border-color:rgba(130,59,218,.20);"><div class="kpi-label cp">Negociación</div><div class="num-lg cw">2</div></div>
-      </div>
-      <div class="funnel-row"><span class="funnel-label">Leads totales</span><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:rgba(130,59,218,.15);"><span class="cp">22</span></div></div></div>
-      <div class="funnel-arrow">↓ 2 contactados (9.09%) — 20 sin gestionar</div>
-      <div class="funnel-row"><span class="funnel-label">Contactados</span><div class="funnel-track"><div class="funnel-fill" style="width:9.1%;background:rgba(130,59,218,.30);min-width:40px;"><span class="cp">2</span></div></div></div>
-      <div class="funnel-arrow">↓ 2 respondieron (100%)</div>
-      <div class="funnel-row"><span class="funnel-label">Respondieron</span><div class="funnel-track"><div class="funnel-fill" style="width:9.1%;background:rgba(130,59,218,.50);min-width:40px;"><span class="cp">2</span></div></div></div>
-      <div class="funnel-arrow">↓ 2 en negociación · 0 ventas cerradas aún</div>
-      <div class="funnel-row"><span class="funnel-label">Negociación</span><div class="funnel-track"><div class="funnel-fill" style="width:9.1%;background:var(--warn);min-width:40px;"><span>2</span></div></div></div>
-      <div class="funnel-row"><span class="funnel-label">Ventas cerradas</span><div class="funnel-track"><div class="funnel-fill" style="width:3%;background:var(--text3);min-width:30px;"><span style="color:#fff;">0</span></div></div></div>
-      <div style="margin-top:10px;" class="info-box">
-        <div class="a-title" style="color:var(--purple);">💡 Oportunidad: 20 leads sin gestionar en jun</div>
-        <div class="a-body">20 de 22 leads de junio no fueron contactados aún. Con la tasa histórica del 54.2% contacto→venta (mayo), gestionar estos leads en la semana representa una oportunidad real de cierres.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- §12 VENTAS LEGAL -->
-  <div class="segment" id="s-legal">
-    <div class="seg-hdr">
-      <span class="seg-num">12</span>
-      <span class="seg-dot" style="background:var(--orange);"></span>
-      <span class="seg-title">Ventas LEGAL — Detalle completo SEM2 Junio 2026</span>
-      <span class="seg-meta">12 transacciones · $3,952.00 · 8–12 junio</span>
-    </div>
-    <div class="card" style="padding:0;overflow:hidden;">
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);">
-        <div style="padding:16px 20px;border-right:1px solid var(--border);">
-          <div class="kpi-label">Total SEM2</div>
-          <div style="font-size:22px;font-weight:700;color:var(--orange);font-family:'DM Mono',monospace;">$3,952.00</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px;">12 transacciones</div>
-        </div>
-        <div style="padding:16px 20px;border-right:1px solid var(--border);">
-          <div class="kpi-label">Marcas</div>
-          <div style="font-size:22px;font-weight:700;color:var(--orange);font-family:'DM Mono',monospace;">$2,954.00</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px;">8 ventas · 74.8%</div>
-        </div>
-        <div style="padding:16px 20px;border-right:1px solid var(--border);">
-          <div class="kpi-label">Ticket promedio</div>
-          <div style="font-size:22px;font-weight:700;color:var(--teal);font-family:'DM Mono',monospace;">$329.33</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px;">Pack BF+Marca y BB dominan</div>
-        </div>
-        <div style="padding:16px 20px;">
-          <div class="kpi-label">Mejor producto</div>
-          <div style="font-size:14px;font-weight:600;margin-top:4px;">Pack BF + Marca</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px;">4v · $1,920.00 · 48.6%</div>
-        </div>
-      </div>
-      <div style="padding:0 20px 20px;">
-        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:14px 0 8px;">Resumen por producto</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
-          <div style="display:flex;align-items:center;gap:5px;font-size:11px;"><span class="chip chip-o" style="font-size:9px;">Pack BF+M</span>4v · $1,920.00 · 48.6%</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:11px;"><span class="chip chip-g" style="font-size:9px;">BB/SAS</span>4v · $998.00 · 25.3%</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:11px;"><span class="chip chip-t" style="font-size:9px;">RM</span>1v · $400.00 · 10.1%</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:11px;"><span class="chip chip-d" style="font-size:9px;">BF solo</span>2v · $154.00 · 3.9%</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:11px;"><span class="chip chip-p" style="font-size:9px;">Externo</span>1v · $480.00 · —</div>
-        </div>
-        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:6px 0 8px;">Detalle por transacción — SEM2 Junio 2026 (12 transacciones)</div>
-        <table class="data-table" style="font-size:11px;">
-          <thead><tr><th>Fecha</th><th>Asesor</th><th>Categoría</th><th>Producto</th><th class="r">Monto</th></tr></thead>
-          <tbody>
-            <tr><td>08/06</td><td style="font-weight:600;color:var(--purple);">Javier</td><td>Buenos Business</td><td><span class="chip chip-g" style="font-size:9px;">SAS Premium</span></td><td class="r cg" style="font-family:'DM Mono',monospace;">$400.00</td></tr>
-            <tr><td>09/06</td><td style="font-weight:600;color:var(--orange);">Martín</td><td>Buenos Business</td><td><span class="chip chip-g" style="font-size:9px;">Renovación marca</span></td><td class="r cg" style="font-family:'DM Mono',monospace;">$254.00</td></tr>
-            <tr><td>09/06</td><td style="font-weight:600;color:var(--orange);">Martín</td><td>Buenos Business</td><td><span class="chip chip-g" style="font-size:9px;">Renovación marca</span></td><td class="r cg" style="font-family:'DM Mono',monospace;">$254.00</td></tr>
-            <tr><td>09/06</td><td style="font-weight:600;color:var(--orange);">Martín</td><td>Marcas</td><td><span class="chip chip-o" style="font-size:9px;">Pack BF+M</span></td><td class="r co" style="font-family:'DM Mono',monospace;">$480.00</td></tr>
-            <tr style="background:rgba(0,0,0,.02);"><td>09/06</td><td style="font-weight:600;color:var(--text3);">Sebastián <span style="font-size:9px;color:var(--text3);">[ext.]</span></td><td>Buenos Business</td><td><span class="chip chip-p" style="font-size:9px;">Renov. nombramiento</span></td><td class="r cs" style="font-family:'DM Mono',monospace;">$90.00</td></tr>
-            <tr><td>11/06</td><td style="font-weight:600;color:var(--purple);">Javier</td><td>Marcas</td><td><span class="chip chip-o" style="font-size:9px;">Pack BF+M</span></td><td class="r co" style="font-family:'DM Mono',monospace;">$480.00</td></tr>
-            <tr><td>11/06</td><td style="font-weight:600;color:var(--teal);">Nela</td><td>Marcas</td><td><span class="chip chip-o" style="font-size:9px;">Pack BF+M</span></td><td class="r co" style="font-family:'DM Mono',monospace;">$480.00</td></tr>
-            <tr><td>12/06</td><td style="font-weight:600;color:var(--orange);">Martín</td><td>Marcas</td><td><span class="chip chip-o" style="font-size:9px;">Pack BF+M</span></td><td class="r co" style="font-family:'DM Mono',monospace;">$480.00</td></tr>
-            <tr><td>12/06</td><td style="font-weight:600;color:var(--orange);">Martín</td><td>Marcas</td><td><span class="chip chip-d" style="font-size:9px;">BF</span></td><td class="r" style="font-family:'DM Mono',monospace;">$74.00</td></tr>
-            <tr><td>12/06</td><td style="font-weight:600;color:var(--teal);">Nela</td><td>Marcas</td><td><span class="chip chip-o" style="font-size:9px;">Pack BF+M</span></td><td class="r co" style="font-family:'DM Mono',monospace;">$480.00</td></tr>
-            <tr><td>12/06</td><td style="font-weight:600;color:var(--purple);">Javier</td><td>Marcas</td><td><span class="chip chip-d" style="font-size:9px;">BF</span></td><td class="r" style="font-family:'DM Mono',monospace;">$80.00</td></tr>
-            <tr><td>12/06</td><td style="font-weight:600;color:var(--orange);">Martín</td><td>Marcas</td><td><span class="chip chip-t" style="font-size:9px;">RM</span></td><td class="r ct" style="font-family:'DM Mono',monospace;">$400.00</td></tr>
-            <tr class="t-total"><td colspan="4">TOTAL SEM2 JUN · 12 TRANSACCIONES <span style="color:var(--text3);font-size:9px;">(incl. 1 venta externa)</span></td><td class="r co" style="font-family:'DM Mono',monospace;font-size:12px;">$3,952.00</td></tr>
-          </tbody>
-        </table>
-        <div style="margin-top:10px;font-size:10px;color:var(--text3);padding:8px 10px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);">
-          ℹ️ <strong>Sebastián [ext.]</strong>: venta externa no atribuida a asesor del equipo · $90.00 Renovación nombramiento · excluida de metas individuales
-        </div>
-      </div>
-    </div>
-  </div>
-
+  <div id="s-kpi"      class="segment"></div>
+  <div id="s-budgets"  class="segment"></div>
+  <div id="s-asesores" class="segment"></div>
+  <div id="s-evo"      class="segment"></div>
+  <div id="s-embudos"  class="segment"></div>
+  <div id="s-convenio" class="segment"></div>
+  <div id="s-upsell"   class="segment"></div>
+  <div id="s-disc"     class="segment"></div>
+  <div id="s-pi"       class="segment"></div>
+  <div id="s-legal"    class="segment"></div>
 </div>
 
 <script>
+// ╔══════════════════════════════════════════════════════╗
+// ║  ⚙  CONFIGURACIÓN — reemplaza con tu URL           ║
+// ╚══════════════════════════════════════════════════════╝
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmRbKilvPCRjgGLTu8yIy7DYYbYXroPcJNeeroS-bg_CApVw_lze5PM0XiPdS25ak7/exec';
+
+// ─── ESTADO ───────────────────────────────────────────
+let charts = {};
 Chart.defaults.font.family = "'DM Sans', sans-serif";
 
-function navTo(id, btn) {
-  document.getElementById(id).scrollIntoView({ behavior:'smooth', block:'start' });
-  document.querySelectorAll('.snav-btn').forEach(b => b.classList.remove('active'));
+// ─── HELPERS ──────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const fmt = n  => '$' + Number(n||0).toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct = (a,b) => b > 0 ? (a/b*100).toFixed(2) : '0.00';
+const sumF = (arr,k) => arr.reduce((s,r)=>s+Number(r[k]||0),0);
+const clamp = (v,mn,mx) => Math.min(Math.max(v,mn),mx);
+const colAsesor = a => a==='Martín'?'var(--orange)': a==='Javier'?'rgba(130,59,218,.8)': a==='Nela'?'rgba(0,173,176,.8)':'rgba(160,160,160,.6)';
+
+function killChart(k){ if(charts[k]){try{charts[k].destroy();}catch(e){} delete charts[k];} }
+
+function loadBar(on){
+  const b=$('lbar');
+  if(on){b.className='lbar on';}
+  else{b.className='lbar done';setTimeout(()=>b.className='lbar',600);}
+}
+
+// ─── NAV ──────────────────────────────────────────────
+const SEC_IDS = ['s-kpi','s-budgets','s-asesores','s-evo','s-embudos','s-convenio','s-upsell','s-disc','s-pi','s-legal'];
+function navTo(id,btn){
+  $(id).scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelectorAll('.snav-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
 }
-const secIds = ['s-kpi','s-budgets','s-asesores','s-evo','s-embudos','s-convenio','s-upsell','s-disc','s-pi','s-legal'];
-window.addEventListener('scroll', () => {
+window.addEventListener('scroll',()=>{
   let cur='';
-  secIds.forEach(id => { const el=document.getElementById(id); if(el && el.getBoundingClientRect().top < 130) cur=id; });
-  document.querySelectorAll('.snav-btn').forEach((b,i) => { if(secIds[i]===cur) b.classList.add('active'); else b.classList.remove('active'); });
-}, { passive:true });
+  SEC_IDS.forEach(id=>{const el=$(id);if(el&&el.getBoundingClientRect().top<130)cur=id;});
+  document.querySelectorAll('.snav-btn').forEach((b,i)=>b.classList.toggle('active',SEC_IDS[i]===cur));
+},{passive:true});
 
-// COMPARATIVO
-new Chart(document.getElementById('compChart').getContext('2d'), {
-  type:'bar',
-  data:{
-    labels:['Jun 2026 (SEM1+SEM2)','May 2026','Jun 2025'],
-    datasets:[
-      { label:'Marcas/Legal', data:[7603,19638.50,0], backgroundColor:['rgba(192,120,0,0.75)','rgba(22,163,74,0.75)','rgba(190,188,184,0.35)'], borderRadius:4, barPercentage:0.55 },
-      { label:'Educación', data:[29745,3181,15461.16], backgroundColor:['rgba(130,59,218,0.70)','rgba(130,59,218,0.40)','rgba(130,59,218,0.20)'], borderRadius:4, barPercentage:0.55 }
-    ]
-  },
-  options:{
-    responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' $'+ctx.raw?.toLocaleString('es-EC',{minimumFractionDigits:2}) } } },
-    scales:{ x:{ grid:{display:false}, ticks:{font:{size:10},color:'#9e9e9e'} }, y:{ grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{size:10},color:'#9e9e9e', callback:v=>'$'+v.toLocaleString()} } }
+// ─── FETCH PRINCIPAL ──────────────────────────────────
+async function loadData(semana){
+  loadBar(true);
+  try{
+    const url = APPS_SCRIPT_URL + (semana?'?semana='+encodeURIComponent(semana):'');
+    const res  = await fetch(url);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    updateSelector(data.semanas, data.semana_actual);
+    renderAll(data);
+  }catch(e){
+    $('s-kpi').innerHTML=`<div class="err-box"><strong>Error de conexión</strong>Reemplaza APPS_SCRIPT_URL con tu URL de Apps Script.<br><code style="font-size:10px;">${e.message}</code></div>`;
+  }finally{
+    loadBar(false);
   }
-});
-
-// MARCAS MINI (por día SEM2 jun)
-new Chart(document.getElementById('marcasMiniChart').getContext('2d'), {
-  type:'bar',
-  data:{
-    labels:['Lun 08','Mar 09','Mié 10','Jue 11','Vie 12'],
-    datasets:[{
-      data:[0,480,0,960,1514],
-      backgroundColor:['rgba(190,188,184,0.25)','rgba(22,163,74,0.55)','rgba(190,188,184,0.25)','rgba(22,163,74,0.65)','rgba(255,37,0,0.65)'],
-      borderRadius:4, barPercentage:0.7
-    }]
-  },
-  options:{
-    responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' $'+ctx.raw?.toLocaleString('es-EC',{minimumFractionDigits:2}) } } },
-    scales:{ x:{ grid:{display:false}, ticks:{font:{size:9},color:'#9e9e9e'} }, y:{ display:false } }
-  }
-});
-
-// EVOLUTIVO
-new Chart(document.getElementById('evoChart').getContext('2d'), {
-  type:'line',
-  data:{
-    labels:['SEM1 4–8 May','SEM2 11–15 May','SEM3 18–22 May','SEM4 25–29 May','SEM1 1–5 Jun','SEM2 8–12 Jun'],
-    datasets:[
-      { label:'Ingresos', data:[5149.50,6449.00,4530,4863,3354,2954], borderColor:'#ff2500', backgroundColor:'rgba(255,37,0,0.07)', borderWidth:2, pointBackgroundColor:['#16a34a','#16a34a','#c07800','#c07800','#ff2500','#ff2500'], pointRadius:4, tension:0.35, fill:true },
-      { label:'Meta sem.', data:[5030.03,5030.03,5030.03,5030.03,5055.35,5055.35], borderColor:'rgba(22,163,74,0.5)', borderWidth:1.5, borderDash:[4,4], pointRadius:0, fill:false }
-    ]
-  },
-  options:{
-    responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' $'+ctx.raw?.toLocaleString('es-EC',{minimumFractionDigits:2}) } } },
-    scales:{ x:{ grid:{display:false}, ticks:{font:{size:10},color:'#9e9e9e'} }, y:{ grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{size:10},color:'#9e9e9e', callback:v=>'$'+v.toLocaleString()} } }
-  }
-});
-
-// EMBUDOS
-function buildStages(cls, containerId, stages) {
-  const el=document.getElementById(containerId);
-  const max=stages[0].val;
-  let html='';
-  stages.forEach((s,i)=>{
-    const pct=Math.max((s.val/max)*100,3);
-    html+=`<div class="d-stage">
-      <div class="d-stage-meta"><span class="d-stage-name">${s.name}</span><span style="font-size:10px;color:var(--d-muted);">${s.sub}</span></div>
-      <div class="d-stage-bar-bg"><div class="d-stage-bar-fill" style="width:${pct}%;"><span class="d-stage-bar-label">${s.label}</span></div></div>
-    </div>`;
-    if(i<stages.length-1&&s.conv) html+=`<div class="d-conv-badge">${s.conv}</div>`;
-  });
-  el.innerHTML=html;
 }
 
-buildStages('marcas','marcas-stages',[
-  { name:'Alcance', sub:'SEM2 junio (5 días activos)', label:'40,801', val:40801, conv:'↓ 1.52% clics enlace' },
-  { name:'Clics en enlace', sub:'a WhatsApp', label:'622', val:622, conv:'↓ 16.6% conv. WPP' },
-  { name:'Conv. WPP', sub:'leads directos SEM2 jun', label:'103', val:103, conv:'↓ 7.8% venta' },
-  { name:'Ventas cerradas', sub:'8 ventas SEM2 marcas', label:'8', val:8, conv:null }
-]);
+function updateSelector(semanas,actual){
+  const sel=$('semSelect');
+  sel.innerHTML=(semanas||[]).map(s=>`<option value="${s.semana_id}"${s.semana_id===actual?' selected':''}>${s.label}</option>`).join('');
+  const cur=(semanas||[]).find(s=>s.semana_id===actual);
+  $('semBadge').textContent=cur?.badge||actual||'—';
+}
 
-buildStages('priv','priv-stages',[
-  { name:'Alcance', sub:'SEM2 jun', label:'3,296', val:3296, conv:'↓ 0.70% conv. WPP' },
-  { name:'Conv. WPP', sub:'leads directos', label:'23', val:23, conv:'↓ pagos recurrentes' },
-  { name:'Pagos Hotmart', sub:'SEM2 jun · recurrentes', label:'6', val:6, conv:null }
-]);
+// ─── CÓMPUTOS ─────────────────────────────────────────
+function compute(d){
+  const v=d.ventas||[], ch=d.chats||{}, edu=d.educacion||{}, pp=d.priv_pagos||[], ps=d.priv_stats||{}, m=d.metas||{};
+  const vMarcas=v.filter(x=>x.categoria==='Marcas');
+  const totalM=sumF(vMarcas,'monto'), totalLegal=sumF(v,'monto');
+  const totalEdu=Number(edu.monto||0), totalPriv=sumF(pp,'monto');
+  const total=totalLegal+totalEdu+totalPriv;
+  const metaM=Number(m.meta_marcas||0), metaE=Number(m.meta_edu||0);
+  const pctM=metaM>0?totalM/metaM*100:0, pctE=metaE>0?totalEdu/metaE*100:0;
 
-// ADS MARCAS DIARIO (SEM2 Jun - 5 días activos cuenta AND)
-const adsLabels=['08/06','09/06','10/06','11/06','12/06'];
-new Chart(document.getElementById('marcasAdsChart').getContext('2d'),{
-  data:{
-    labels:adsLabels,
-    datasets:[
-      { type:'bar', label:'Conv. WPP', data:[15,20,27,32,9], backgroundColor:['rgba(255,37,0,0.75)','rgba(255,37,0,0.75)','rgba(255,37,0,0.75)','rgba(255,37,0,0.75)','rgba(255,37,0,0.75)'], borderRadius:3, yAxisID:'y', order:2 },
-      { type:'bar', label:'Clics enlace', data:[89,164,135,143,67], backgroundColor:['rgba(130,59,218,0.35)','rgba(130,59,218,0.35)','rgba(130,59,218,0.35)','rgba(130,59,218,0.35)','rgba(130,59,218,0.35)'], borderRadius:3, yAxisID:'y', order:3 },
-      { type:'line', label:'Gasto $', data:[25.87,39.40,28.18,26.81,11.93], borderColor:'rgba(248,237,226,0.7)', borderWidth:1.5, borderDash:[4,3], pointRadius:3, pointBackgroundColor:'rgba(248,237,226,0.9)', yAxisID:'y2', fill:false, order:1 }
-    ]
-  },
-  options:{
-    responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{display:false} },
-    scales:{
-      y:{ grid:{color:'rgba(255,255,255,0.04)'}, ticks:{font:{size:9},color:'#7a7068'} },
-      y2:{ position:'right', grid:{display:false}, ticks:{font:{size:9},color:'rgba(248,237,226,0.5)', callback:v=>'$'+v} }
-    }
+  // per asesor
+  const names=[...new Set([...v.map(x=>x.asesor).filter(Boolean),'Martín','Javier','Nela','Pau'])];
+  const ad={};
+  names.forEach(a=>{
+    const av=v.filter(x=>x.asesor===a), avm=av.filter(x=>x.categoria==='Marcas');
+    const monto=sumF(av,'monto'), nc=Number(ch[a]||0);
+    ad[a]={monto,ventas:av.length,ventasMarcas:avm.length,chats:nc,
+      conv:nc>0?(avm.length/nc*100).toFixed(2):null,
+      ticket:av.length>0?(monto/av.length).toFixed(2):0,
+      pct:totalLegal>0?(monto/totalLegal*100).toFixed(1):0};
+  });
+  const maxM=Math.max(...names.map(a=>ad[a].monto),1);
+
+  // días
+  const diasMap={};
+  v.forEach(x=>{diasMap[x.fecha]=(diasMap[x.fecha]||0)+Number(x.monto||0);});
+  const dias=Object.keys(diasMap).sort();
+
+  // productos
+  const prodMap={};
+  v.forEach(x=>{if(!prodMap[x.producto])prodMap[x.producto]={ventas:0,monto:0};prodMap[x.producto].ventas++;prodMap[x.producto].monto+=Number(x.monto||0);});
+
+  return{v,ch,edu,pp,ps,m,vMarcas,totalM,totalLegal,totalEdu,totalPriv,total,metaM,metaE,pctM,pctE,names,ad,maxM,diasMap,dias,prodMap};
+}
+
+// ─── RENDER ALL ───────────────────────────────────────
+function renderAll(d){
+  const c=compute(d);
+  rKPIs(d,c); rPresupuestos(d,c); rAsesores(d,c);
+  rEvolutivo(d); rEmbudos(d,c);
+  rConvenio(d.convenio||{}); rUpsell(d.upsell||{});
+  rDisc(d.disc||[]); rPI(d.pi||{}); rLegal(d,c);
+}
+
+// ══════════════ §1 KPIs ═══════════════════════════════
+function rKPIs(d,c){
+  const{totalM,pctM,metaM,totalEdu,pctE,metaE,totalPriv,total,totalLegal,v,edu,ps}=c;
+  const diff=totalM-metaM;
+  const wC=pctM>=100?'var(--green)':pctM>=80?'var(--warn)':'var(--orange)';
+  const kC=pctM>=100?'c-green':'c-warn';
+  $('s-kpi').innerHTML=`
+  <div class="seg-hdr"><span class="seg-num">01</span><span class="seg-dot" style="background:var(--orange);"></span>
+    <span class="seg-title">KPIs Clave</span>
+    <span class="seg-meta">${v.length} ventas · ${fmt(totalLegal)} legal · ${fmt(totalEdu)} educación</span></div>
+  <div class="kpi-strip-3">
+    <div class="kpi-4-card ${kC}">
+      <div class="kpi-4-label">% Meta semanal — Marcas</div>
+      <div class="kpi-4-val" style="color:${wC};">${Number(pctM).toFixed(2)}%</div>
+      <div class="kpi-4-sub">${fmt(totalM)} / meta ${fmt(metaM)}</div>
+      <div class="kpi-4-sub2">${diff>=0?'+':''}${fmt(diff)} · ${c.vMarcas.length} ventas marcas</div>
+      <div style="margin-top:10px;">
+        <div class="pbar"><div class="pbar-fill" style="width:${clamp(pctM,0,100)}%;background:${wC};"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;">
+          <span>0%</span><span style="color:${wC};font-weight:600;">${pctM>=100?'✓ meta superada':'⚠ faltan '+fmt(Math.abs(diff))}</span></div></div></div>
+    <div class="kpi-4-card c-purple">
+      <div class="kpi-4-label">Educación</div>
+      <div class="kpi-4-val cp">${Number(pctE).toFixed(2)}%</div>
+      <div class="kpi-4-sub">${fmt(totalEdu)} · ${edu.producto||'—'} · ${edu.inscritos||0} inscritos</div>
+      <div class="kpi-4-sub2">Meta ${fmt(metaE)} · ${edu.downsell||0} downsell · ${edu.upsell||0} upsell · ${edu.becas||0} becas</div>
+      <div style="margin-top:10px;">
+        <div class="pbar"><div class="pbar-fill" style="width:${clamp(pctE,0,100)}%;background:var(--purple);"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;">
+          <span>Meta ${fmt(metaE)}</span><span style="color:var(--purple);font-weight:600;">${Number(pctE).toFixed(2)}% ${pctE>=100?'✓ superada':''}</span></div></div></div>
+    <div class="kpi-4-card c-teal">
+      <div class="kpi-4-label">Gran total</div>
+      <div class="kpi-4-val ct">${fmt(total)}</div>
+      <div class="kpi-4-sub">Legal ${fmt(totalLegal)} + Edu ${fmt(totalEdu)} + Priv ${fmt(totalPriv)}</div>
+      <div class="kpi-4-sub2">Priv activos: ${ps.activos||0} · churn: ${ps.churn||0}</div>
+      <div style="margin-top:10px;">
+        <div class="pbar"><div class="pbar-fill" style="width:100%;background:var(--teal);"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;">
+          <span>Combinado</span><span style="color:var(--teal);font-weight:600;">${edu.producto||'—'}</span></div></div></div>
+  </div>`;
+}
+
+// ══════════════ §2-4 Presupuestos ═════════════════════
+function rPresupuestos(d,c){
+  const{totalM,pctM,metaM,totalEdu,pctE,metaE,totalPriv,dias,diasMap,v,vMarcas,edu,ps,pp}=c;
+  const diasVals=dias.map(d=>diasMap[d]);
+  const maxD=Math.max(...diasVals,1);
+  const diasColors=diasVals.map(v=>v===0?'rgba(190,188,184,.25)':v===maxD?'rgba(255,37,0,.65)':'rgba(22,163,74,.55)');
+  const diasListHtml=dias.map(dia=>{const val=diasMap[dia];const vtas=v.filter(x=>x.fecha===dia).length;
+    return `<div class="si"><span class="si-l">${dia}</span><span class="si-r ${val===0?'cs':val===maxD?'cw':'cg'}">${val===0?'$0.00':fmt(val)+' · '+vtas+' venta'+(vtas!==1?'s':'')}</span></div>`;}).join('');
+
+  $('s-budgets').innerHTML=`
+  <div class="seg-hdr"><span class="seg-num">02 – 04</span><span class="seg-dot" style="background:var(--text3);"></span>
+    <span class="seg-title">Cumplimiento de presupuesto</span><span class="seg-meta">Comparativo · Marcas · Educación</span></div>
+  <div class="triple-row">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div class="card-title">Comparativo mensual</div><span class="chip chip-d" style="font-size:9px;">Marcas + Educación</span></div>
+      <div class="card-note">Período actual vs anteriores</div>
+      <div style="position:relative;height:200px;"><canvas id="compChart"></canvas></div>
+      <div class="divider"></div><div id="compLegend" style="display:flex;flex-direction:column;gap:6px;"></div></div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div class="card-title">Marcas</div><span class="chip chip-w">${Number(pctM).toFixed(2)}% meta sem.</span></div>
+      <div class="card-note">${vMarcas.length} ventas · meta ${fmt(metaM)}</div>
+      <div style="background:rgba(255,37,0,.04);border:1px solid rgba(255,37,0,.15);border-radius:8px;padding:14px 16px;margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:4px;">Total facturado</div>
+        <div style="font-size:28px;font-weight:700;color:var(--orange);letter-spacing:-1.5px;line-height:1;font-family:'DM Mono',monospace;">${fmt(totalM)}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">${vMarcas.length} ventas · ticket ${fmt(vMarcas.length>0?totalM/vMarcas.length:0)}</div>
+        <div class="pbar" style="margin-top:8px;"><div class="pbar-fill" style="width:${clamp(pctM,0,100)}%;background:var(--warn);"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>Meta ${fmt(metaM)}</span><span style="color:var(--warn);font-weight:600;">${Number(pctM).toFixed(2)}%</span></div></div>
+      <div style="position:relative;height:90px;margin-bottom:10px;"><canvas id="marcasMiniChart"></canvas></div>
+      <div class="divider"></div>${diasListHtml}</div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div class="card-title">Educación + Priv</div><span class="chip chip-g">${Number(pctE).toFixed(2)}% meta</span></div>
+      <div class="card-note">${edu.producto||'—'} + Ulpik Priv · Meta ${fmt(metaE)}</div>
+      <div style="background:rgba(130,59,218,.05);border:1px solid rgba(130,59,218,.18);border-radius:8px;padding:14px 16px;margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Total Educación</div>
+        <div style="font-size:28px;font-weight:700;color:var(--purple);letter-spacing:-1.5px;line-height:1;font-family:'DM Mono',monospace;">${fmt(totalEdu)}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">${edu.inscritos||0} inscritos · ${edu.downsell||0} downsell · ${edu.upsell||0} upsell</div>
+        <div class="pbar" style="margin-top:8px;"><div class="pbar-fill" style="width:${clamp(pctE,0,100)}%;background:var(--purple);"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>Meta ${fmt(metaE)}</span><span style="color:var(--green);font-weight:600;">${Number(pctE).toFixed(2)}% ${pctE>=100?'✓ superada':''}</span></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div style="background:rgba(130,59,218,.05);border-radius:8px;border:1px solid rgba(130,59,218,.15);padding:12px 14px;">
+          <div style="font-size:10px;color:var(--purple);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">${edu.producto||'Educación'}</div>
+          <div style="font-size:20px;font-weight:700;color:var(--purple);font-family:'DM Mono',monospace;">${fmt(totalEdu)}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:3px;">${edu.inscritos||0} inscritos</div></div>
+        <div style="background:rgba(0,173,176,.05);border-radius:8px;border:1px solid rgba(0,173,176,.20);padding:12px 14px;">
+          <div style="font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Ulpik Priv</div>
+          <div style="font-size:20px;font-weight:700;color:var(--teal);font-family:'DM Mono',monospace;">${fmt(totalPriv)}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:3px;">${pp.length} pagos</div></div></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
+        <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Activos</div><div class="num-md ct">${ps.activos||0}</div></div>
+        <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Retraso</div><div class="num-md cw">${ps.retraso||0}</div></div>
+        <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Hábiles</div><div class="num-md cg">${ps.habiles||0}</div></div>
+        <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Churn</div><div class="num-md cs">${ps.churn||0}</div></div></div></div></div>`;
+
+  // charts
+  killChart('comp');
+  const hist=d.historico_mensual||[];
+  if(hist.length){
+    charts['comp']=new Chart($('compChart').getContext('2d'),{
+      type:'bar',data:{labels:hist.map(h=>h.label),
+        datasets:[{label:'Legal',data:hist.map(h=>Number(h.legal||0)),backgroundColor:'rgba(192,120,0,.75)',borderRadius:4,barPercentage:.55},
+                  {label:'Edu',data:hist.map(h=>Number(h.edu||0)),backgroundColor:'rgba(130,59,218,.70)',borderRadius:4,barPercentage:.55}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>' '+fmt(x.raw)}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#9e9e9e'}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#9e9e9e',callback:v=>'$'+v.toLocaleString()}}}}});
+    $('compLegend').innerHTML=hist.map(h=>`<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11px;">${h.label}</span><span style="font-size:12px;font-weight:700;font-family:'DM Mono',monospace;">${fmt(Number(h.legal||0)+Number(h.edu||0))}</span></div>`).join('');
   }
-});
+  killChart('marcasMini');
+  if(dias.length){
+    charts['marcasMini']=new Chart($('marcasMiniChart').getContext('2d'),{
+      type:'bar',data:{labels:dias,datasets:[{data:diasVals,backgroundColor:diasColors,borderRadius:4,barPercentage:.7}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>' '+fmt(x.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:9},color:'#9e9e9e'}},y:{display:false}}}});
+  }
+}
+
+// ══════════════ §5 Asesores ═══════════════════════════
+function rAsesores(d,c){
+  const{names,ad,maxM,totalLegal,v,m}=c;
+  const meta=Number(m.meta_conv||5);
+  const rows=names.map(a=>{
+    const x=ad[a]; const bw=maxM>0?(x.monto/maxM*100).toFixed(1):0;
+    return `<tr><td style="font-weight:600;${x.monto===0?'color:var(--text3);':''}">${a}</td>
+      <td><div class="ibar"><div class="ibar-track"><div class="ibar-fill" style="width:${bw}%;background:${colAsesor(a)};"></div></div><span class="ibar-val">${fmt(x.monto)}</span></div></td>
+      <td class="r" style="font-size:14px;font-weight:700;color:${colAsesor(a)};">${x.ventas}</td>
+      <td class="r" style="font-family:'DM Mono',monospace;">${x.ventas>0?fmt(x.ticket):'—'}</td>
+      <td class="r" style="color:${colAsesor(a)};">${x.pct}%</td>
+      <td style="font-size:11px;color:var(--text3);">${x.chats} chats</td></tr>`;}).join('');
+
+  const convAs=names.filter(a=>ad[a].chats>0);
+  const convCards=convAs.map((a,i)=>{
+    const x=ad[a]; const cv=Number(x.conv||0); const over=cv>=meta;
+    const col=over?'var(--green)':'var(--warn)';
+    return `<div style="padding:14px 16px;${i<convAs.length-1?'border-right:1px solid var(--border);':''}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:12px;font-weight:600;">${a}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:${col};">${cv}%</span></div>
+      <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;border:1px solid var(--border);margin-bottom:6px;">
+        <div style="width:${clamp(cv/30*100,0,100)}%;height:100%;background:${col};border-radius:3px;min-width:4px;"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);">
+        <span>${x.ventasMarcas} marcas / ${x.chats} chats</span>
+        <span style="color:${col};font-weight:600;">${over?'✓ sobre meta':'⚠ bajo meta'}</span></div></div>`;}).join('');
+
+  $('s-asesores').innerHTML=`
+  <div class="seg-hdr"><span class="seg-num">05</span><span class="seg-dot" style="background:var(--teal);"></span>
+    <span class="seg-title">Gestión Individual — Asesores Marcas</span><span class="seg-meta">Chats · Ventas · Monto</span></div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="card-title" style="margin:0;">Rendimiento por asesor</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="chip chip-d">${names.filter(a=>ad[a].ventas>0).length} asesores activos</span>
+        <span style="font-size:10px;color:var(--text3);">Total: <strong class="co">${fmt(totalLegal)}</strong></span></div></div>
+    <table class="data-table">
+      <thead><tr><th>Asesor</th><th>Monto</th><th class="r">Ventas</th><th class="r">Ticket prom.</th><th class="r">Part.</th><th>Chats</th></tr></thead>
+      <tbody>${rows}
+        <tr class="t-total"><td>TOTAL</td><td><span style="font-family:'DM Mono',monospace;font-size:12px;">${fmt(totalLegal)}</span></td>
+          <td class="r co">${v.length}</td><td class="r" style="font-family:'DM Mono',monospace;font-size:12px;">${fmt(v.length>0?totalLegal/v.length:0)}</td><td class="r cs">100%</td><td></td></tr>
+      </tbody></table>
+    ${convCards?`<div style="margin-top:14px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+      <div style="padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:11px;font-weight:600;">Conversión por asesor</span>
+        <span style="font-size:10px;color:var(--text3);">Objetivo: <strong style="color:var(--green);">${meta}.00%</strong></span></div>
+      <div style="display:grid;grid-template-columns:repeat(${convAs.length},1fr);gap:0;">${convCards}</div>
+      <div style="padding:8px 16px;background:var(--bg3);border-top:1px solid var(--border);font-size:10px;color:var(--text3);">Conversión = ventas Marcas / chats registrados</div></div>`:''}
+  </div>`;
+}
+
+// ══════════════ §6 Evolutivo ══════════════════════════
+function rEvolutivo(d){
+  const evo=d.evolutivo||[];
+  const cells=evo.map((e,i)=>{
+    const p=e.meta>0?e.ingresos/e.meta*100:0; const isCur=i===evo.length-1;
+    const cls=p>=100?'best':'warn';
+    return `<div class="evo-cell ${isCur?'warn':cls}" style="${isCur?'border-color:rgba(255,37,0,.30);':''}">
+      <div class="evo-period" style="${isCur?'color:var(--orange);font-weight:600;':''}">${e.label}${isCur?' ←':''}</div>
+      <div class="evo-val ${p>=100?'cg':'co'}">${fmt(e.ingresos)}</div>
+      <div class="evo-pct ${p>=100?'cg':'co'}">${p.toFixed(1)}% ${p>=100?'✓':'✗'}</div></div>`;}).join('');
+
+  $('s-evo').innerHTML=`
+  <div class="seg-hdr"><span class="seg-num">06</span><span class="seg-dot" style="background:var(--orange);"></span>
+    <span class="seg-title">Evolutivo — Ingresos semana a semana</span><span class="seg-meta">${evo.length} semanas</span></div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="card-title" style="margin:0;">Ingresos totales · semana a semana</div>
+      <div style="display:flex;gap:10px;">
+        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);"><span style="width:10px;height:2px;background:var(--orange);display:inline-block;"></span>Ingresos</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);"><span style="width:10px;height:2px;background:var(--green);opacity:.5;display:inline-block;"></span>Meta</div></div></div>
+    <div style="position:relative;height:200px;"><canvas id="evoChart"></canvas></div>
+    <div class="evo-mini" style="grid-template-columns:repeat(${Math.min(evo.length,6)},1fr);">${cells}</div></div>`;
+
+  killChart('evo');
+  if(evo.length){
+    charts['evo']=new Chart($('evoChart').getContext('2d'),{
+      type:'line',data:{labels:evo.map(e=>e.label),
+        datasets:[{label:'Ingresos',data:evo.map(e=>e.ingresos),borderColor:'#ff2500',backgroundColor:'rgba(255,37,0,.07)',borderWidth:2,
+          pointBackgroundColor:evo.map(e=>e.ingresos>=(e.meta||0)?'#16a34a':'#ff2500'),pointRadius:4,tension:.35,fill:true},
+          {label:'Meta',data:evo.map(e=>e.meta),borderColor:'rgba(22,163,74,.5)',borderWidth:1.5,borderDash:[4,4],pointRadius:0,fill:false}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>' '+fmt(x.raw)}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#9e9e9e'}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#9e9e9e',callback:v=>'$'+v.toLocaleString()}}}}});
+  }
+}
+
+// ══════════════ §7 Embudos ════════════════════════════
+function rEmbudos(d,c){
+  const ads=d.ads||[], pp=d.priv_pagos||[], ps=d.priv_stats||{};
+  const gasto=sumF(ads,'gasto'), conv=sumF(ads,'conv_wpp'), clics=sumF(ads,'clics'), alc=sumF(ads,'alcance');
+  const cpr=conv>0?(gasto/conv).toFixed(2):0;
+  const roas=gasto>0?(c.totalM/gasto).toFixed(1):0;
+  const privGasto=Number(ps.gasto||0), privConv=Number(ps.conv_wpp||0);
+  const privCPR=privConv>0?(privGasto/privConv).toFixed(2):0;
+
+  $('s-embudos').innerHTML=`
+  <div class="seg-hdr"><span class="seg-num">07</span><span class="seg-dot" style="background:#ff2500;"></span>
+    <span class="seg-title">Embudos — Marcas &amp; Ulpik Priv · Ads</span><span class="seg-meta">${ads.length} días con datos</span></div>
+  <div class="emb-section"><div class="emb-inner">
+    <div class="funnel-panel marcas">
+      <div class="campaign-tag"><span class="dot"></span>Marcas</div>
+      <div class="emb-title">Marcas – Leads a WPP</div>
+      <div class="emb-sub">${ads.length} días activos · ${fmt(gasto)} gasto total</div>
+      <div class="kpi-strip">
+        <div class="d-kpi-card"><div class="d-kpi-label">Gasto</div><div class="d-kpi-value accent">${fmt(gasto)}</div><div class="d-kpi-sub">${ads.length} días</div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">CPR</div><div class="d-kpi-value">$${cpr}</div><div class="d-kpi-sub">${conv} conv. WPP</div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">ROAS</div><div class="d-kpi-value accent">${roas}×</div><div class="d-kpi-sub">${fmt(c.totalM)} ingreso</div></div></div>
+      <div class="roas-banner">
+        <div><div class="roas-label">ROAS</div><div class="roas-val">${roas}×</div></div>
+        <div style="text-align:right;"><div class="roas-sub">Marcas facturadas</div><div class="roas-revenue">${fmt(c.totalM)}</div>
+          <div class="roas-sub">${c.vMarcas.length} ventas · gasto ${fmt(gasto)}</div></div></div>
+      <div class="d-funnel-title">Embudo</div><div id="mstg"></div>
+      <hr class="d-divider">
+      <div class="d-chart-wrap">
+        <div class="d-chart-hdr"><div class="d-chart-label">Conv. WPP diarias</div></div>
+        <div style="position:relative;height:130px;"><canvas id="adsChart"></canvas></div></div></div>
+    <div class="funnel-panel priv">
+      <div class="campaign-tag"><span class="dot"></span>Ulpik Priv</div>
+      <div class="emb-title">Ulpik Priv – Mensajes WPP</div>
+      <div class="emb-sub">${fmt(privGasto)} gasto · ${privConv} conv. WPP</div>
+      <div class="kpi-strip">
+        <div class="d-kpi-card"><div class="d-kpi-label">Gasto</div><div class="d-kpi-value accent">${fmt(privGasto)}</div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">Conv. WPP</div><div class="d-kpi-value">${privConv}</div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">CPR</div><div class="d-kpi-value">$${privCPR}</div></div></div>
+      <div class="roas-banner">
+        <div><div class="roas-label">Pagos Hotmart</div><div class="roas-val">${pp.length}</div></div>
+        <div style="text-align:right;"><div class="roas-sub">Miembros hábiles</div><div class="roas-revenue">${ps.habiles||0}</div>
+          <div class="roas-sub">${ps.churn||0} churn · ${fmt(c.totalPriv)}</div></div></div>
+      <div class="d-funnel-title">Estado comunidad</div><div id="pstg"></div>
+      <hr class="d-divider">
+      <div style="background:var(--d-card);border:1px solid var(--d-border);border-radius:10px;padding:14px 16px;">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--d-muted);margin-bottom:10px;">Pagos Hotmart (${pp.length} · ${fmt(c.totalPriv)})</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">${pp.map(p=>`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--d-text);"><span>${p.nombre}</span><span style="color:var(--d-muted);">${p.fecha} · ${fmt(p.monto)} · cuota ${p.cuota}</span></div>`).join('')}</div></div>
+      <div class="panel-note">ℹ️ ${ps.habiles||0} miembros hábiles · ${ps.activos||0} activos · ${ps.retraso||0} en retraso · ${ps.churn||0} churn</div></div>
+  </div></div>`;
+
+  buildStg('mstg','marcas',[
+    {name:'Alcance',sub:'total',label:Number(alc).toLocaleString(),val:alc,conv:'↓ clics enlace'},
+    {name:'Clics enlace',sub:'a WhatsApp',label:Number(clics).toLocaleString(),val:clics,conv:'↓ conv. WPP'},
+    {name:'Conv. WPP',sub:'leads',label:String(conv),val:conv,conv:'↓ venta'},
+    {name:'Ventas cerradas',sub:'',label:String(c.vMarcas.length),val:c.vMarcas.length,conv:null}]);
+  buildStg('pstg','priv',[
+    {name:'Alcance',sub:'',label:Number(ps.alcance||0).toLocaleString(),val:Number(ps.alcance||1),conv:'↓ conv. WPP'},
+    {name:'Conv. WPP',sub:'leads',label:String(privConv),val:privConv,conv:'↓ pagos'},
+    {name:'Pagos Hotmart',sub:'recurrentes',label:String(pp.length),val:pp.length,conv:null}]);
+
+  killChart('ads');
+  if(ads.length){
+    charts['ads']=new Chart($('adsChart').getContext('2d'),{
+      data:{labels:ads.map(a=>a.fecha),
+        datasets:[{type:'bar',label:'Conv.WPP',data:ads.map(a=>a.conv_wpp),backgroundColor:'rgba(255,37,0,.75)',borderRadius:3,yAxisID:'y',order:2},
+                  {type:'bar',label:'Clics',data:ads.map(a=>a.clics),backgroundColor:'rgba(130,59,218,.35)',borderRadius:3,yAxisID:'y',order:3},
+                  {type:'line',label:'Gasto',data:ads.map(a=>a.gasto),borderColor:'rgba(248,237,226,.7)',borderWidth:1.5,borderDash:[4,3],pointRadius:3,pointBackgroundColor:'rgba(248,237,226,.9)',yAxisID:'y2',fill:false,order:1}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{font:{size:9},color:'#7a7068'}},
+          y2:{position:'right',grid:{display:false},ticks:{font:{size:9},color:'rgba(248,237,226,.5)',callback:v=>'$'+v}}}}});
+  }
+}
+
+function buildStg(id,cls,stages){
+  const el=$(id); if(!el) return;
+  const max=stages[0]?.val||1;
+  el.innerHTML=stages.map((s,i)=>{
+    const p=Math.max(s.val/max*100,3);
+    return `<div class="d-stage"><div class="d-stage-meta"><span class="d-stage-name">${s.name}</span><span style="font-size:10px;color:var(--d-muted);">${s.sub}</span></div>
+      <div class="d-stage-bar-bg"><div class="d-stage-bar-fill" style="width:${p}%;"><span class="d-stage-bar-label">${s.label}</span></div></div></div>
+      ${i<stages.length-1&&s.conv?`<div class="d-conv-badge">${s.conv}</div>`:''}`}).join('');
+}
+
+// ══════════════ §8 Convenio ═══════════════════════════
+function rConvenio(cv){
+  const{contactados:ct=0,respondieron:re=0,llamadas:ll=0,convenios:co=0,ultima_gestion:ug='—'}=cv;
+  const p1=ct>0?(re/ct*100).toFixed(1):0, p2=re>0?(ll/re*100).toFixed(1):0, p3=ll>0?(co/ll*100).toFixed(1):0;
+  $('s-convenio').innerHTML=`
+  <div class="seg-hdr"><span class="seg-num">08</span><span class="seg-dot" style="background:var(--teal);"></span>
+    <span class="seg-title">Convenio Diseñadores</span><span class="seg-meta">Última gestión: ${ug}</span></div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="card-title" style="margin:0;">Convenio Diseñadores</div><span class="chip chip-o">Última gestión ${ug}</span></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Contactados</div><div class="num-lg">${ct}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Respondieron</div><div class="num-lg co">${re}</div><div style="font-size:10px;color:var(--text3);">${p1}%</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Llamadas</div><div class="num-lg ct">${ll}</div><div style="font-size:10px;color:var(--text3);">${p2}%</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.06);border-color:rgba(0,173,176,.20);"><div class="kpi-label ct">Convenios</div><div class="num-lg ct">${co}</div><div style="font-size:10px;color:var(--text3);">${p3}%</div></div></div>
+    <div class="funnel-row"><span class="funnel-label">Contactados</span><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:rgba(255,37,0,.12);"><span class="co">${ct}</span></div></div></div>
+    <div class="funnel-arrow">↓ ${p1}% responden</div>
+    <div class="funnel-row"><span class="funnel-label">Respondieron</span><div class="funnel-track"><div class="funnel-fill" style="width:${p1}%;background:rgba(255,37,0,.22);min-width:40px;"><span class="co">${re}</span></div></div></div>
+    <div class="funnel-arrow">↓ ${p2}% llamada</div>
+    <div class="funnel-row"><span class="funnel-label">Llamadas</span><div class="funnel-track"><div class="funnel-fill" style="width:${ct>0?ll/ct*100:3}%;background:rgba(0,173,176,.35);min-width:40px;"><span class="ct">${ll}</span></div></div></div>
+    <div class="funnel-arrow">↓ ${p3}% convenio</div>
+    <div class="funnel-row"><span class="funnel-label">Convenio</span><div class="funnel-track"><div class="funnel-fill" style="width:${ct>0?co/ct*100:3}%;background:var(--teal);min-width:40px;"><span>${co}</span></div></div></div>
+    <div class="warn-box" style="margin-top:12px;"><div class="a-title" style="color:var(--warn);">⏸ Estado actual</div>
+      <div class="a-body">Última gestión: ${ug}. ${co} diseñadores con convenio o en proceso pendientes de activación.</div></div></div>`;
+}
+
+// ══════════════ §9 Upsell ═════════════════════════════
+function rUpsell(up){
+  const{aprobadas:ap=0,en_proceso:ep=0,negadas:ng=0,estado:es='Pausado',ultima_gestion:ug='—'}=up;
+  $('s-upsell').innerHTML=`
+  <div class="seg-hdr"><span class="seg-num">09</span><span class="seg-dot" style="background:var(--text3);"></span>
+    <span class="seg-title">Upsell</span><span class="seg-meta">Estado: ${es}</span></div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-title" style="margin:0;">Upsell · Estado actual</div><span class="chip chip-o">${es} desde ${ug}</span></div>
+    <div style="display:flex;gap:16px;align-items:flex-start;">
+      <div style="display:flex;flex-direction:column;align-items:center;padding:20px;text-align:center;min-width:140px;">
+        <div style="width:50px;height:50px;border-radius:50%;background:rgba(255,37,0,.08);border:1px solid rgba(255,37,0,.20);display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:20px;">⏸</div>
+        <div style="font-size:12px;font-weight:600;">Sin gestión</div></div>
+      <div style="flex:1;"><div class="sec-label">Cartera referencia</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(130,59,218,.05);border-color:rgba(130,59,218,.15);"><div class="kpi-label">Aprobadas</div><div class="num-md cp">${ap}</div></div>
+          <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.05);border-color:rgba(0,173,176,.15);"><div class="kpi-label">En proceso</div><div class="num-md ct">${ep}</div></div>
+          <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Negadas</div><div class="num-md cs">${ng}</div></div></div></div></div></div>`;
+}
+
+// ══════════════ §10 DISC ══════════════════════════════
+function rDisc(disc){
+  const tot=disc.reduce((s,d)=>s+Number(d.agendados||0),0);
+  const pres=disc.reduce((s,d)=>s+Number(d.presentados||0),0);
+  const vts=disc.reduce((s,d)=>s+Number(d.ventas||0),0);
+  const maxAg=Math.max(...disc.map(d=>Number(d.agendados||0)),1);
+  $('s-disc').innerHTML=`
+  <div class="seg-hdr"><span class="seg-num">10</span><span class="seg-dot" style="background:var(--purple);"></span>
+    <span class="seg-title">Taller DISC</span><span class="seg-meta">${tot} agendados histórico</span></div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="card-title" style="margin:0;">Taller DISC · Funnel histórico</div>
+      <span class="chip chip-o">${vts===0?'0% conversión':vts+' ventas'}</span></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Agendados total</div><div class="num-lg">${tot}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Se presentaron</div><div class="num-lg cw">${pres}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(255,37,0,.04);border-color:rgba(255,37,0,.15);"><div class="kpi-label co">Ventas</div><div class="num-lg cs">${vts}</div></div></div>
+    ${disc.map(d=>`<div class="funnel-row"><span class="funnel-label">${d.mes} (${d.agendados} ag.)</span>
+      <div class="funnel-track"><div class="funnel-fill" style="width:${Number(d.agendados)/maxAg*100}%;background:rgba(130,59,218,.35);"><span class="cp">${d.agendados}</span></div></div></div>`).join('')}
+    <div class="alert-box" style="margin-top:12px;"><div class="a-title" style="color:var(--orange);">⚠ Rotura de funnel</div>
+      <div class="a-body">Solo ${pres} de ${tot} agendados se presentaron (${tot>0?(pres/tot*100).toFixed(1):0}%). Revisar protocolo de confirmación pre-taller.</div></div></div>`;
+}
+
+// ══════════════ §11 Test PI ═══════════════════════════
+function rPI(pi){
+  const{leads:le=0,contactados:co=0,respondieron:re=0,negociacion:ne=0,ventas_cerradas:vc=0}=pi;
+  const sg=le-co;
+  $('s-pi').innerHTML=`
+  <div class="seg-hdr"><span class="seg-num">11</span><span class="seg-dot" style="background:var(--purple);"></span>
+    <span class="seg-title">Test PI</span><span class="seg-meta">${le} leads · ${ne} en negociación · ${vc} ventas</span></div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="card-title" style="margin:0;">Test PI · Funnel</div>
+      <div style="display:flex;gap:8px;"><span class="chip chip-p">${vc} ventas</span><span class="chip chip-w">${ne} en negociación</span></div></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Leads</div><div class="num-lg cp">${le}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Contactados</div><div class="num-lg ct">${co}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Respondieron</div><div class="num-lg ct">${re}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(130,59,218,.06);border-color:rgba(130,59,218,.20);"><div class="kpi-label cp">Negociación</div><div class="num-lg cw">${ne}</div></div></div>
+    <div class="funnel-row"><span class="funnel-label">Leads totales</span><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:rgba(130,59,218,.15);"><span class="cp">${le}</span></div></div></div>
+    <div class="funnel-arrow">↓ ${co} contactados (${le>0?(co/le*100).toFixed(1):0}%) — ${sg} sin gestionar</div>
+    <div class="funnel-row"><span class="funnel-label">Contactados</span><div class="funnel-track"><div class="funnel-fill" style="width:${le>0?co/le*100:3}%;background:rgba(130,59,218,.30);min-width:40px;"><span class="cp">${co}</span></div></div></div>
+    <div class="funnel-row"><span class="funnel-label">Negociación</span><div class="funnel-track"><div class="funnel-fill" style="width:${le>0?ne/le*100:3}%;background:var(--warn);min-width:40px;"><span>${ne}</span></div></div></div>
+    <div class="funnel-row"><span class="funnel-label">Ventas cerradas</span><div class="funnel-track"><div class="funnel-fill" style="width:${le>0?vc/le*100:3}%;background:var(--text3);min-width:30px;"><span style="color:#fff;">${vc}</span></div></div></div>
+    ${sg>0?`<div class="info-box" style="margin-top:10px;"><div class="a-title" style="color:var(--purple);">💡 Oportunidad: ${sg} leads sin gestionar</div>
+      <div class="a-body">Con la tasa histórica de conversión contacto→venta, gestionar estos leads esta semana representa una oportunidad real de cierres.</div></div>`:''}</div>`;
+}
+
+// ══════════════ §12 Ventas LEGAL ══════════════════════
+function rLegal(d,c){
+  const{v,totalLegal,totalM,prodMap}=c;
+  const tickProm=v.length>0?totalLegal/v.length:0;
+  const topP=Object.entries(prodMap).sort((a,b)=>b[1].monto-a[1].monto)[0];
+  const chips=Object.entries(prodMap).map(([p,x])=>{
+    const pv=totalLegal>0?(x.monto/totalLegal*100).toFixed(1):0;
+    return `<div style="display:flex;align-items:center;gap:5px;font-size:11px;"><span class="chip chip-o" style="font-size:9px;">${p}</span>${x.ventas}v · ${fmt(x.monto)} · ${pv}%</div>`;}).join('');
+  const rows=v.map(x=>`<tr><td>${x.fecha}</td>
+    <td style="font-weight:600;color:${colAsesor(x.asesor||'')};">${x.asesor||'—'}</td>
+    <td>${x.categoria}</td>
+    <td><span class="chip chip-o" style="font-size:9px;">${x.producto}</span></td>
+    <td class="r co" style="font-family:'DM Mono',monospace;">${fmt(x.monto)}</td></tr>`).join('');
+
+  $('s-legal').innerHTML=`
+  <div class="seg-hdr"><span class="seg-num">12</span><span class="seg-dot" style="background:var(--orange);"></span>
+    <span class="seg-title">Ventas LEGAL — Detalle completo</span><span class="seg-meta">${v.length} transacciones · ${fmt(totalLegal)}</span></div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);">
+      <div style="padding:16px 20px;border-right:1px solid var(--border);"><div class="kpi-label">Total</div><div style="font-size:22px;font-weight:700;color:var(--orange);font-family:'DM Mono',monospace;">${fmt(totalLegal)}</div><div style="font-size:10px;color:var(--text3);">${v.length} transacciones</div></div>
+      <div style="padding:16px 20px;border-right:1px solid var(--border);"><div class="kpi-label">Marcas</div><div style="font-size:22px;font-weight:700;color:var(--orange);font-family:'DM Mono',monospace;">${fmt(totalM)}</div><div style="font-size:10px;color:var(--text3);">${c.vMarcas.length} ventas</div></div>
+      <div style="padding:16px 20px;border-right:1px solid var(--border);"><div class="kpi-label">Ticket promedio</div><div style="font-size:22px;font-weight:700;color:var(--teal);font-family:'DM Mono',monospace;">${fmt(tickProm)}</div></div>
+      <div style="padding:16px 20px;"><div class="kpi-label">Mejor producto</div><div style="font-size:14px;font-weight:600;margin-top:4px;">${topP?topP[0]:'—'}</div><div style="font-size:10px;color:var(--text3);">${topP?topP[1].ventas+'v · '+fmt(topP[1].monto):''}</div></div></div>
+    <div style="padding:0 20px 20px;">
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:14px 0 8px;">Resumen por producto</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">${chips}</div>
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:6px 0 8px;">Detalle por transacción</div>
+      <table class="data-table" style="font-size:11px;">
+        <thead><tr><th>Fecha</th><th>Asesor</th><th>Categoría</th><th>Producto</th><th class="r">Monto</th></tr></thead>
+        <tbody>${rows}<tr class="t-total"><td colspan="4">TOTAL · ${v.length} TRANSACCIONES</td><td class="r co" style="font-family:'DM Mono',monospace;">${fmt(totalLegal)}</td></tr></tbody></table></div></div>`;
+}
+
+// ─── INIT ─────────────────────────────────────────────
+loadData();
 </script>
 </body>
 </html>
