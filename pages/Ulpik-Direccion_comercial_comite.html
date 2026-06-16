@@ -245,14 +245,42 @@ window.addEventListener('scroll',()=>{
   document.querySelectorAll('.snav-btn').forEach((b,i)=>b.classList.toggle('active',SEC_IDS[i]===cur));
 },{passive:true});
 
-// ── FETCH ─────────────────────────────────────────
+// ── FETCH (JSONP — evita CORS desde GitHub Pages) ─
+function fetchJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = '_ulpikCom_' + Date.now();
+    const timer = setTimeout(() => { cleanup(); reject(new Error('Timeout cargando datos')); }, 45000);
+    const script = document.createElement('script');
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cb];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cb] = (data) => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error('No se pudo conectar con Apps Script')); };
+    const sep = url.includes('?') ? '&' : '?';
+    script.src = url + sep + 'callback=' + encodeURIComponent(cb);
+    document.head.appendChild(script);
+  });
+}
+
+function filterDataForWeek(d, semanaId) {
+  const sid = semanaId || d.semana_actual;
+  if (!sid) return d;
+  return {
+    ...d,
+    semana_actual: sid,
+    ventas: (d.ventas || []).filter(v => !v.semana_id || v.semana_id === sid),
+  };
+}
+
 async function loadData(semana){
   loadBar(true);
   try{
     const url=APPS_SCRIPT_URL+(semana?'?semana='+encodeURIComponent(semana):'');
-    const res=await fetch(url);
-    const data=await res.json();
-    if(data.error)throw new Error(data.error);
+    const raw=await fetchJsonp(url);
+    if(raw.error)throw new Error(raw.error);
+    const data=filterDataForWeek(raw,semana||raw.semana_actual);
     updateSelector(data.semanas,data.semana_actual);
     renderAll(data);
   }catch(e){
@@ -263,9 +291,9 @@ async function loadData(semana){
 
 function updateSelector(semanas,actual){
   const sel=$('semSelect');
-  // Sort: most recent first in selector
   const sorted=[...(semanas||[])].reverse();
   sel.innerHTML=sorted.map(s=>`<option value="${s.semana_id}"${s.semana_id===actual?' selected':''}>${s.label}</option>`).join('');
+  sel.value=actual||'';
   const cur=(semanas||[]).find(s=>s.semana_id===actual);
   $('semBadge').textContent=cur?.badge||actual||'—';
 }
@@ -508,27 +536,29 @@ function rAsesores(d,c){
 // ══════════ §6 Evolutivo ═════════════════════════
 function rEvolutivo(d){
   const evo=d.evolutivo||[];
+  const curId=d.semana_actual;
+  const curIdx=evo.findIndex(e=>e.semana_id===curId);
+  const windowEvo=curIdx>=0?evo.slice(Math.max(0,curIdx-2),Math.min(evo.length,Math.max(0,curIdx-2)+6)):evo.slice(-6);
   const hasMeta=evo.some(e=>e.meta>0);
-  const last6=evo.slice(-6);
 
-  const cells=last6.map((e,i)=>{
-    const isCur=i===last6.length-1;
+  const cells=windowEvo.map((e)=>{
+    const isCur=e.semana_id===curId;
     const pv=hasMeta&&e.meta>0?e.ingresos/e.meta*100:null;
     const cls=pv===null?'neutral':pv>=100?'best':'warn';
     return `<div class="evo-cell ${isCur?'warn':cls}" style="${isCur?'border-color:rgba(255,37,0,.30);':''}">
-      <div class="evo-period" style="${isCur?'color:var(--orange);font-weight:600;':''}">${e.label}${isCur?' ←':''}</div>
+      <div class="evo-period" style="${isCur?'color:var(--orange);font-weight:600;':''}">${e.label}${isCur?' ← actual':''}</div>
       <div class="evo-val ${pv===null?'cs':pv>=100?'cg':'co'}">${fmt(e.ingresos)}</div>
       ${pv!==null?`<div class="evo-pct ${pv>=100?'cg':'co'}">${pv.toFixed(1)}% ${pv>=100?'✓':'✗'}</div>`:''}
     </div>`;}).join('');
 
   $('s-evo').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">06</span><span class="seg-dot" style="background:var(--orange);"></span>
-    <span class="seg-title">Evolutivo — Ingresos mensuales</span><span class="seg-meta">${evo.length} meses · ${evo[0]?.label} → ${evo[evo.length-1]?.label}</span></div>
+    <span class="seg-title">Evolutivo — Ingresos mensuales</span><span class="seg-meta">${evo.length} períodos · viendo ${curId||'—'}</span></div>
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div class="card-title" style="margin:0;">Ingresos totales · mes a mes</div></div>
     <div style="position:relative;height:200px;"><canvas id="evoChart"></canvas></div>
-    <div class="evo-mini" style="grid-template-columns:repeat(${last6.length},1fr);">${cells}</div></div>`;
+    <div class="evo-mini" style="grid-template-columns:repeat(${windowEvo.length},1fr);">${cells}</div></div>`;
 
   killChart('evo');
   if(evo.length){
