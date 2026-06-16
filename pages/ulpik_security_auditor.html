@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Auditor de Seguridad Web — Ulpik</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg2: #f7f7f5;
+    --bg3: #f0eeea;
+    --text: #1a1a18;
+    --text2: #6b6b67;
+    --text3: #a0a09c;
+    --border: rgba(0,0,0,0.10);
+    --border2: rgba(0,0,0,0.18);
+    --info-bg: #e6f1fb;
+    --info-text: #185fa5;
+    --success-bg: #eaf3de;
+    --success-text: #3b6d11;
+    --danger-bg: #fcebeb;
+    --danger-text: #a32d2d;
+    --warn-bg: #faeeda;
+    --warn-text: #854f0b;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a;
+      --bg2: #252523;
+      --bg3: #2e2e2b;
+      --text: #f0ede8;
+      --text2: #a09e99;
+      --text3: #6b6966;
+      --border: rgba(255,255,255,0.10);
+      --border2: rgba(255,255,255,0.18);
+      --info-bg: #0c2a45;
+      --info-text: #85b7eb;
+      --success-bg: #172808;
+      --success-text: #97c459;
+      --danger-bg: #2d1010;
+      --danger-text: #f09595;
+      --warn-bg: #2c1e08;
+      --warn-text: #fac775;
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg3);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* Layout */
+  .page { max-width: 760px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+
+  /* Header */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-icon {
+    width: 38px; height: 38px;
+    background: var(--info-bg); color: var(--info-text);
+    border-radius: var(--radius); display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .brand-name { font-size: 15px; font-weight: 500; color: var(--text); }
+  .brand-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .header-badge {
+    font-size: 11px; font-weight: 500; padding: 4px 10px;
+    border-radius: 20px; background: var(--bg2);
+    border: 0.5px solid var(--border); color: var(--text3);
+  }
+
+  /* Card */
+  .card {
+    background: var(--bg); border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg); padding: 1.5rem;
+    margin-bottom: 14px;
+  }
+  .card-sm { padding: 1.1rem 1.25rem; }
+
+  /* Input view */
+  .input-label {
+    font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 8px;
+  }
+  .url-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .url-input {
+    flex: 1; padding: 9px 12px; font-size: 14px;
+    background: var(--bg); border: 0.5px solid var(--border2);
+    border-radius: var(--radius); color: var(--text);
+    outline: none; transition: border-color 0.15s;
+    font-family: inherit;
+  }
+  .url-input:focus { border-color: var(--info-text); }
+  .url-input::placeholder { color: var(--text3); }
+  .scan-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 9px 20px; font-size: 14px; font-weight: 500;
+    background: var(--info-text); color: #fff;
+    border: none; border-radius: var(--radius); cursor: pointer;
+    white-space: nowrap; transition: opacity 0.15s;
+    font-family: inherit;
+  }
+  .scan-btn:hover { opacity: 0.88; }
+  .scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .quick-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .ql { font-size: 11px; color: var(--text3); }
+  .qtag {
+    font-size: 11px; padding: 3px 10px;
+    border-radius: var(--radius); border: 0.5px solid var(--border);
+    background: transparent; color: var(--text2); cursor: pointer;
+    font-family: inherit; transition: background 0.1s;
+  }
+  .qtag:hover { background: var(--bg2); }
+
+  /* Steps */
+  .steps-card {
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 14px;
+  }
+  .step-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 1.25rem; font-size: 13px; color: var(--text2);
+    border-bottom: 0.5px solid var(--border);
+  }
+  .step-row:last-child { border-bottom: none; }
+  .step-row.s-active { color: var(--text); background: var(--bg); }
+  .step-row.s-done { color: var(--success-text); }
+  .step-icon {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+    background: var(--bg); border: 0.5px solid var(--border2); color: var(--text3);
+  }
+  .step-icon.si-load { background: var(--info-bg); color: var(--info-text); border-color: transparent; }
+  .step-icon.si-done { background: var(--success-bg); color: var(--success-text); border-color: transparent; }
+  .step-icon.si-err  { background: var(--danger-bg); color: var(--danger-text); border-color: transparent; }
+  .spin { animation: spin 1s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Score card */
+  .score-grid {
+    display: grid; grid-template-columns: 110px 1fr;
+    gap: 20px; align-items: center;
+  }
+  .ring-wrap { position: relative; width: 100px; height: 100px; margin: 0 auto; }
+  .ring-wrap svg { transform: rotate(-90deg); display: block; }
+  .ring-num {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px; font-weight: 600;
+  }
+  .ring-lbl { text-align: center; font-size: 11px; color: var(--text3); margin-top: 5px; }
+  .score-headline { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+  .score-sub { font-size: 13px; color: var(--text2); margin-bottom: 10px; line-height: 1.5; }
+  .badge-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .sbadge {
+    font-size: 11px; font-weight: 500; padding: 3px 10px;
+    border-radius: var(--radius);
+  }
+  .str-item {
+    font-size: 12px; color: var(--success-text);
+    display: flex; align-items: flex-start; gap: 5px;
+    padding: 3px 8px; background: var(--success-bg);
+    border-radius: var(--radius);
+  }
+
+  /* Sec title */
+  .sec-title {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.07em;
+    color: var(--text3); text-transform: uppercase;
+    display: flex; align-items: center; gap: 6px;
+    margin: 0 0 10px;
+  }
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.1rem 0; }
+
+  /* Checks grid */
+  .checks-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(128px,1fr));
+    gap: 8px; margin-bottom: 14px;
+  }
+  .chk {
+    padding: 9px 11px; border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+    background: var(--bg);
+  }
+  .chk.cp { background: #e1f5ee; border-color: #9fe1cb; }
+  .chk.cf { background: #fcebeb; border-color: #f7c1c1; }
+  @media (prefers-color-scheme: dark) {
+    .chk.cp { background: #0d2e20; border-color: #1d9e75; }
+    .chk.cf { background: #2d1010; border-color: #e24b4a; }
+  }
+  .chk-name { font-size: 11px; font-weight: 500; margin-bottom: 3px; }
+  .chk.cp .chk-name { color: #085041; }
+  .chk.cf .chk-name { color: #791f1f; }
+  @media (prefers-color-scheme: dark) {
+    .chk.cp .chk-name { color: #5dcaa5; }
+    .chk.cf .chk-name { color: #f09595; }
+  }
+  .chk-st { font-size: 11px; display: flex; align-items: center; gap: 3px; }
+  .chk.cp .chk-st { color: #0f6e56; }
+  .chk.cf .chk-st { color: #a32d2d; }
+  @media (prefers-color-scheme: dark) {
+    .chk.cp .chk-st { color: #1d9e75; }
+    .chk.cf .chk-st { color: #e24b4a; }
+  }
+
+  /* Vulns */
+  .vuln-item {
+    display: flex; gap: 10px; padding: 11px 12px;
+    border-radius: var(--radius); border: 0.5px solid var(--border);
+    margin-bottom: 8px; background: var(--bg);
+  }
+  .vsev {
+    font-size: 10px; font-weight: 600; padding: 3px 8px;
+    border-radius: var(--radius); white-space: nowrap;
+    height: fit-content; flex-shrink: 0; letter-spacing: 0.04em;
+  }
+  .vc .vname { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .vc .vdesc { font-size: 12px; color: var(--text2); margin-bottom: 4px; line-height: 1.4; }
+  .vc .vact {
+    font-size: 11px; color: var(--info-text);
+    display: flex; align-items: center; gap: 4px; font-weight: 500;
+  }
+
+  /* Quick wins */
+  .qw-item {
+    font-size: 13px; color: var(--text2);
+    display: flex; align-items: flex-start; gap: 8px; margin-bottom: 7px;
+  }
+  .qw-num {
+    font-size: 11px; font-weight: 600; padding: 2px 7px;
+    border-radius: var(--radius); background: var(--bg2);
+    color: var(--text3); flex-shrink: 0; margin-top: 1px;
+  }
+
+  /* Exec report */
+  .exec-box {
+    background: var(--bg2); border-radius: var(--radius-lg);
+    padding: 1.25rem; margin-bottom: 14px;
+  }
+  .sca-lbl {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    color: var(--text3); text-transform: uppercase; margin-bottom: 4px;
+  }
+  .sca-val { font-size: 13px; color: var(--text); line-height: 1.6; }
+  .sca-block { margin-bottom: 12px; }
+  .sca-block:last-child { margin-bottom: 0; }
+  .sep { border: none; border-top: 0.5px solid var(--border); margin: 10px 0; }
+
+  /* Action row */
+  .action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .act-btn {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 500; padding: 8px 14px;
+    border-radius: var(--radius); border: 0.5px solid var(--border2);
+    background: transparent; color: var(--text); cursor: pointer;
+    font-family: inherit; transition: background 0.1s;
+  }
+  .act-btn:hover { background: var(--bg2); }
+  .act-btn.primary {
+    background: var(--info-bg); color: var(--info-text);
+    border-color: transparent;
+  }
+  .act-btn.primary:hover { opacity: 0.85; }
+
+  /* Error */
+  .err-box {
+    padding: 1rem 1.25rem; background: var(--danger-bg);
+    border-radius: var(--radius-lg); font-size: 13px;
+    color: var(--danger-text); line-height: 1.6;
+    border: 0.5px solid rgba(227,75,74,0.2);
+  }
+
+  /* Empty state */
+  .empty {
+    text-align: center; padding: 3rem 1rem;
+    color: var(--text3); font-size: 13px;
+  }
+  .empty i { font-size: 36px; display: block; margin-bottom: 10px; opacity: 0.4; }
+
+  /* Responsive */
+  @media (max-width: 520px) {
+    .score-grid { grid-template-columns: 1fr; }
+    .ring-wrap { margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">
+      <div class="brand-icon"><i class="ti ti-shield-check"></i></div>
+      <div>
+        <div class="brand-name">Auditor de Seguridad Web</div>
+        <div class="brand-sub">Mozilla HTTP Observatory + Claude IA · Stack Ulpik</div>
+      </div>
+    </div>
+    <div class="header-badge"><i class="ti ti-lock"></i> CTO Tools</div>
+  </div>
+
+  <!-- INPUT VIEW -->
+  <div id="view-input">
+    <div class="card">
+      <div class="input-label">Dominio a analizar</div>
+      <div class="url-row">
+        <input
+          type="text" id="url-input" class="url-input"
+          placeholder="ulpik.com  o  https://ulpik.com"
+          onkeydown="if(event.key==='Enter')startScan()"
+        />
+        <button class="scan-btn" id="scan-btn" onclick="startScan()">
+          <i class="ti ti-shield-search"></i> Analizar
+        </button>
+      </div>
+      <div class="quick-row">
+        <span class="ql">Stack Ulpik:</span>
+        <button class="qtag" onclick="setQ('ulpik.com')">ulpik.com</button>
+        <button class="qtag" onclick="setQ('deshunshoacrack.com')">deshunshoacrack.com</button>
+        <button class="qtag" onclick="setQ('ia.ulpik.com')">ia.ulpik.com</button>
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:var(--text3);padding:0 4px;line-height:1.6;">
+      <i class="ti ti-info-circle" style="font-size:13px;vertical-align:-2px;margin-right:4px;"></i>
+      El primer escaneo de un dominio puede tardar entre 20 y 45 segundos. Los subsecuentes son instantáneos.
+      El análisis usa Mozilla HTTP Observatory (API pública) y Claude para el dictamen ejecutivo.
+    </div>
+  </div>
+
+  <!-- SCANNING VIEW -->
+  <div id="view-scan" style="display:none;">
+    <div class="card card-sm" style="margin-bottom:14px;">
+      <div style="font-size:14px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px;">
+        <i class="ti ti-radar" style="color:var(--info-text);"></i>
+        Analizando <span id="scan-host" style="color:var(--info-text);"></span>
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-top:3px;">Esto puede tomar hasta 45 segundos en el primer escaneo de un dominio.</div>
+    </div>
+    <div class="steps-card">
+      <div class="step-row" id="st1"><div class="step-icon" id="si1"><i class="ti ti-clock"></i></div><span>Iniciando scan en Mozilla HTTP Observatory</span></div>
+      <div class="step-row" id="st2"><div class="step-icon" id="si2"><i class="ti ti-clock"></i></div><span>Esperando resultados del análisis de headers</span></div>
+      <div class="step-row" id="st3"><div class="step-icon" id="si3"><i class="ti ti-clock"></i></div><span>Descargando resultados por categoría</span></div>
+      <div class="step-row" id="st4"><div class="step-icon" id="si4"><i class="ti ti-clock"></i></div><span>Claude analizando vulnerabilidades y prioridades</span></div>
+      <div class="step-row" id="st5"><div class="step-icon" id="si5"><i class="ti ti-clock"></i></div><span>Generando reporte ejecutivo State / Cause / Action</span></div>
+    </div>
+  </div>
+
+  <!-- RESULTS VIEW -->
+  <div id="view-results" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-size:13px;color:var(--text2);">
+        <i class="ti ti-circle-check" style="color:var(--success-text);margin-right:4px;"></i>
+        Análisis completado
+      </div>
+      <button class="act-btn" onclick="resetAll()">
+        <i class="ti ti-arrow-left"></i> Nuevo análisis
+      </button>
+    </div>
+    <div id="results-body"></div>
+  </div>
+
+  <!-- ERROR VIEW -->
+  <div id="view-error" style="display:none;">
+    <div class="err-box" id="err-msg"></div>
+    <div style="margin-top:12px;">
+      <button class="act-btn" onclick="resetAll()"><i class="ti ti-arrow-left"></i> Intentar de nuevo</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const OBS = 'https://http-observatory.security.mozilla.org/api/v1';
+let reportText = '';
+
+function setQ(v){ document.getElementById('url-input').value=v; }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function showView(id){
+  ['view-input','view-scan','view-results','view-error'].forEach(v=>{
+    document.getElementById(v).style.display=(v===id)?'block':'none';
+  });
+}
+
+function resetAll(){ showView('view-input'); }
+
+function setSt(n, mode){
+  const st=document.getElementById('st'+n);
+  const si=document.getElementById('si'+n);
+  const labels={
+    'load':'s-active','done':'s-done','err':'',''  :''
+  };
+  st.className='step-row'+(mode==='load'?' s-active':mode==='done'?' s-done':'');
+  if(mode==='load'){ si.className='step-icon si-load'; si.innerHTML='<i class="ti ti-loader spin"></i>'; }
+  else if(mode==='done'){ si.className='step-icon si-done'; si.innerHTML='<i class="ti ti-check"></i>'; }
+  else if(mode==='err'){ si.className='step-icon si-err'; si.innerHTML='<i class="ti ti-x"></i>'; }
+  else { si.className='step-icon'; si.innerHTML='<i class="ti ti-clock"></i>'; }
+}
+
+function getHost(raw){
+  const s=raw.trim();
+  try{ return new URL(s.startsWith('http')?s:'https://'+s).hostname; }
+  catch(e){ return s.replace(/^https?:\/\//,'').split('/')[0]; }
+}
+
+async function startScan(){
+  const raw=document.getElementById('url-input').value;
+  if(!raw.trim()) return;
+  const host=getHost(raw);
+
+  document.getElementById('scan-host').textContent=host;
+  showView('view-scan');
+  [1,2,3,4,5].forEach(n=>setSt(n,''));
+
+  try{
+    // Step 1: Trigger scan
+    setSt(1,'load');
+    let scan;
+    try{
+      const r=await fetch(`${OBS}/analyze?host=${host}&rescan=false`,{
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded'}
+      });
+      scan=await r.json();
+    }catch(e){
+      const r=await fetch(`${OBS}/analyze?host=${host}`);
+      scan=await r.json();
+    }
+    if(scan.error){ throw new Error(scan.error); }
+    setSt(1,'done'); setSt(2,'load');
+
+    // Step 2: Poll until FINISHED
+    let tries=0;
+    while(scan.state!=='FINISHED' && scan.state!=='FAILED' && tries<25){
+      await sleep(3000);
+      const r=await fetch(`${OBS}/analyze?host=${host}`);
+      scan=await r.json();
+      tries++;
+    }
+    if(scan.state==='FAILED'||!scan.grade){
+      throw new Error('Mozilla Observatory no pudo completar el análisis. El servidor puede estar bloqueando el escáner, o el dominio no es accesible públicamente.');
+    }
+    setSt(2,'done'); setSt(3,'load');
+
+    // Step 3: Get detailed results
+    let details={};
+    try{
+      const dr=await fetch(`${OBS}/getScanResults?scan=${scan.id}`);
+      details=await dr.json();
+    }catch(e){ /* continue without details */ }
+    setSt(3,'done'); setSt(4,'load');
+
+    // Step 4 + 5: Claude analysis
+    const obsPayload={
+      host,
+      grade:scan.grade,
+      score:scan.score,
+      tests_passed:scan.tests_passed,
+      tests_failed:scan.tests_failed,
+      tests_quantity:scan.tests_quantity,
+      details
+    };
+
+    const cr=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system:`Eres un auditor de seguridad web senior especializado en stacks WordPress/WooCommerce en mercados latinoamericanos.
+Analiza los resultados del HTTP Observatory y devuelve ÚNICAMENTE un objeto JSON válido, sin texto adicional, sin backticks, sin comentarios.
+Esquema obligatorio exacto:
+{
+  "risk_score": <número 0-100, donde 100=perfectamente seguro y 0=crítico>,
+  "risk_level": <"CRÍTICO" | "ALTO" | "MEDIO" | "BAJO">,
+  "headline": <frase de 6-8 palabras resumiendo el estado de seguridad>,
+  "vulnerabilities": [
+    {
+      "name": <nombre corto del problema>,
+      "severity": <"CRÍTICO" | "ALTO" | "MEDIO" | "BAJO">,
+      "description": <qué falla y por qué importa, máx 25 palabras>,
+      "action": <acción concreta, máx 12 palabras>
+    }
+  ],
+  "strengths": [<máx 3 cosas que ya están bien implementadas>],
+  "quick_wins": [<máx 3 mejoras implementables en menos de 1 hora>],
+  "executive_summary": {
+    "state": <estado actual en 1-2 oraciones directas>,
+    "cause": <causa raíz de los problemas principales, 1-2 oraciones>,
+    "action": <acciones prioritarias con responsable y timeframe, 1-2 oraciones>
+  }
+}`,
+        messages:[{
+          role:'user',
+          content:`Dominio: ${host}
+Grade Mozilla Observatory: ${scan.grade}
+Score: ${scan.score}/100
+Tests pasados: ${scan.tests_passed}/${scan.tests_quantity}
+Tests fallidos: ${scan.tests_failed}/${scan.tests_quantity}
+
+Resultados detallados por categoría:
+${JSON.stringify(details,null,2)}
+
+Contexto crítico: Este es el stack de Ulpik, una legaltech ecuatoriana. Infraestructura: WordPress/WooCommerce, Bitrix24 CRM, pasarelas de pago Datafast/PayPhone, WhatsApp Business API, Hetzner VPS + Cloudflare DNS. Maneja datos legales de clientes y transacciones online. El reporte lo redacta el CTO (Michael) para enviarlo al CEO (Nicolás) usando el formato State/Cause/Action.`
+        }]
+      })
+    });
+
+    const cd=await cr.json();
+    setSt(4,'done'); setSt(5,'load');
+
+    let analysis;
+    try{
+      const txt=cd.content.find(b=>b.type==='text')?.text||'{}';
+      analysis=JSON.parse(txt.replace(/```json|```/g,'').trim());
+    }catch(e){
+      throw new Error('Error procesando la respuesta de IA. Intenta de nuevo.');
+    }
+
+    setSt(5,'done');
+    renderResults(obsPayload, analysis);
+    showView('view-results');
+
+  }catch(err){
+    [1,2,3,4,5].forEach(n=>{
+      if(document.getElementById('si'+n).className.includes('si-load')) setSt(n,'err');
+    });
+    showView('view-error');
+    document.getElementById('err-msg').innerHTML=
+      `<strong><i class="ti ti-alert-triangle"></i> Error durante el análisis</strong><br><br>${err.message}<br><br><small style="opacity:0.75;">Verifica que el dominio sea accesible públicamente. Algunos servidores bloquean escáneres externos.</small>`;
+  }
+}
+
+function riskColor(s){
+  return s>=80?'#1D9E75':s>=60?'#EF9F27':s>=40?'#D85A30':'#E24B4A';
+}
+
+function sevStyle(s){
+  const m={
+    'CRÍTICO':{bg:'#f09595',c:'#501313'},
+    'ALTO':   {bg:'#fac775',c:'#412402'},
+    'MEDIO':  {bg:'#faeeda',c:'#633806'},
+    'BAJO':   {bg:'#c0dd97',c:'#173404'}
+  };
+  return m[s]||m['BAJO'];
+}
+
+const CHECK_LABELS={
+  'content-security-policy':'CSP',
+  'cookies':'Cookies',
+  'cross-origin-resource-sharing':'CORS',
+  'redirection':'Redirección HTTPS',
+  'referrer-policy':'Referrer Policy',
+  'strict-transport-security':'HSTS',
+  'subresource-integrity':'SRI',
+  'x-content-type-options':'Content-Type',
+  'x-frame-options':'X-Frame',
+  'x-xss-protection':'XSS Protection'
+};
+
+function renderResults(obs, an){
+  const sc=an.risk_score||50;
+  const rc=riskColor(sc);
+  const circ=2*Math.PI*42;
+  const offset=circ-(sc/100)*circ;
+
+  // Checks grid
+  let checksH='';
+  for(const [k,lbl] of Object.entries(CHECK_LABELS)){
+    const ch=obs.details[k];
+    if(!ch) continue;
+    const cls=ch.pass?'cp':'cf';
+    const ico=ch.pass?'ti-circle-check':'ti-circle-x';
+    const stlbl=ch.pass?'Correcto':'Falla';
+    checksH+=`<div class="chk ${cls}"><div class="chk-name">${lbl}</div><div class="chk-st"><i class="ti ${ico}"></i> ${stlbl}</div></div>`;
+  }
+  if(!checksH){
+    checksH=`<p style="font-size:13px;color:var(--text2);grid-column:1/-1;">Grade: <strong>${obs.grade}</strong> · Score: ${obs.score}/100</p>`;
+  }
+
+  // Vulnerabilities
+  let vulnsH='';
+  (an.vulnerabilities||[]).forEach(v=>{
+    const s=sevStyle(v.severity);
+    vulnsH+=`
+      <div class="vuln-item">
+        <div><span class="vsev" style="background:${s.bg};color:${s.c};">${v.severity}</span></div>
+        <div class="vc">
+          <div class="vname">${v.name}</div>
+          <div class="vdesc">${v.description}</div>
+          <div class="vact"><i class="ti ti-arrow-right"></i> ${v.action}</div>
+        </div>
+      </div>`;
+  });
+  if(!vulnsH) vulnsH=`<p style="font-size:13px;color:var(--success-text);"><i class="ti ti-circle-check"></i> No se detectaron vulnerabilidades.</p>`;
+
+  // Strengths
+  const strH=(an.strengths||[]).map(s=>
+    `<span class="str-item"><i class="ti ti-circle-check" style="font-size:12px;flex-shrink:0;margin-top:1px;"></i>${s}</span>`
+  ).join('');
+
+  // Quick wins
+  const qwH=(an.quick_wins||[]).map((q,i)=>
+    `<div class="qw-item"><span class="qw-num">${i+1}</span><span>${q}</span></div>`
+  ).join('');
+
+  const ex=an.executive_summary||{};
+  reportText=`ESTADO:\n${ex.state||''}\n\nCAUSA:\n${ex.cause||''}\n\nACCIÓN:\n${ex.action||''}`;
+
+  const rl=an.risk_level||'—';
+  const rls=sevStyle(rl);
+
+  document.getElementById('results-body').innerHTML=`
+    <div class="card">
+      <div class="score-grid">
+        <div>
+          <div class="ring-wrap">
+            <svg width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border2)" stroke-width="9"/>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="${rc}" stroke-width="9"
+                stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"
+                stroke-linecap="round"/>
+            </svg>
+            <div class="ring-num" style="color:${rc};">${sc}</div>
+          </div>
+          <div class="ring-lbl">Score de seguridad</div>
+        </div>
+        <div>
+          <div class="score-headline" style="color:${rc};">${an.headline||obs.grade}</div>
+          <div class="score-sub">
+            <strong>${obs.host}</strong> · Grade <strong>${obs.grade}</strong> en Mozilla Observatory<br>
+            ${obs.tests_passed}/${obs.tests_quantity} tests pasados · ${obs.tests_failed} fallas detectadas
+          </div>
+          <div class="badge-row">
+            <span class="sbadge" style="background:${rls.bg};color:${rls.c};">Riesgo ${rl}</span>
+            ${strH}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title"><i class="ti ti-shield"></i> Análisis por categoría</div>
+      <div class="checks-grid">${checksH}</div>
+    </div>
+
+    <div class="card">
+      <div class="sec-title"><i class="ti ti-alert-triangle"></i> Vulnerabilidades detectadas</div>
+      ${vulnsH}
+      ${qwH?`
+        <div class="divider"></div>
+        <div class="sec-title"><i class="ti ti-bolt"></i> Quick wins — implementables en menos de 1 hora</div>
+        ${qwH}
+      `:''}
+    </div>
+
+    <div class="card">
+      <div class="sec-title"><i class="ti ti-file-text"></i> Reporte ejecutivo — listo para enviar a Nicolás</div>
+      <div class="exec-box">
+        <div class="sca-block">
+          <div class="sca-lbl">Estado</div>
+          <div class="sca-val">${ex.state||'—'}</div>
+        </div>
+        <div class="sep"></div>
+        <div class="sca-block">
+          <div class="sca-lbl">Causa</div>
+          <div class="sca-val">${ex.cause||'—'}</div>
+        </div>
+        <div class="sep"></div>
+        <div class="sca-block">
+          <div class="sca-lbl">Acción</div>
+          <div class="sca-val">${ex.action||'—'}</div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="act-btn primary" id="copy-btn" onclick="copyReport()">
+          <i class="ti ti-copy"></i> Copiar reporte CEO
+        </button>
+        <button class="act-btn" onclick="window.print()">
+          <i class="ti ti-printer"></i> Imprimir / PDF
+        </button>
+      </div>
+    </div>
+
+    <div style="text-align:center;font-size:11px;color:var(--text3);padding:1rem 0;">
+      Datos: Mozilla HTTP Observatory · Análisis: Claude Sonnet · Stack: Ulpik
+    </div>
+  `;
+}
+
+function copyReport(){
+  navigator.clipboard.writeText(reportText).catch(()=>{});
+  const btn=document.getElementById('copy-btn');
+  if(!btn) return;
+  btn.innerHTML='<i class="ti ti-check"></i> ¡Copiado al portapapeles!';
+  setTimeout(()=>{ btn.innerHTML='<i class="ti ti-copy"></i> Copiar reporte CEO'; },2500);
+}
+</script>
+</body>
+</html>
