@@ -304,7 +304,7 @@
       <div class="brand-icon"><i class="ti ti-shield-check"></i></div>
       <div>
         <div class="brand-name">Auditor de Seguridad Web</div>
-        <div class="brand-sub">Mozilla HTTP Observatory + Claude IA · Stack Ulpik</div>
+        <div class="brand-sub">Mozilla HTTP Observatory v2 + IA · Stack Ulpik</div>
       </div>
     </div>
     <div class="header-badge"><i class="ti ti-lock"></i> CTO Tools</div>
@@ -335,7 +335,7 @@
     <div style="font-size:12px;color:var(--text3);padding:0 4px;line-height:1.6;">
       <i class="ti ti-info-circle" style="font-size:13px;vertical-align:-2px;margin-right:4px;"></i>
       El primer escaneo de un dominio puede tardar entre 20 y 45 segundos. Los subsecuentes son instantáneos.
-      El análisis usa Mozilla HTTP Observatory (API pública) y Claude para el dictamen ejecutivo.
+      El análisis usa Mozilla HTTP Observatory (API v2) y opcionalmente IA para el dictamen ejecutivo.
     </div>
   </div>
 
@@ -350,10 +350,9 @@
     </div>
     <div class="steps-card">
       <div class="step-row" id="st1"><div class="step-icon" id="si1"><i class="ti ti-clock"></i></div><span>Iniciando scan en Mozilla HTTP Observatory</span></div>
-      <div class="step-row" id="st2"><div class="step-icon" id="si2"><i class="ti ti-clock"></i></div><span>Esperando resultados del análisis de headers</span></div>
-      <div class="step-row" id="st3"><div class="step-icon" id="si3"><i class="ti ti-clock"></i></div><span>Descargando resultados por categoría</span></div>
-      <div class="step-row" id="st4"><div class="step-icon" id="si4"><i class="ti ti-clock"></i></div><span>Claude analizando vulnerabilidades y prioridades</span></div>
-      <div class="step-row" id="st5"><div class="step-icon" id="si5"><i class="ti ti-clock"></i></div><span>Generando reporte ejecutivo State / Cause / Action</span></div>
+      <div class="step-row" id="st2"><div class="step-icon" id="si2"><i class="ti ti-clock"></i></div><span>Procesando resultados del escaneo</span></div>
+      <div class="step-row" id="st3"><div class="step-icon" id="si3"><i class="ti ti-clock"></i></div><span>Generando dictamen de riesgos y prioridades</span></div>
+      <div class="step-row" id="st4"><div class="step-icon" id="si4"><i class="ti ti-clock"></i></div><span>Preparando reporte ejecutivo State / Cause / Action</span></div>
     </div>
   </div>
 
@@ -382,7 +381,9 @@
 </div>
 
 <script>
-const OBS = 'https://http-observatory.security.mozilla.org/api/v1';
+const OBS = 'https://observatory-api.mdn.mozilla.net/api/v2';
+// Opcional: Web App Apps Script con OpenAI (mismo patrón que Analizador BF). Vacío = análisis local.
+const APPS_SCRIPT_URL = '';
 let reportText = '';
 
 function setQ(v){ document.getElementById('url-input').value=v; }
@@ -415,6 +416,100 @@ function getHost(raw){
   catch(e){ return s.replace(/^https?:\/\//,'').split('/')[0]; }
 }
 
+function fetchJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = '_ulpikSec_' + Date.now();
+    const timer = setTimeout(() => { cleanup(); reject(new Error('Timeout IA')); }, 45000);
+    const script = document.createElement('script');
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cb];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cb] = (data) => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error('No se pudo conectar con Apps Script')); };
+    const sep = url.includes('?') ? '&' : '?';
+    script.src = url + sep + 'callback=' + encodeURIComponent(cb);
+    document.head.appendChild(script);
+  });
+}
+
+async function runObservatoryScan(host) {
+  const r = await fetch(`${OBS}/scan?host=${encodeURIComponent(host)}`, { method: 'POST' });
+  const text = await r.text();
+  let scan;
+  try { scan = JSON.parse(text); } catch (e) {
+    throw new Error('Mozilla Observatory no respondió correctamente (HTTP ' + r.status + '). Intenta en unos minutos.');
+  }
+  if (scan.error) throw new Error(scan.message || scan.error);
+  if (scan.grade == null || scan.grade === '') throw new Error('Observatory no devolvió resultados para este dominio.');
+  return {
+    host,
+    grade: scan.grade,
+    score: scan.score,
+    tests_passed: scan.tests_passed,
+    tests_failed: scan.tests_failed,
+    tests_quantity: scan.tests_quantity,
+    details_url: scan.details_url || scan.detailsUrl || '',
+    details: {}
+  };
+}
+
+function riskLevelFromScore(score) {
+  if (score >= 80) return 'BAJO';
+  if (score >= 60) return 'MEDIO';
+  if (score >= 40) return 'ALTO';
+  return 'CRÍTICO';
+}
+
+function generateLocalAnalysis(obs) {
+  const sc = Math.min(100, Math.max(0, Number(obs.score) || 0));
+  const rl = riskLevelFromScore(sc);
+  const failed = Number(obs.tests_failed) || 0;
+  const vulns = [];
+  if (failed > 0) {
+    vulns.push({
+      name: 'Headers de seguridad incompletos',
+      severity: failed >= 4 ? 'ALTO' : 'MEDIO',
+      description: `${failed} de ${obs.tests_quantity} pruebas de Observatory fallaron.`,
+      action: 'Revisar HSTS, CSP y X-Frame-Options en el servidor.'
+    });
+  }
+  if (sc < 60) {
+    vulns.push({
+      name: 'Postura de seguridad débil',
+      severity: sc < 40 ? 'CRÍTICO' : 'ALTO',
+      description: `Grade ${obs.grade} (${sc}/100) por debajo del umbral recomendado.`,
+      action: 'Auditar configuración WordPress, Cloudflare y plugins activos.'
+    });
+  }
+  return {
+    risk_score: sc,
+    risk_level: rl,
+    headline: sc >= 80 ? 'Buena postura de seguridad web' : sc >= 60 ? 'Seguridad mejorable con acciones puntuales' : 'Riesgos de seguridad que requieren atención',
+    vulnerabilities: vulns,
+    strengths: sc >= 70 ? [`Grade ${obs.grade} en Mozilla Observatory`, `${obs.tests_passed} pruebas superadas`] : [`${obs.tests_passed} pruebas superadas de ${obs.tests_quantity}`],
+    quick_wins: [
+      'Activar HSTS y redirección HTTPS forzada',
+      'Configurar Content-Security-Policy básica',
+      'Revisar cookies con flag Secure y HttpOnly'
+    ],
+    executive_summary: {
+      state: `${obs.host} obtiene grade ${obs.grade} (${sc}/100) con ${failed} fallas en headers de seguridad.`,
+      cause: failed > 0 ? 'Faltan o están mal configurados headers HTTP de endurecimiento (HSTS, CSP, cookies).' : 'La configuración base es aceptable pero puede reforzarse.',
+      action: 'Priorizar corrección de headers fallidos en Cloudflare/servidor y validar plugins WordPress en las próximas 48–72 h.'
+    }
+  };
+}
+
+async function analyzeWithAI(obs) {
+  if (!APPS_SCRIPT_URL) return generateLocalAnalysis(obs);
+  const payload = encodeURIComponent(JSON.stringify({ action: 'analyze', obs }));
+  const data = await fetchJsonp(APPS_SCRIPT_URL + '?payload=' + payload);
+  if (data.status === 'error') throw new Error(data.message || 'Error de IA');
+  return data.analysis || generateLocalAnalysis(obs);
+}
+
 async function startScan(){
   const raw=document.getElementById('url-input').value;
   if(!raw.trim()) return;
@@ -422,124 +517,30 @@ async function startScan(){
 
   document.getElementById('scan-host').textContent=host;
   showView('view-scan');
-  [1,2,3,4,5].forEach(n=>setSt(n,''));
+  [1,2,3,4].forEach(n=>setSt(n,''));
 
   try{
-    // Step 1: Trigger scan
     setSt(1,'load');
-    let scan;
-    try{
-      const r=await fetch(`${OBS}/analyze?host=${host}&rescan=false`,{
-        method:'POST',
-        headers:{'Content-Type':'application/x-www-form-urlencoded'}
-      });
-      scan=await r.json();
-    }catch(e){
-      const r=await fetch(`${OBS}/analyze?host=${host}`);
-      scan=await r.json();
-    }
-    if(scan.error){ throw new Error(scan.error); }
+    const obs = await runObservatoryScan(host);
     setSt(1,'done'); setSt(2,'load');
-
-    // Step 2: Poll until FINISHED
-    let tries=0;
-    while(scan.state!=='FINISHED' && scan.state!=='FAILED' && tries<25){
-      await sleep(3000);
-      const r=await fetch(`${OBS}/analyze?host=${host}`);
-      scan=await r.json();
-      tries++;
-    }
-    if(scan.state==='FAILED'||!scan.grade){
-      throw new Error('Mozilla Observatory no pudo completar el análisis. El servidor puede estar bloqueando el escáner, o el dominio no es accesible públicamente.');
-    }
+    await sleep(400);
     setSt(2,'done'); setSt(3,'load');
 
-    // Step 3: Get detailed results
-    let details={};
-    try{
-      const dr=await fetch(`${OBS}/getScanResults?scan=${scan.id}`);
-      details=await dr.json();
-    }catch(e){ /* continue without details */ }
+    const analysis = await analyzeWithAI(obs);
     setSt(3,'done'); setSt(4,'load');
+    await sleep(300);
+    setSt(4,'done');
 
-    // Step 4 + 5: Claude analysis
-    const obsPayload={
-      host,
-      grade:scan.grade,
-      score:scan.score,
-      tests_passed:scan.tests_passed,
-      tests_failed:scan.tests_failed,
-      tests_quantity:scan.tests_quantity,
-      details
-    };
-
-    const cr=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:1000,
-        system:`Eres un auditor de seguridad web senior especializado en stacks WordPress/WooCommerce en mercados latinoamericanos.
-Analiza los resultados del HTTP Observatory y devuelve ÚNICAMENTE un objeto JSON válido, sin texto adicional, sin backticks, sin comentarios.
-Esquema obligatorio exacto:
-{
-  "risk_score": <número 0-100, donde 100=perfectamente seguro y 0=crítico>,
-  "risk_level": <"CRÍTICO" | "ALTO" | "MEDIO" | "BAJO">,
-  "headline": <frase de 6-8 palabras resumiendo el estado de seguridad>,
-  "vulnerabilities": [
-    {
-      "name": <nombre corto del problema>,
-      "severity": <"CRÍTICO" | "ALTO" | "MEDIO" | "BAJO">,
-      "description": <qué falla y por qué importa, máx 25 palabras>,
-      "action": <acción concreta, máx 12 palabras>
-    }
-  ],
-  "strengths": [<máx 3 cosas que ya están bien implementadas>],
-  "quick_wins": [<máx 3 mejoras implementables en menos de 1 hora>],
-  "executive_summary": {
-    "state": <estado actual en 1-2 oraciones directas>,
-    "cause": <causa raíz de los problemas principales, 1-2 oraciones>,
-    "action": <acciones prioritarias con responsable y timeframe, 1-2 oraciones>
-  }
-}`,
-        messages:[{
-          role:'user',
-          content:`Dominio: ${host}
-Grade Mozilla Observatory: ${scan.grade}
-Score: ${scan.score}/100
-Tests pasados: ${scan.tests_passed}/${scan.tests_quantity}
-Tests fallidos: ${scan.tests_failed}/${scan.tests_quantity}
-
-Resultados detallados por categoría:
-${JSON.stringify(details,null,2)}
-
-Contexto crítico: Este es el stack de Ulpik, una legaltech ecuatoriana. Infraestructura: WordPress/WooCommerce, Bitrix24 CRM, pasarelas de pago Datafast/PayPhone, WhatsApp Business API, Hetzner VPS + Cloudflare DNS. Maneja datos legales de clientes y transacciones online. El reporte lo redacta el CTO (Michael) para enviarlo al CEO (Nicolás) usando el formato State/Cause/Action.`
-        }]
-      })
-    });
-
-    const cd=await cr.json();
-    setSt(4,'done'); setSt(5,'load');
-
-    let analysis;
-    try{
-      const txt=cd.content.find(b=>b.type==='text')?.text||'{}';
-      analysis=JSON.parse(txt.replace(/```json|```/g,'').trim());
-    }catch(e){
-      throw new Error('Error procesando la respuesta de IA. Intenta de nuevo.');
-    }
-
-    setSt(5,'done');
-    renderResults(obsPayload, analysis);
+    renderResults(obs, analysis);
     showView('view-results');
 
   }catch(err){
-    [1,2,3,4,5].forEach(n=>{
+    [1,2,3,4].forEach(n=>{
       if(document.getElementById('si'+n).className.includes('si-load')) setSt(n,'err');
     });
     showView('view-error');
     document.getElementById('err-msg').innerHTML=
-      `<strong><i class="ti ti-alert-triangle"></i> Error durante el análisis</strong><br><br>${err.message}<br><br><small style="opacity:0.75;">Verifica que el dominio sea accesible públicamente. Algunos servidores bloquean escáneres externos.</small>`;
+      `<strong><i class="ti ti-alert-triangle"></i> Error durante el análisis</strong><br><br>${err.message}<br><br><small style="opacity:0.75;">Si el error persiste, prueba manualmente en <a href="https://developer.mozilla.org/en-US/observatory/analyze?host=${encodeURIComponent(host)}" target="_blank" rel="noopener">MDN Observatory</a>.</small>`;
   }
 }
 
@@ -587,7 +588,8 @@ function renderResults(obs, an){
     checksH+=`<div class="chk ${cls}"><div class="chk-name">${lbl}</div><div class="chk-st"><i class="ti ${ico}"></i> ${stlbl}</div></div>`;
   }
   if(!checksH){
-    checksH=`<p style="font-size:13px;color:var(--text2);grid-column:1/-1;">Grade: <strong>${obs.grade}</strong> · Score: ${obs.score}/100</p>`;
+    const link=obs.details_url?` <a href="${obs.details_url}" target="_blank" rel="noopener" style="color:var(--info-text);">Ver detalle en MDN</a>`:'';
+    checksH=`<p style="font-size:13px;color:var(--text2);grid-column:1/-1;">Grade: <strong>${obs.grade}</strong> · Score: ${obs.score}/100 · ${obs.tests_passed}/${obs.tests_quantity} tests OK${link}</p>`;
   }
 
   // Vulnerabilities
@@ -695,7 +697,7 @@ function renderResults(obs, an){
     </div>
 
     <div style="text-align:center;font-size:11px;color:var(--text3);padding:1rem 0;">
-      Datos: Mozilla HTTP Observatory · Análisis: Claude Sonnet · Stack: Ulpik
+      Datos: Mozilla HTTP Observatory v2 · Análisis: ${APPS_SCRIPT_URL?'IA (Apps Script)':'heurístico local'} · Stack: Ulpik
     </div>
   `;
 }
