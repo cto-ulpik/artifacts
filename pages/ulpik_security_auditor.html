@@ -242,22 +242,6 @@
     color: var(--text3); flex-shrink: 0; margin-top: 1px;
   }
 
-  /* Exec report */
-  .exec-box {
-    background: var(--bg2); border-radius: var(--radius-lg);
-    padding: 1.25rem; margin-bottom: 14px;
-  }
-  .sca-lbl {
-    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
-    color: var(--text3); text-transform: uppercase; margin-bottom: 4px;
-  }
-  .sca-val { font-size: 13px; color: var(--text); line-height: 1.6; }
-  .sca-block { margin-bottom: 12px; }
-  .sca-block:last-child { margin-bottom: 0; }
-  .sep { border: none; border-top: 0.5px solid var(--border); margin: 10px 0; }
-
-  /* Action row */
-  .action-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .act-btn {
     display: flex; align-items: center; gap: 6px;
     font-size: 12px; font-weight: 500; padding: 8px 14px;
@@ -335,7 +319,7 @@
     <div style="font-size:12px;color:var(--text3);padding:0 4px;line-height:1.6;">
       <i class="ti ti-info-circle" style="font-size:13px;vertical-align:-2px;margin-right:4px;"></i>
       El primer escaneo de un dominio puede tardar entre 20 y 45 segundos. Los subsecuentes son instantáneos.
-      El análisis usa Mozilla HTTP Observatory (API v2) y opcionalmente IA para el dictamen ejecutivo.
+      El análisis usa Mozilla HTTP Observatory (API v2) y opcionalmente IA para el dictamen de riesgos.
     </div>
   </div>
 
@@ -352,7 +336,6 @@
       <div class="step-row" id="st1"><div class="step-icon" id="si1"><i class="ti ti-clock"></i></div><span>Iniciando scan en Mozilla HTTP Observatory</span></div>
       <div class="step-row" id="st2"><div class="step-icon" id="si2"><i class="ti ti-clock"></i></div><span>Procesando resultados del escaneo</span></div>
       <div class="step-row" id="st3"><div class="step-icon" id="si3"><i class="ti ti-clock"></i></div><span>Generando dictamen de riesgos y prioridades</span></div>
-      <div class="step-row" id="st4"><div class="step-icon" id="si4"><i class="ti ti-clock"></i></div><span>Preparando reporte ejecutivo State / Cause / Action</span></div>
     </div>
   </div>
 
@@ -384,7 +367,6 @@
 const OBS = 'https://observatory-api.mdn.mozilla.net/api/v2';
 // Opcional: Web App Apps Script con OpenAI (mismo patrón que Analizador BF). Vacío = análisis local.
 const APPS_SCRIPT_URL = '';
-let reportText = '';
 
 function setQ(v){ document.getElementById('url-input').value=v; }
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
@@ -493,12 +475,7 @@ function generateLocalAnalysis(obs) {
       'Activar HSTS y redirección HTTPS forzada',
       'Configurar Content-Security-Policy básica',
       'Revisar cookies con flag Secure y HttpOnly'
-    ],
-    executive_summary: {
-      state: `${obs.host} obtiene grade ${obs.grade} (${sc}/100) con ${failed} fallas en headers de seguridad.`,
-      cause: failed > 0 ? 'Faltan o están mal configurados headers HTTP de endurecimiento (HSTS, CSP, cookies).' : 'La configuración base es aceptable pero puede reforzarse.',
-      action: 'Priorizar corrección de headers fallidos en Cloudflare/servidor y validar plugins WordPress en las próximas 48–72 h.'
-    }
+    ]
   };
 }
 
@@ -517,7 +494,7 @@ async function startScan(){
 
   document.getElementById('scan-host').textContent=host;
   showView('view-scan');
-  [1,2,3,4].forEach(n=>setSt(n,''));
+  [1,2,3].forEach(n=>setSt(n,''));
 
   try{
     setSt(1,'load');
@@ -527,15 +504,13 @@ async function startScan(){
     setSt(2,'done'); setSt(3,'load');
 
     const analysis = await analyzeWithAI(obs);
-    setSt(3,'done'); setSt(4,'load');
-    await sleep(300);
-    setSt(4,'done');
+    setSt(3,'done');
 
     renderResults(obs, analysis);
     showView('view-results');
 
   }catch(err){
-    [1,2,3,4].forEach(n=>{
+    [1,2,3].forEach(n=>{
       if(document.getElementById('si'+n).className.includes('si-load')) setSt(n,'err');
     });
     showView('view-error');
@@ -618,9 +593,6 @@ function renderResults(obs, an){
     `<div class="qw-item"><span class="qw-num">${i+1}</span><span>${q}</span></div>`
   ).join('');
 
-  const ex=an.executive_summary||{};
-  reportText=`ESTADO:\n${ex.state||''}\n\nCAUSA:\n${ex.cause||''}\n\nACCIÓN:\n${ex.action||''}`;
-
   const rl=an.risk_level||'—';
   const rls=sevStyle(rl);
 
@@ -668,46 +640,10 @@ function renderResults(obs, an){
       `:''}
     </div>
 
-    <div class="card">
-      <div class="sec-title"><i class="ti ti-file-text"></i> Reporte ejecutivo — listo para enviar a Nicolás</div>
-      <div class="exec-box">
-        <div class="sca-block">
-          <div class="sca-lbl">Estado</div>
-          <div class="sca-val">${ex.state||'—'}</div>
-        </div>
-        <div class="sep"></div>
-        <div class="sca-block">
-          <div class="sca-lbl">Causa</div>
-          <div class="sca-val">${ex.cause||'—'}</div>
-        </div>
-        <div class="sep"></div>
-        <div class="sca-block">
-          <div class="sca-lbl">Acción</div>
-          <div class="sca-val">${ex.action||'—'}</div>
-        </div>
-      </div>
-      <div class="action-row">
-        <button class="act-btn primary" id="copy-btn" onclick="copyReport()">
-          <i class="ti ti-copy"></i> Copiar reporte CEO
-        </button>
-        <button class="act-btn" onclick="window.print()">
-          <i class="ti ti-printer"></i> Imprimir / PDF
-        </button>
-      </div>
-    </div>
-
     <div style="text-align:center;font-size:11px;color:var(--text3);padding:1rem 0;">
       Datos: Mozilla HTTP Observatory v2 · Análisis: ${APPS_SCRIPT_URL?'IA (Apps Script)':'heurístico local'} · Stack: Ulpik
     </div>
   `;
-}
-
-function copyReport(){
-  navigator.clipboard.writeText(reportText).catch(()=>{});
-  const btn=document.getElementById('copy-btn');
-  if(!btn) return;
-  btn.innerHTML='<i class="ti ti-check"></i> ¡Copiado al portapapeles!';
-  setTimeout(()=>{ btn.innerHTML='<i class="ti ti-copy"></i> Copiar reporte CEO'; },2500);
 }
 </script>
 </body>
