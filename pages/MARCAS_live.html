@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marcas · Control de metas semanales</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+  :root{
+    color-scheme: light;
+    --bg:#f6f7fb; --card:#ffffff; --ink:#1d2433; --muted:#6b7280; --line:#e6e8ef;
+    --brand:#6d28d9; --brand2:#0ea5a4; --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
+    --soft:#f1f0fb; --soft2:#ecfdf5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1040px;margin:0 auto;padding:18px 18px 60px}
+  h1{font-size:20px;margin:0 0 2px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .card h2{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--brand);margin:0 0 14px;display:flex;align-items:center;gap:8px}
+  .row{display:flex;flex-wrap:wrap;gap:14px}
+  .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+  .ctl label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:4px}
+  .ctl input, .ctl select{padding:8px 10px;border:1px solid var(--line);border-radius:9px;font-size:14px;background:#fff;color:var(--ink)}
+  button{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 12px;font-size:14px;color:var(--ink)}
+  button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  button:hover{filter:brightness(.98)}
+  .weeknav{display:flex;align-items:center;gap:8px}
+  .weeknav .lbl{font-weight:600;min-width:200px;text-align:center}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .kpi{background:var(--soft);border-radius:11px;padding:12px 14px}
+  .kpi .k{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .kpi .v{font-size:22px;font-weight:700;margin-top:3px}
+  .kpi .v small{font-size:13px;font-weight:600;color:var(--muted)}
+  .gauge{height:26px;background:#eceaf7;border-radius:14px;overflow:hidden;position:relative;border:1px solid var(--line)}
+  .gauge>span{position:absolute;left:0;top:0;bottom:0;border-radius:14px;transition:width .5s ease}
+  .gauge .pct{position:absolute;right:10px;top:0;bottom:0;display:flex;align-items:center;font-weight:700;font-size:13px;color:#1d2433}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+  .pill.ok{background:var(--soft2);color:var(--ok)}
+  .pill.bad{background:#fef2f2;color:var(--bad)}
+  .pill.warn{background:#fffbeb;color:var(--warn)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .muted{color:var(--muted)}
+  .big{font-size:30px;font-weight:800;line-height:1.1}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .note{font-size:12px;color:var(--muted)}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--muted);background:#fbfbfe}
+  .err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:10px 12px;border-radius:10px;font-size:13px}
+  .map{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:10px}
+  .chartbox{position:relative;height:240px}
+  .foot{font-size:12px;color:var(--muted);margin-top:6px}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid #ddd;border-top-color:var(--brand);border-radius:50%;animation:s 1s linear infinite;vertical-align:-2px}
+  @keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Marcas · Control de metas semanales</h1>
+  <div class="sub">Ventas exclusivas de la categoría <b>Marcas</b> · semana laboral lunes–viernes · archivo compartible con datos incrustados de «Data Ventas – Tablero» (hoja Ventas). Se regenera automáticamente lun–vie a las 8:00, 12:00 y 18:00.</div>
+
+  <!-- CONTROLES -->
+  <div class="card">
+    <div class="controls">
+      <div class="ctl weeknav">
+        <div>
+          <label>Semana (lun–vie)</label>
+          <div class="weeknav">
+            <button id="prevW">◀</button>
+            <span class="lbl" id="weekLbl">—</span>
+            <button id="nextW">▶</button>
+            <button id="thisW">Hoy</button>
+          </div>
+        </div>
+      </div>
+      <div class="ctl">
+        <label id="metaMonthLbl">Meta semanal del mes ($)</label>
+        <input id="metaInput" type="number" step="0.01" inputmode="decimal" style="width:150px">
+      </div>
+      <div class="ctl">
+        <label>&nbsp;</label>
+        <span id="loadState" class="note"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. ADS -->
+  <div class="card">
+    <h2>1 · Rendimiento de Ads (Meta) — campañas «marca»</h2>
+    <div id="adsDrop" class="drop">
+      <p style="margin:0 0 8px">Sube el reporte de Meta Ads de las últimas semanas (CSV o XLS exportado de Ads Manager).<br>
+      <span class="note">Solo se consideran campañas cuyo nombre contenga «marca» o «marcas». Recomendado: exportar con desglose <b>por semana</b>.</span></p>
+      <input id="adsFile" type="file" accept=".csv,.tsv,.txt,.xls,.xlsx">
+    </div>
+    <div id="adsErr"></div>
+    <div id="adsMap"></div>
+    <div id="adsKpis" style="margin-top:14px"></div>
+    <div id="adsTrendWrap" style="margin-top:14px;display:none">
+      <div class="chartbox"><canvas id="adsChart"></canvas></div>
+    </div>
+    <div id="adsTable" style="margin-top:12px"></div>
+  </div>
+
+  <div class="grid2">
+    <!-- 2. VENTAS -->
+    <div class="card">
+      <h2>2 · Ventas de Marcas (semana seleccionada)</h2>
+      <div id="ventasKpis" class="kpis"></div>
+      <div id="ventasByDay" style="margin-top:14px"></div>
+      <div id="ventasByProd" style="margin-top:10px"></div>
+    </div>
+
+    <!-- 3 + 4. CUMPLIMIENTO Y PROYECCIÓN -->
+    <div class="card">
+      <h2>3 · Cumplimiento del presupuesto</h2>
+      <div id="cumpl"></div>
+      <h2 style="margin-top:20px">4 · Proyección para cerrar la semana</h2>
+      <div id="proj"></div>
+    </div>
+  </div>
+
+  <div class="foot" id="srcFoot"></div>
+</div>
+
+<script>
+"use strict";
+const SNAP_DATE = "2026-06-16";
+const GEN_TS = "17/06/2026 12:30";
+const SNAPSHOT = [{"d":"2025-01-20","a":37.0,"p":"BF"},{"d":"2025-01-20","a":37.0,"p":"BF"},{"d":"2025-01-21","a":37.0,"p":"BF"},{"d":"2025-01-21","a":0.0,"p":"BF Gratis"},{"d":"2025-01-22","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-01-22","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-01-22","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-01-23","a":37.0,"p":"BF"},{"d":"2025-01-23","a":37.0,"p":"BF"},{"d":"2025-01-24","a":37.0,"p":"BF"},{"d":"2025-01-27","a":37.0,"p":"BF"},{"d":"2025-01-28","a":37.0,"p":"BF"},{"d":"2025-01-29","a":395.0,"p":"RM"},{"d":"2025-01-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-01-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-01-31","a":395.0,"p":"RM"},{"d":"2025-02-04","a":403.0,"p":"RM"},{"d":"2025-02-05","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-06","a":37.0,"p":"BF"},{"d":"2025-02-07","a":334.0,"p":"RM"},{"d":"2025-02-07","a":334.0,"p":"RM"},{"d":"2025-02-10","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-10","a":394.57,"p":"RM"},{"d":"2025-02-10","a":37.0,"p":"BF"},{"d":"2025-02-10","a":37.0,"p":"BF"},{"d":"2025-02-11","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-11","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-11","a":290.0,"p":"RM"},{"d":"2025-02-11","a":291.0,"p":"RM"},{"d":"2025-02-12","a":395.0,"p":"RM"},{"d":"2025-02-12","a":37.0,"p":"BF"},{"d":"2025-02-19","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-20","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-20","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-21","a":37.0,"p":"BF"},{"d":"2025-02-24","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-25","a":395.0,"p":"RM"},{"d":"2025-02-25","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-25","a":37.0,"p":"BF"},{"d":"2025-02-25","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-25","a":37.0,"p":"BF"},{"d":"2025-02-26","a":37.0,"p":"BF"},{"d":"2025-02-26","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-27","a":37.0,"p":"BF"},{"d":"2025-02-27","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-27","a":37.0,"p":"BF"},{"d":"2025-02-27","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-27","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-02-28","a":395.0,"p":"RM"},{"d":"2025-03-02","a":37.0,"p":"BF"},{"d":"2025-03-05","a":37.0,"p":"BF"},{"d":"2025-03-07","a":351.5,"p":"RM"},{"d":"2025-03-07","a":351.5,"p":"RM"},{"d":"2025-03-07","a":396.0,"p":"Pack BF + Marca"},{"d":"2025-03-07","a":37.0,"p":"BF"},{"d":"2025-03-07","a":395.0,"p":"RM"},{"d":"2025-03-10","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-10","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-11","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-11","a":37.0,"p":"BF"},{"d":"2025-03-12","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-12","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-13","a":37.0,"p":"BF"},{"d":"2025-03-13","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-13","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-13","a":394.57,"p":"RM"},{"d":"2025-03-13","a":37.0,"p":"BF"},{"d":"2025-03-14","a":37.0,"p":"BF"},{"d":"2025-03-17","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-17","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-17","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-18","a":396.0,"p":"Pack BF + Marca"},{"d":"2025-03-18","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-19","a":37.0,"p":"BF"},{"d":"2025-03-20","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-20","a":37.0,"p":"BF"},{"d":"2025-03-20","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-21","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-21","a":394.57,"p":"RM"},{"d":"2025-03-24","a":170.5,"p":"Transferencia marcaria"},{"d":"2025-03-25","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-25","a":37.0,"p":"BF"},{"d":"2025-03-25","a":37.0,"p":"BF"},{"d":"2025-03-26","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-26","a":290.0,"p":"RM"},{"d":"2025-03-26","a":395.0,"p":"RM"},{"d":"2025-03-26","a":254.0,"p":"Renovación Nombramiento"},{"d":"2025-03-26","a":37.0,"p":"BF"},{"d":"2025-03-26","a":37.0,"p":"BF"},{"d":"2025-03-27","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-28","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-31","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-03-31","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-01","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-01","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-03","a":395.0,"p":"RM"},{"d":"2025-04-03","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-04","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-04","a":37.0,"p":"BF"},{"d":"2025-04-04","a":440.0,"p":"RM"},{"d":"2025-04-05","a":440.0,"p":"RM"},{"d":"2025-04-07","a":480.0,"p":"Contentación Apelación"},{"d":"2025-04-14","a":395.0,"p":"RM"},{"d":"2025-04-14","a":37.0,"p":"BF"},{"d":"2025-04-15","a":37.0,"p":"BF"},{"d":"2025-04-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-16","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-16","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-16","a":336.0,"p":"Pack BF + Marca"},{"d":"2025-04-21","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-21","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-21","a":37.0,"p":"BF"},{"d":"2025-04-21","a":37.0,"p":"BF"},{"d":"2025-04-21","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-22","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-22","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-23","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-23","a":37.0,"p":"BF"},{"d":"2025-04-25","a":37.0,"p":"BF"},{"d":"2025-04-25","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-28","a":395.0,"p":"RM"},{"d":"2025-04-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-04-29","a":395.0,"p":"RM"},{"d":"2025-04-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-01","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-01","a":37.0,"p":"BF"},{"d":"2025-05-05","a":37.0,"p":"BF"},{"d":"2025-05-05","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-06","a":37.0,"p":"BF"},{"d":"2025-05-06","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-06","a":37.0,"p":"BF"},{"d":"2025-05-09","a":37.0,"p":"BF"},{"d":"2025-05-09","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-09","a":80.0,"p":"BF"},{"d":"2025-05-09","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-12","a":37.0,"p":"BF"},{"d":"2025-05-13","a":37.0,"p":"BF"},{"d":"2025-05-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-14","a":440.0,"p":"BF"},{"d":"2025-05-14","a":37.0,"p":"BF"},{"d":"2025-05-15","a":37.0,"p":"BF"},{"d":"2025-05-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-16","a":352.0,"p":"RM"},{"d":"2025-05-16","a":395.0,"p":"RM"},{"d":"2025-05-16","a":37.0,"p":"BF"},{"d":"2025-05-19","a":150.0,"p":"RM"},{"d":"2025-05-19","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-20","a":37.0,"p":"BF"},{"d":"2025-05-20","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-21","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-21","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-25","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-25","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-25","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-26","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-26","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-26","a":80.0,"p":"BF"},{"d":"2025-05-26","a":37.0,"p":"BF"},{"d":"2025-05-26","a":37.0,"p":"BF"},{"d":"2025-05-26","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-28","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-28","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-29","a":403.0,"p":"RM"},{"d":"2025-05-30","a":37.0,"p":"BF"},{"d":"2025-05-30","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-05-30","a":37.0,"p":"BF"},{"d":"2025-06-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-03","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-03","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-03","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-04","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-05","a":37.0,"p":"BF"},{"d":"2025-06-06","a":37.0,"p":"BF"},{"d":"2025-06-09","a":37.0,"p":"BF"},{"d":"2025-06-10","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-10","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-11","a":37.0,"p":"BF"},{"d":"2025-06-16","a":395.0,"p":"RM"},{"d":"2025-06-16","a":394.0,"p":"RM"},{"d":"2025-06-16","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-16","a":37.0,"p":"BF"},{"d":"2025-06-16","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-16","a":37.0,"p":"BF"},{"d":"2025-06-17","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-17","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-18","a":37.0,"p":"BF"},{"d":"2025-06-18","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-19","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-20","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-20","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-20","a":395.0,"p":"RM"},{"d":"2025-06-23","a":37.0,"p":"BF"},{"d":"2025-06-23","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-23","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-25","a":37.0,"p":"BF"},{"d":"2025-06-25","a":37.0,"p":"BF"},{"d":"2025-06-25","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-06-27","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-01","a":37.0,"p":"BF"},{"d":"2025-07-01","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-02","a":355.0,"p":"RM"},{"d":"2025-07-02","a":355.0,"p":"RM"},{"d":"2025-07-02","a":37.0,"p":"BF"},{"d":"2025-07-03","a":37.0,"p":"BF"},{"d":"2025-07-03","a":395.0,"p":"RM"},{"d":"2025-07-04","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-04","a":395.0,"p":"RM"},{"d":"2025-07-04","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-04","a":37.0,"p":"BF"},{"d":"2025-07-07","a":37.0,"p":"BF"},{"d":"2025-07-07","a":37.0,"p":"BF"},{"d":"2025-07-07","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-07","a":394.0,"p":"RM"},{"d":"2025-07-09","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-09","a":37.0,"p":"BF"},{"d":"2025-07-09","a":304.0,"p":"RM"},{"d":"2025-07-10","a":50.0,"p":"BF"},{"d":"2025-07-11","a":394.0,"p":"RM"},{"d":"2025-07-11","a":37.0,"p":"BF"},{"d":"2025-07-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-14","a":37.0,"p":"BF"},{"d":"2025-07-14","a":37.0,"p":"BF"},{"d":"2025-07-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-15","a":37.0,"p":"BF"},{"d":"2025-07-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-15","a":37.0,"p":"BF"},{"d":"2025-07-16","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-17","a":440.0,"p":"Contratos"},{"d":"2025-07-17","a":366.0,"p":"RM"},{"d":"2025-07-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-21","a":37.0,"p":"Bf"},{"d":"2025-07-21","a":37.0,"p":"Bf"},{"d":"2025-07-22","a":172.5,"p":"Apercibimiento"},{"d":"2025-07-22","a":37.0,"p":"Bf"},{"d":"2025-07-22","a":37.0,"p":"Bf"},{"d":"2025-07-22","a":37.0,"p":"Bf"},{"d":"2025-07-22","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-23","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-23","a":37.0,"p":"Bf"},{"d":"2025-07-23","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-24","a":50.0,"p":"Cita Marcas"},{"d":"2025-07-25","a":37.0,"p":"Bf"},{"d":"2025-07-25","a":395.0,"p":"RM"},{"d":"2025-07-25","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-25","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-28","a":395.0,"p":"RM"},{"d":"2025-07-28","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-28","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-07-29","a":395.0,"p":"RM"},{"d":"2025-07-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-01","a":50.0,"p":"Cita Marcas"},{"d":"2025-08-04","a":37.0,"p":"BF"},{"d":"2025-08-05","a":37.0,"p":"BF"},{"d":"2025-08-05","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-06","a":40.0,"p":"BF"},{"d":"2025-08-06","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-06","a":50.0,"p":"Cita Marcas"},{"d":"2025-08-06","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-07","a":37.0,"p":"BF"},{"d":"2025-08-08","a":37.0,"p":"BF"},{"d":"2025-08-08","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-08","a":37.0,"p":"BF"},{"d":"2025-08-12","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-12","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-12","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-12","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-13","a":74.0,"p":"BF"},{"d":"2025-08-13","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-14","a":170.0,"p":"RM"},{"d":"2025-08-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-14","a":394.0,"p":"RM"},{"d":"2025-08-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-18","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-18","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-18","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-18","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-19","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-19","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-20","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-20","a":40.0,"p":"BF"},{"d":"2025-08-21","a":37.0,"p":"BF"},{"d":"2025-08-22","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-22","a":37.0,"p":"BF"},{"d":"2025-08-22","a":37.0,"p":"BF"},{"d":"2025-08-22","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-25","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-26","a":394.0,"p":"RM"},{"d":"2025-08-27","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-28","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-28","a":37.0,"p":"BF"},{"d":"2025-08-28","a":50.0,"p":"BF"},{"d":"2025-08-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-08-29","a":37.0,"p":"BF"},{"d":"2025-09-01","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-01","a":37.0,"p":"BF"},{"d":"2025-09-01","a":37.0,"p":"BF"},{"d":"2025-09-01","a":37.0,"p":"BF"},{"d":"2025-09-02","a":37.0,"p":"BF"},{"d":"2025-09-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-03","a":150.0,"p":"Apercibimiento"},{"d":"2025-09-03","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-03","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-04","a":395.0,"p":"RM"},{"d":"2025-09-04","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-04","a":150.0,"p":"Transferencia Marcaria"},{"d":"2025-09-08","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-09","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-09","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-09","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-10","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-10","a":394.0,"p":"RM"},{"d":"2025-09-11","a":394.57,"p":"RM"},{"d":"2025-09-11","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-11","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-11","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-11","a":21.0,"p":"BF"},{"d":"2025-09-12","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-12","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-12","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-16","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-16","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-16","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-16","a":352.0,"p":"Pack BF + Marca"},{"d":"2025-09-16","a":37.0,"p":"BF"},{"d":"2025-09-16","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-17","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-16","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-17","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-17","a":394.0,"p":"RM"},{"d":"2025-09-18","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-18","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-19","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-12","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-22","a":395.0,"p":"RM"},{"d":"2025-09-22","a":37.0,"p":"BF"},{"d":"2025-09-24","a":37.0,"p":"BF"},{"d":"2025-09-24","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-29","a":37.0,"p":"BF"},{"d":"2025-09-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-09-29","a":37.0,"p":"BF"},{"d":"2025-09-30","a":37.0,"p":"BF"},{"d":"2025-09-30","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-01","a":390.0,"p":"RM"},{"d":"2025-10-01","a":37.0,"p":"BF"},{"d":"2025-10-01","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-02","a":395.0,"p":"RM"},{"d":"2025-10-02","a":395.0,"p":"RM"},{"d":"2025-10-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-02","a":37.0,"p":"BF"},{"d":"2025-10-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-02","a":21.0,"p":"BF"},{"d":"2025-10-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-02","a":37.0,"p":"BF"},{"d":"2025-10-08","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-13","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-13","a":37.0,"p":"BF"},{"d":"2025-10-13","a":37.0,"p":"BF"},{"d":"2025-10-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-15","a":37.0,"p":"BF"},{"d":"2025-10-16","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-16","a":37.0,"p":"BF"},{"d":"2025-10-20","a":37.0,"p":"BF"},{"d":"2025-10-20","a":37.0,"p":"BF"},{"d":"2025-10-21","a":74.0,"p":"BF"},{"d":"2025-10-22","a":37.0,"p":"BF"},{"d":"2025-10-22","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-22","a":394.0,"p":"RM"},{"d":"2025-10-23","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-24","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-24","a":394.57,"p":"RM"},{"d":"2025-10-24","a":418.0,"p":"Pack BF + Marca"},{"d":"2025-10-27","a":394.57,"p":"RM"},{"d":"2025-10-28","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-28","a":37.0,"p":"BF"},{"d":"2025-10-29","a":37.0,"p":"BF"},{"d":"2025-10-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-10-29","a":395.0,"p":"RM"},{"d":"2025-10-29","a":37.0,"p":"BF"},{"d":"2025-11-05","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-05","a":37.0,"p":"BF"},{"d":"2025-11-06","a":37.0,"p":"BF"},{"d":"2025-11-06","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-06","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-06","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-07","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-07","a":414.4,"p":"Pack BF + Marca"},{"d":"2025-11-07","a":372.79,"p":"Pack BF + Marca"},{"d":"2025-11-07","a":372.79,"p":"Pack BF + Marca"},{"d":"2025-11-07","a":372.79,"p":"Pack BF + Marca"},{"d":"2025-11-10","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-11","a":80.0,"p":"BF"},{"d":"2025-11-12","a":498.0,"p":"RM"},{"d":"2025-11-12","a":498.0,"p":"RM"},{"d":"2025-11-13","a":440.0,"p":"Pack BF + Marca"},{"d":"2024-11-13","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-14","a":80.0,"p":"BF"},{"d":"2025-11-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-14","a":360.0,"p":"RM"},{"d":"2025-11-17","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-18","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-18","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-18","a":37.0,"p":"BF"},{"d":"2025-11-19","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-20","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-20","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-20","a":37.0,"p":"BF"},{"d":"2025-11-20","a":418.0,"p":"Pack BF + Marca"},{"d":"2025-11-20","a":418.0,"p":"Pack BF + Marca"},{"d":"2025-11-21","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-21","a":37.0,"p":"BF"},{"d":"2025-11-21","a":37.0,"p":"BF"},{"d":"2025-11-24","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-24","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-24","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-24","a":431.0,"p":"Pack BF + Marca"},{"d":"2025-11-24","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-26","a":37.0,"p":"BF"},{"d":"2025-11-27","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-27","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-27","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-11-28","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-01","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-02","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-03","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-03","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-03","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-03","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-04","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-05","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-05","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-08","a":74.0,"p":"BF"},{"d":"2025-12-08","a":37.0,"p":"BF"},{"d":"2025-12-08","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-09","a":37.0,"p":"BF"},{"d":"2025-12-09","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-10","a":37.0,"p":"BF"},{"d":"2025-12-11","a":21.0,"p":"BF"},{"d":"2025-12-11","a":37.0,"p":"BF"},{"d":"2025-12-11","a":37.0,"p":"BF"},{"d":"2025-12-11","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-11","a":37.0,"p":"BF"},{"d":"2025-12-12","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-12","a":37.0,"p":"BF"},{"d":"2025-12-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-18","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-18","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-19","a":111.0,"p":"BF"},{"d":"2025-12-19","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-19","a":1118.4,"p":"Pack BF + Marca"},{"d":"2025-12-23","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-23","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-26","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-29","a":440.0,"p":"Pack BF + Marca"},{"d":"2025-12-31","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-01-05","a":395.0,"p":"Pack BF + Marca"},{"d":"2026-01-06","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-01-06","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-01-07","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-01-08","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-01-13","a":395.0,"p":"RM"},{"d":"2026-01-13","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-01-13","a":395.0,"p":"RM"},{"d":"2026-01-13","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-01-13","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-01-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-01-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-01-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-01-14","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-01-15","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-15","a":80.0,"p":"BF"},{"d":"2026-01-15","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-15","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-15","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-15","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-15","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-01-15","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-19","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-19","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-19","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-19","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-20","a":594.0,"p":"Pack BF + Marca"},{"d":"2026-01-20","a":404.8,"p":"Pack BF + Marca"},{"d":"2026-01-20","a":404.8,"p":"Pack BF + Marca"},{"d":"2026-01-20","a":404.8,"p":"Pack BF + Marca"},{"d":"2026-01-20","a":594.0,"p":"Pack BF + Marca"},{"d":"2026-01-21","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-21","a":37.0,"p":"BF"},{"d":"2026-01-22","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-22","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-22","a":464.0,"p":"Pack BF + Marca"},{"d":"2026-01-22","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-23","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-23","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-23","a":37.0,"p":"BF"},{"d":"2026-01-26","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-26","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-26","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-27","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-27","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-27","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-27","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-28","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-28","a":37.0,"p":"BF"},{"d":"2026-01-28","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-28","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-29","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-01-29","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-02","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-03","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-03","a":37.0,"p":"BF"},{"d":"2026-02-03","a":37.0,"p":"BF"},{"d":"2026-02-04","a":37.0,"p":"BF"},{"d":"2026-02-04","a":37.0,"p":"BF"},{"d":"2026-02-04","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-04","a":37.0,"p":"BF"},{"d":"2026-02-04","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-05","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-06","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-06","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-09","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-09","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-09","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-10","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-10","a":37.0,"p":"BF"},{"d":"2026-02-11","a":111.0,"p":"BF"},{"d":"2026-02-11","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-12","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-12","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-12","a":80.0,"p":"BF"},{"d":"2026-02-13","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-13","a":150.0,"p":"Apercibimiento"},{"d":"2026-02-13","a":37.0,"p":"BF"},{"d":"2026-02-13","a":1152.0,"p":"Pack BF + Marca"},{"d":"2026-02-13","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-13","a":395.0,"p":"RM"},{"d":"2026-02-18","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-18","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-18","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-18","a":37.0,"p":"BF"},{"d":"2026-02-18","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-19","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-19","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-19","a":37.0,"p":"BF"},{"d":"2026-02-20","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-23","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-23","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-23","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-24","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-24","a":37.0,"p":"BF"},{"d":"2026-02-25","a":464.0,"p":"Pack BF + Marca"},{"d":"2026-02-25","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-25","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-02-25","a":440.0,"p":"Pack BF + Marca"},{"d":"2026-02-26","a":80.0,"p":"BF"},{"d":"2026-02-26","a":37.0,"p":"BF"},{"d":"2026-03-02","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-04","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-05","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-06","a":508.8,"p":"Pack BF + Marca"},{"d":"2026-03-06","a":508.8,"p":"Pack BF + Marca"},{"d":"2026-03-06","a":508.8,"p":"Pack BF + Marca"},{"d":"2026-03-06","a":508.8,"p":"Pack BF + Marca"},{"d":"2026-03-06","a":508.8,"p":"Pack BF + Marca"},{"d":"2026-03-06","a":508.8,"p":"Pack BF + Marca"},{"d":"2026-03-06","a":461.2,"p":"Pack BF + Marca"},{"d":"2026-03-06","a":461.2,"p":"Pack BF + Marca"},{"d":"2026-03-09","a":404.8,"p":"Pack BF + Marca"},{"d":"2026-03-09","a":404.8,"p":"Pack BF + Marca"},{"d":"2026-03-09","a":404.8,"p":"Pack BF + Marca"},{"d":"2026-03-09","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-09","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-09","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-09","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-10","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-13","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-13","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-13","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-13","a":37.0,"p":"BF"},{"d":"2026-03-13","a":37.0,"p":"BF"},{"d":"2026-03-13","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-13","a":37.0,"p":"BF"},{"d":"2026-03-13","a":37.0,"p":"BF"},{"d":"2026-03-13","a":37.0,"p":"BF"},{"d":"2026-03-16","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-16","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-17","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-17","a":37.0,"p":"BF"},{"d":"2026-03-17","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-18","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-18","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-18","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-18","a":400.0,"p":"RM"},{"d":"2026-03-18","a":37.0,"p":"BF"},{"d":"2026-03-18","a":80.0,"p":"BF"},{"d":"2026-03-19","a":80.0,"p":"BF"},{"d":"2026-03-19","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-19","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-19","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-19","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-19","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-18","a":847.2,"p":"Pack BF + Marca"},{"d":"2026-03-23","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-23","a":80.0,"p":"BF"},{"d":"2026-03-23","a":37.0,"p":"BF"},{"d":"2026-03-23","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-24","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-24","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-24","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-25","a":400.0,"p":"RM"},{"d":"2026-03-26","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-26","a":80.0,"p":"BF"},{"d":"2026-03-27","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-27","a":404.8,"p":"Pack BF + Marca"},{"d":"2026-03-27","a":404.8,"p":"Pack BF + Marca"},{"d":"2026-03-27","a":404.8,"p":"Pack BF + Marca"},{"d":"2026-03-27","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-27","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-30","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-03-30","a":300.8,"p":"Pack BF + Marca"},{"d":"2026-03-30","a":300.8,"p":"Pack BF + Marca"},{"d":"2026-03-30","a":300.8,"p":"Pack BF + Marca"},{"d":"2026-03-30","a":300.8,"p":"Pack BF + Marca"},{"d":"2026-03-30","a":300.8,"p":"Pack BF + Marca"},{"d":"2026-03-30","a":300.8,"p":"Pack BF + Marca"},{"d":"2026-03-30","a":300.8,"p":"Pack BF + Marca"},{"d":"2026-03-31","a":68.0,"p":"BF"},{"d":"2026-03-31","a":68.0,"p":"BF"},{"d":"2026-03-31","a":68.0,"p":"BF"},{"d":"2026-04-01","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-02","a":376.0,"p":"RM"},{"d":"2026-04-02","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-06","a":37.0,"p":"BF"},{"d":"2026-04-06","a":37.0,"p":"BF"},{"d":"2026-04-06","a":37.0,"p":"BF"},{"d":"2026-04-06","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-07","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-07","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-07","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-07","a":380.0,"p":"Upsell Pack + BF"},{"d":"2026-04-07","a":37.0,"p":"BF"},{"d":"2026-04-07","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-07","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-08","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-08","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-09","a":404.8,"p":"Pack BF + Marca"},{"d":"2026-04-09","a":404.8,"p":"Pack BF + Marca"},{"d":"2026-04-09","a":404.8,"p":"Pack BF + Marca"},{"d":"2026-04-09","a":380.0,"p":"Upsell Pack + BF"},{"d":"2026-04-09","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-09","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-09","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-10","a":380.0,"p":"Upsell Pack + BF"},{"d":"2026-04-14","a":80.0,"p":"BF"},{"d":"2026-04-14","a":37.0,"p":"BF"},{"d":"2026-04-14","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-14","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-14","a":80.0,"p":"BF"},{"d":"2025-04-15","a":80.0,"p":"BF"},{"d":"2025-04-16","a":480.0,"p":"Pack BF + Marca"},{"d":"2025-04-16","a":37.0,"p":"BF"},{"d":"2026-04-17","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-17","a":80.0,"p":"BF"},{"d":"2026-04-20","a":80.0,"p":"BF"},{"d":"2026-04-20","a":80.0,"p":"BF"},{"d":"2026-04-20","a":37.0,"p":"BF"},{"d":"2026-04-21","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-21","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-22","a":37.0,"p":"BF"},{"d":"2026-04-22","a":37.0,"p":"BF"},{"d":"2026-04-22","a":400.0,"p":"RM"},{"d":"2026-04-23","a":80.0,"p":"BF"},{"d":"2026-04-23","a":80.0,"p":"BF"},{"d":"2026-04-23","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-24","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-24","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-24","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-24","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-27","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-27","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-27","a":80.0,"p":"BF"},{"d":"2026-04-27","a":80.0,"p":"BF"},{"d":"2026-04-27","a":80.0,"p":"BF"},{"d":"2026-04-28","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-28","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-04-29","a":400.0,"p":"Pack BF + Marca"},{"d":"2026-05-04","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-04","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-06","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-08","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-08","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-08","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-08","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-08","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-08","a":436.5,"p":"Pack BF + Marca"},{"d":"2026-05-08","a":436.5,"p":"Pack BF + Marca"},{"d":"2026-05-08","a":436.5,"p":"Pack BF + Marca"},{"d":"2026-05-11","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-12","a":400.0,"p":"RM"},{"d":"2026-05-12","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-12","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-12","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-13","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-13","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-13","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-13","a":80.0,"p":"BF"},{"d":"2026-05-13","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-14","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-14","a":37.0,"p":"BF"},{"d":"2026-05-14","a":80.0,"p":"BF"},{"d":"2026-05-14","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-14","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-15","a":37.0,"p":"BF"},{"d":"2026-05-15","a":437.0,"p":"Pack BF + Marca"},{"d":"2026-05-18","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-18","a":80.0,"p":"BF"},{"d":"2026-05-19","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-19","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-19","a":37.0,"p":"BF"},{"d":"2026-05-19","a":400.0,"p":"RM"},{"d":"2026-05-19","a":80.0,"p":"BF"},{"d":"2026-05-20","a":400.0,"p":"RM"},{"d":"2026-05-21","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-21","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-22","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-22","a":37.0,"p":"BF"},{"d":"2026-05-22","a":37.0,"p":"BF"},{"d":"2026-05-21","a":150.0,"p":"Apercibimiento"},{"d":"2026-05-26","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-26","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-25","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-26","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-26","a":37.0,"p":"BF"},{"d":"2026-05-26","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-26","a":80.0,"p":"BF"},{"d":"2026-05-27","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-27","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-05-27","a":80.0,"p":"BF"},{"d":"2026-05-28","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-06-01","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-06-01","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-06-01","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-06-01","a":80.0,"p":"BF"},{"d":"2026-06-04","a":80.0,"p":"BF"},{"d":"2026-06-04","a":37.0,"p":"BF"},{"d":"2026-06-04","a":37.0,"p":"BF"},{"d":"2026-06-04","a":400.0,"p":"RM"},{"d":"2026-06-04","a":37.0,"p":"BF"},{"d":"2026-06-04","a":400.0,"p":"RM"},{"d":"2026-06-05","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-06-05","a":400.0,"p":"RM"},{"d":"2026-06-09","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-06-09","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-06-11","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-06-11","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-06-12","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-06-12","a":74.0,"p":"BF"},{"d":"2026-06-12","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-06-12","a":80.0,"p":"BF"},{"d":"2026-06-12","a":400.0,"p":"RM"},{"d":"2026-06-15","a":480.0,"p":"Pack BF + Marca"},{"d":"2026-06-16","a":480.0,"p":"Pack BF + Marca"}];
+const GOAL_KEY = "mqi_marcas_goals_v1";
+const ADS_KEY  = "mqi_marcas_ads_v1";
+const DEFAULT_GOALS = {"2026-06": 5055.35};
+
+const fmt = n => "$" + (Number(n)||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmt0 = n => (Number(n)||0).toLocaleString("en-US",{maximumFractionDigits:0});
+const norm = s => (s||"").toString().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+
+// ---------- estado ----------
+let SALES = [];            // {date:Date, amount:number, prod:string, cli:string, resp:string}
+let refMonday = mondayOf(new Date());
+let adsParsed = null;      // {periods:[{label,spend,conv,cpl}], totalLabel}
+
+// ---------- utilidades de fecha ----------
+function mondayOf(d){const x=new Date(d);const wd=(x.getDay()+6)%7;x.setDate(x.getDate()-wd);x.setHours(0,0,0,0);return x;}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
+function fridayOf(mon){return addDays(mon,4);}
+function sameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
+function monthKey(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}
+const MES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+function weekLabel(mon){const fri=fridayOf(mon);const sm=mon.getDate(), sM=MES[mon.getMonth()], em=fri.getDate(), eM=MES[fri.getMonth()];
+  return (sM===eM) ? `${sm}–${em} ${eM} ${fri.getFullYear()}` : `${sm} ${sM} – ${em} ${eM} ${fri.getFullYear()}`;}
+
+// ---------- metas por mes ----------
+function getGoals(){try{return Object.assign({}, DEFAULT_GOALS, JSON.parse(localStorage.getItem(GOAL_KEY)||"{}"));}catch(e){return Object.assign({},DEFAULT_GOALS);}}
+function setGoal(mk,val){let g={};try{g=JSON.parse(localStorage.getItem(GOAL_KEY)||"{}");}catch(e){}; g[mk]=val; localStorage.setItem(GOAL_KEY,JSON.stringify(g));}
+function goalForMonth(mk){const g=getGoals();return (mk in g)?g[mk]:null;}
+
+// ---------- CSV parser (comillas) ----------
+function parseCSV(text, delim){
+  delim = delim || detectDelim(text);
+  const rows=[]; let row=[], field="", i=0, q=false; const n=text.length;
+  while(i<n){const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){field+='"';i+=2;continue;} q=false;i++;continue;} field+=c;i++;continue; }
+    if(c==='"'){q=true;i++;continue;}
+    if(c===delim){row.push(field);field="";i++;continue;}
+    if(c==='\n'){row.push(field);rows.push(row);row=[];field="";i++;continue;}
+    if(c==='\r'){i++;continue;}
+    field+=c;i++;
+  }
+  row.push(field); if(row.length>1||row[0]!=="") rows.push(row);
+  return rows;
+}
+function detectDelim(text){const l=(text.split(/\r?\n/).find(x=>x.trim())||"");
+  const c={",":(l.split(",").length-1),"\t":(l.split("\t").length-1),";":(l.split(";").length-1)};
+  return Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0]||",";}
+function money(s){if(s==null)return 0;let t=String(s).replace(/[^0-9.,-]/g,"");
+  if(t.indexOf(",")>-1 && t.indexOf(".")>-1){t=t.replace(/,/g,"");}        // 1,234.56
+  else if(t.indexOf(",")>-1 && t.indexOf(".")===-1){t=t.replace(/,/g,".");} // 1234,56
+  const v=parseFloat(t);return isNaN(v)?0:v;}
+function parseDMY(s){if(!s)return null;const m=String(s).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);if(!m)return null;
+  let[,d,mo,y]=m;d=+d;mo=+mo;y=+y;if(y<100)y+=2000;if(mo<1||mo>12||d<1||d>31||y<2000)return null;
+  const dt=new Date(y,mo-1,d);dt.setHours(0,0,0,0);return dt;}
+
+// ================= VENTAS (Sheet en vivo) =================
+function fmtDate(iso){const [y,m,d]=iso.split("-");return d+"/"+m+"/"+y;}
+function loadSnapshot(){
+  SALES = SNAPSHOT.map(o=>{const [y,m,d]=o.d.split("-").map(Number);const dt=new Date(y,m-1,d);dt.setHours(0,0,0,0);return {date:dt,amount:o.a,prod:o.p||"\u2014",cli:"",resp:""};});
+}
+// ── REEMPLAZA ESTA URL CON LA DE TU WEB APP ────────────────────────────────
+// Extensiones → Apps Script → Implementar → Nueva implementación
+// Web App · Ejecutar como: Yo · Acceso: Cualquier persona → copiar URL aquí:
+const API_URL = "https://script.google.com/macros/s/AKfycbz-Ekmk3cBcDr1vj98m42pC_xELTTDvHD0PkDBLO33iF0jix-qNqCLuEL252r0gmFyp/exec";
+// ───────────────────────────────────────────────────────────────────────────
+
+function loadSales(){
+  const st=document.getElementById("loadState");
+
+  if(!API_URL || API_URL==="PEGA_AQUI_LA_URL_DE_TU_WEB_APP"){
+    loadSnapshot();
+    st.innerHTML='<span class="pill warn">⚠ Modo offline</span> Datos del snapshot ('+fmtDate(SNAP_DATE)+'). Configura API_URL para datos en vivo.';
+    render();
+    return;
+  }
+
+  st.innerHTML='<span class="spin"></span> Cargando datos desde Google Sheets…';
+
+  fetch(API_URL)
+    .then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+    .then(json=>{
+      if(!json.ok) throw new Error(json.error||"Error desconocido");
+      SALES = json.data.map(o=>{
+        const [y,m,d]=o.d.split("-").map(Number);
+        const dt=new Date(y,m-1,d); dt.setHours(0,0,0,0);
+        return {date:dt, amount:o.a, prod:o.p||"—", cli:"", resp:""};
+      });
+      st.innerHTML='<span class="pill ok">✓ En vivo</span> '+fmt0(SALES.length)+' ventas · actualizado '+json.ts;
+      render();
+    })
+    .catch(err=>{
+      console.warn("API error, usando snapshot:", err.message);
+      loadSnapshot();
+      st.innerHTML='<span class="pill bad">Sin conexión</span> Usando snapshot ('+fmtDate(SNAP_DATE)+'). Error: '+err.message;
+      render();
+    });
+}
+function extractMarcas(csv){
+  const rows=parseCSV(csv, ",");
+  if(!rows.length) return [];
+  const hdr=rows[0].map(h=>h.trim());
+  const H=hdr.map(norm);
+  const find=(test)=>H.findIndex(test);
+  const ci=find(h=>h==="categoria"||h.startsWith("categor"));
+  const mi=find(h=>h.indexOf("dinero")>-1);
+  let fi=H.findIndex(h=>h==="fecha");
+  if(fi<0) fi=find(h=>h==="fecha"||(h.indexOf("fecha")>-1 && h.indexOf("dia")===-1 && h.indexOf("produc")===-1 && h.indexOf("entrada")===-1));
+  const pi=find(h=>h==="producto");
+  const cli=find(h=>h==="cliente");
+  const ri=find(h=>h==="responsable");
+  const out=[];
+  for(let k=1;k<rows.length;k++){const r=rows[k];
+    if(!r||r.length<=Math.max(ci,mi,fi)) continue;
+    if(ci<0||norm(r[ci])!=="marcas") continue;
+    const dt=parseDMY(r[fi]); if(!dt) continue;
+    out.push({date:dt, amount:money(r[mi]), prod:(pi>-1?r[pi]:"").trim()||"—", cli:(cli>-1?r[cli]:"").trim(), resp:(ri>-1?r[ri]:"").trim()});
+  }
+  return out;
+}
+
+// ================= RENDER =================
+function render(){
+  const mon=refMonday, fri=fridayOf(mon);
+  document.getElementById("weekLbl").textContent = weekLabel(mon);
+  // meta del mes
+  const mk=monthKey(mon);
+  document.getElementById("metaMonthLbl").textContent = "Meta semanal · "+MES[mon.getMonth()]+" "+mon.getFullYear()+" ($)";
+  const goal = goalForMonth(mk);
+  const mInput=document.getElementById("metaInput");
+  if(document.activeElement!==mInput) mInput.value = (goal!=null? goal : "");
+  // ventas de la semana
+  const wk=SALES.filter(s=>s.date>=mon && s.date<=fri);
+  const total=wk.reduce((a,s)=>a+s.amount,0);
+  renderVentas(wk,total);
+  renderCumplProj(total, goal, mon, fri, wk.length);
+  if(adsParsed) renderAds();
+  document.getElementById("srcFoot").innerHTML =
+    'Fuente: Google Sheets «Data Ventas – Tablero» · hoja Ventas (instantánea generada vía conector Drive). '+
+    'La meta de cada mes se guarda en este navegador; edítala arriba si cambia.';
+}
+
+function renderVentas(wk,total){
+  const k=document.getElementById("ventasKpis");
+  const tickets=wk.length;
+  const avg = tickets? total/tickets : 0;
+  k.innerHTML =
+    kpi("Vendido (Marcas)", fmt(total)) +
+    kpi("N° de ventas", fmt0(tickets)) +
+    kpi("Ticket promedio", fmt(avg));
+  // por día
+  const mon=refMonday;
+  const days=[0,1,2,3,4].map(i=>addDays(mon,i));
+  const byDay={};
+  wk.forEach(s=>{const key=s.date.toDateString();byDay[key]=(byDay[key]||0)+s.amount;});
+  let rowsHtml = days.map(d=>{
+    const v=byDay[d.toDateString()]||0;
+    const dd=["Lun","Mar","Mié","Jue","Vie"][((d.getDay()+6)%7)];
+    const isToday=sameDay(d,new Date());
+    return `<tr><td>${dd} ${d.getDate()}/${d.getMonth()+1}${isToday?' <span class="pill warn">hoy</span>':''}</td><td class="num">${v?fmt(v):'<span class="muted">—</span>'}</td></tr>`;
+  }).join("");
+  document.getElementById("ventasByDay").innerHTML =
+    `<table><thead><tr><th>Día</th><th class="num">Ventas Marcas</th></tr></thead><tbody>${rowsHtml}</tbody></table>`;
+  // por producto
+  const byProd={};
+  wk.forEach(s=>{byProd[s.prod]=byProd[s.prod]||{n:0,v:0};byProd[s.prod].n++;byProd[s.prod].v+=s.amount;});
+  const prods=Object.entries(byProd).sort((a,b)=>b[1].v-a[1].v);
+  document.getElementById("ventasByProd").innerHTML = prods.length ?
+    `<table><thead><tr><th>Producto</th><th class="num">N°</th><th class="num">Monto</th></tr></thead><tbody>`+
+    prods.map(([p,o])=>`<tr><td>${esc(p)}</td><td class="num">${o.n}</td><td class="num">${fmt(o.v)}</td></tr>`).join("")+
+    `</tbody></table>` :
+    `<p class="muted" style="margin:6px 0 0">Sin ventas de Marcas registradas en esta semana.</p>`;
+}
+
+function renderCumplProj(total, goal, mon, fri, tickets){
+  const cumpl=document.getElementById("cumpl");
+  const proj=document.getElementById("proj");
+  if(goal==null){
+    cumpl.innerHTML = `<div class="err">No hay meta definida para <b>${MES[mon.getMonth()]} ${mon.getFullYear()}</b>. Ingresa la <b>meta semanal</b> de este mes en el campo de arriba para calcular el cumplimiento.</div>`;
+    proj.innerHTML = `<p class="muted">Define la meta del mes para ver la proyección.</p>`;
+    return;
+  }
+  const pct = goal>0 ? (total/goal*100) : 0;
+  const cumplido = total>=goal;
+  const color = cumplido? "var(--ok)" : (pct>=60? "var(--warn)" : "var(--bad)");
+  const barW = Math.min(100,Math.max(0,pct));
+  let head = cumplido
+    ? `<span class="pill ok">Cumplido ✓</span> Sobrecumplimiento: <b>${fmt(total-goal)}</b> (${(pct-100).toFixed(1)}% sobre la meta)`
+    : `<span class="pill bad">Falta</span> para la meta: <b>${fmt(goal-total)}</b>`;
+  cumpl.innerHTML =
+    `<div class="kpis" style="margin-bottom:12px">
+       ${kpi("Meta semanal", fmt(goal))}
+       ${kpi("Vendido", fmt(total))}
+       ${kpi("Avance", pct.toFixed(1)+"%")}
+     </div>
+     <div class="gauge"><span style="width:${barW}%;background:${color}"></span><div class="pct">${pct.toFixed(0)}%</div></div>
+     <p style="margin:12px 0 0">${head}</p>`;
+
+  // ----- proyección -----
+  const today=new Date(); today.setHours(0,0,0,0);
+  const idxToday=(today.getDay()+6)%7; // Mon=0..Sun=6
+  let estado, remaining, elapsed;
+  if(today < mon){ estado="futura"; remaining=5; elapsed=0; }
+  else if(today > fri){ estado="cerrada"; remaining=0; elapsed=5; }
+  else { estado="actual"; remaining = (idxToday<=4)? (5-idxToday) : 0; elapsed = Math.min(5, idxToday+1); }
+
+  if(cumplido){
+    proj.innerHTML = `<p><span class="pill ok">Meta cumplida</span> No se requiere proyección. Excedente de <b>${fmt(total-goal)}</b>.</p>`;
+    return;
+  }
+  const falta = goal-total;
+  if(estado==="cerrada" || remaining<=0){
+    proj.innerHTML = `<p>La semana (lun–vie) ya cerró. <span class="pill bad">No se cumplió</span> · faltaron <b>${fmt(falta)}</b> para la meta de ${fmt(goal)}.</p>`;
+    return;
+  }
+  const perDay = falta/remaining;
+  const pace = elapsed>0 ? total/elapsed : 0;
+  const projEnd = pace*5;
+  const dayNames=["lunes","martes","miércoles","jueves","viernes"];
+  const remDays = dayNames.slice(5-remaining);
+  proj.innerHTML =
+    `<div class="kpis">
+       ${kpi("Días restantes", remaining+" <small>("+(estado==="futura"?"sem. no iniciada":remDays.join(", "))+")</small>")}
+       ${kpi("Necesario por día", fmt(perDay))}
+       ${kpi("Falta total", fmt(falta))}
+     </div>
+     <p style="margin:12px 0 0">Para cerrar la meta de <b>${fmt(goal)}</b> hay que vender <b>${fmt(perDay)}</b> por día en los <b>${remaining}</b> día(s) que quedan.</p>
+     ${elapsed>0?`<p class="note">Ritmo actual: ${fmt(pace)}/día → proyección a fin de semana al ritmo actual: <b>${fmt(projEnd)}</b> (${projEnd>=goal?'alcanzaría':'no alcanzaría'} la meta).</p>`:''}`;
+}
+
+function kpi(k,v){return `<div class="kpi"><div class="k">${k}</div><div class="v">${v}</div></div>`;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+// ================= ADS (subida) =================
+let adsRaw=null; // {rows, hdr}
+document.getElementById("adsFile").addEventListener("change", async (e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  const errEl=document.getElementById("adsErr"); errEl.innerHTML="";
+  const name=f.name.toLowerCase();
+  if(name.endsWith(".xls")||name.endsWith(".xlsx")){
+    errEl.innerHTML=`<div class="err">El archivo es Excel. Por favor expórtalo/guárdalo como <b>CSV</b> en Ads Manager (o «Guardar como CSV» en Excel) y vuelve a subirlo. El artefacto procesa CSV/TSV.</div>`;
+    return;
+  }
+  const text=await f.text();
+  try{
+    const rows=parseCSV(text);
+    // localizar fila de encabezado: la primera con >=3 columnas no vacías
+    let hi=0; for(let i=0;i<Math.min(rows.length,8);i++){ if(rows[i].filter(x=>x.trim()).length>=3){hi=i;break;} }
+    const hdr=rows[hi].map(h=>h.trim());
+    adsRaw={hdr, rows:rows.slice(hi+1)};
+    buildAdsMapping(hdr);
+    computeAds();
+  }catch(err){ errEl.innerHTML=`<div class="err">No se pudo leer el archivo: ${esc(err.message||err)}</div>`; }
+});
+
+function guessCol(H, kws){for(const kw of kws){const i=H.findIndex(h=>h.indexOf(kw)>-1);if(i>-1)return i;}return -1;}
+let adsMapSel={camp:-1,spend:-1,conv:-1,date:-1};
+function buildAdsMapping(hdr){
+  const H=hdr.map(norm);
+  adsMapSel.camp = guessCol(H,["nombre de la campana","campana","campaign name","campaign"]);
+  adsMapSel.spend= guessCol(H,["importe gastado","amount spent","gastado","spend","inversion","importe"]);
+  adsMapSel.conv = guessCol(H,["conversaciones","mensajes iniciados","messaging conversations","conversations started","mensaj"]);
+  adsMapSel.date = guessCol(H,["inicio del informe","reporting starts","dia","fecha","week","semana","date","mes"]);
+  const opts=(sel)=>hdr.map((h,i)=>`<option value="${i}" ${i===sel?'selected':''}>${esc(h||('Col '+(i+1)))}</option>`).join("");
+  document.getElementById("adsMap").innerHTML =
+    `<div class="note">Columnas detectadas (ajústalas si es necesario):</div>
+     <div class="map">
+       ${mapSel("camp","Campaña",opts(adsMapSel.camp))}
+       ${mapSel("spend","Inversión",opts(adsMapSel.spend))}
+       ${mapSel("conv","Conversaciones (msg)",opts(adsMapSel.conv))}
+       ${mapSel("date","Semana / fecha (opc.)","<option value=\"-1\">— sin desglose —</option>"+opts(adsMapSel.date))}
+     </div>`;
+  ["camp","spend","conv","date"].forEach(key=>{
+    const el=document.getElementById("map_"+key);
+    el.addEventListener("change",()=>{adsMapSel[key]=parseInt(el.value,10);computeAds();});
+  });
+}
+function mapSel(key,label,opts){return `<div class="ctl"><label>${label}</label><select id="map_${key}">${opts}</select></div>`;}
+
+function isoMon(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function parseAnyDate(s){
+  if(s==null) return null; s=String(s).trim(); if(!s) return null;
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m){return new Date(+m[1],+m[2]-1,+m[3]);}
+  const d=parseDMY(s); if(d) return d;
+  const t=Date.parse(s); if(!isNaN(t)){const x=new Date(t);x.setHours(0,0,0,0);return x;}
+  return null;
+}
+function weekShort(mon){const fri=addDays(mon,4);return `${mon.getDate()}/${mon.getMonth()+1}–${fri.getDate()}/${fri.getMonth()+1}`;}
+
+function computeAds(){
+  if(!adsRaw) return;
+  const {hdr,rows}=adsRaw;
+  const {camp,spend,conv,date}=adsMapSel;
+  const kEl=document.getElementById("adsKpis");
+  if(camp<0||spend<0||conv<0){kEl.innerHTML='<div class="err">Selecciona al menos Campaña, Inversión y Conversaciones.</div>';return;}
+  const dateBased = date>-1;
+  const byWeek={}; const total={spend:0,conv:0}; let used=0, dated=0;
+  for(const r of rows){
+    if(!r||r.length<=Math.max(camp,spend,conv)) continue;
+    if(norm(r[camp]).indexOf("marca")===-1) continue; // marca o marcas
+    used++;
+    const sp=money(r[spend]);
+    const cv=parseFloat(String(r[conv]).replace(/[^0-9.,-]/g,"").replace(",","."))||0;
+    total.spend+=sp; total.conv+=cv;
+    if(dateBased){
+      const dt=parseAnyDate(r[date]);
+      if(dt){ dated++; const mk=isoMon(mondayOf(dt)); const g=byWeek[mk]||(byWeek[mk]={spend:0,conv:0}); g.spend+=sp; g.conv+=cv; }
+    }
+  }
+  // si la columna "fecha" no produjo ninguna fecha válida, tratamos como agregado
+  adsParsed={dateBased: dateBased && dated>0, byWeek, total, usedRows:used};
+  try{localStorage.setItem(ADS_KEY,JSON.stringify(adsParsed));}catch(e){}
+  renderAds();
+}
+
+function renderAds(){
+  const kEl=document.getElementById("adsKpis");
+  const tWrap=document.getElementById("adsTable");
+  const trendWrap=document.getElementById("adsTrendWrap");
+  if(!adsParsed){kEl.innerHTML="";return;}
+  if(adsParsed.usedRows===0){kEl.innerHTML='<div class="err">No se encontraron campañas con «marca» en el archivo cargado.</div>';tWrap.innerHTML="";trendWrap.style.display="none";return;}
+
+  // --- sin desglose por fecha: agregado, no depende de la semana ---
+  if(!adsParsed.dateBased){
+    const t=adsParsed.total; const cpl=t.conv>0?t.spend/t.conv:null;
+    kEl.innerHTML=
+      `<div class="note" style="margin-bottom:8px">Agregado del archivo (sin columna de fecha → no se puede separar por semana). ${fmt0(adsParsed.usedRows)} fila(s) «marca». Para ver ads por semana, exporta de Ads Manager con desglose <b>por semana</b> e incluye la columna de fecha/«Inicio del informe».</div>
+       <div class="kpis">${kpi("Inversión",fmt(t.spend))}${kpi("Conversaciones",fmt0(t.conv))}${kpi("CPL",cpl!=null?fmt(cpl):"—")}</div>`;
+    tWrap.innerHTML=""; trendWrap.style.display="none"; return;
+  }
+
+  // --- con fecha: semana seleccionada, con fallback a la más reciente con datos ---
+  const selKey=isoMon(refMonday);
+  const allWeeks=Object.keys(adsParsed.byWeek).sort();
+  let showKey=selKey, fallback=false;
+  if(!adsParsed.byWeek[selKey]){
+    const prior=allWeeks.filter(w=>w<=selKey);
+    showKey = prior.length? prior[prior.length-1] : (allWeeks.length? allWeeks[allWeeks.length-1] : selKey);
+    fallback = !!adsParsed.byWeek[showKey];
+  }
+  const sel=adsParsed.byWeek[showKey];
+  const selCpl = sel&&sel.conv>0? sel.spend/sel.conv : null;
+  const showMon = (()=>{const [y,mo,da]=showKey.split("-").map(Number);return new Date(y,mo-1,da);})();
+  const headNote = (sel && fallback)
+    ? `La semana <b>${weekLabel(refMonday)}</b> aún no tiene datos de ads · mostrando la más reciente con datos: <b>${weekLabel(showMon)}</b>`
+    : `Semana seleccionada: <b>${weekLabel(refMonday)}</b>`;
+  kEl.innerHTML=
+    `<div class="note" style="margin-bottom:8px">${headNote}</div>
+     <div class="kpis">
+       ${kpi("Inversión", sel?fmt(sel.spend):'<span class="muted">—</span>')}
+       ${kpi("Conversaciones", sel?fmt0(sel.conv):'<span class="muted">—</span>')}
+       ${kpi("CPL", selCpl!=null?fmt(selCpl):'<span class="muted">—</span>')}
+     </div>
+     ${sel?'':'<p class="note" style="margin-top:6px">El archivo cargado no tiene datos de ads. Sube un export con semanas que incluyan campañas «marca».</p>'}`;
+
+  // tendencia: últimas 4 semanas hasta la mostrada (inclusive)
+  const weeks=allWeeks;
+  const upto=weeks.filter(w=>w<=showKey);
+  const last4=(upto.length?upto:weeks).slice(-4);
+  const P=last4.map(w=>{const o=adsParsed.byWeek[w];const [y,mo,da]=w.split("-").map(Number);const mon=new Date(y,mo-1,da);
+    return {key:w,label:weekShort(mon),spend:o.spend,conv:o.conv,cpl:o.conv>0?o.spend/o.conv:null,sel:w===showKey};});
+  if(P.length){
+    trendWrap.style.display="block"; drawAdsChart(P);
+    const tot=P.reduce((a,p)=>({spend:a.spend+p.spend,conv:a.conv+p.conv}),{spend:0,conv:0});
+    const totCpl=tot.conv>0?tot.spend/tot.conv:null;
+    tWrap.innerHTML=`<table><thead><tr><th>Semana</th><th class="num">Inversión</th><th class="num">Conversac.</th><th class="num">CPL</th></tr></thead><tbody>`+
+      P.map(p=>`<tr${p.sel?' style="background:var(--soft)"':''}><td>${esc(p.label)}${p.sel?' <span class="pill warn">sel.</span>':''}</td><td class="num">${fmt(p.spend)}</td><td class="num">${fmt0(p.conv)}</td><td class="num">${p.cpl!=null?fmt(p.cpl):'—'}</td></tr>`).join("")+
+      `<tr><td><b>Total (${P.length} sem.)</b></td><td class="num"><b>${fmt(tot.spend)}</b></td><td class="num"><b>${fmt0(tot.conv)}</b></td><td class="num"><b>${totCpl!=null?fmt(totCpl):'—'}</b></td></tr>`+
+      `</tbody></table>`;
+  } else { trendWrap.style.display="none"; tWrap.innerHTML=""; }
+}
+
+let adsChart=null;
+function drawAdsChart(P){
+  const ctx=document.getElementById("adsChart").getContext("2d");
+  if(adsChart) adsChart.destroy();
+  adsChart=new Chart(ctx,{
+    data:{labels:P.map(p=>p.label),
+      datasets:[
+        {type:"bar",label:"Conversaciones",data:P.map(p=>p.conv),backgroundColor:"rgba(109,40,217,.25)",borderColor:"#6d28d9",yAxisID:"y",borderWidth:1},
+        {type:"bar",label:"Inversión ($)",data:P.map(p=>p.spend),backgroundColor:"rgba(14,165,164,.25)",borderColor:"#0ea5a4",yAxisID:"y",borderWidth:1},
+        {type:"line",label:"CPL ($)",data:P.map(p=>p.cpl),borderColor:"#d97706",backgroundColor:"#d97706",yAxisID:"y2",tension:.3,pointRadius:4}
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{boxWidth:12}}},
+      scales:{y:{beginAtZero:true,title:{display:true,text:"Inversión / Conversaciones"}},
+              y2:{beginAtZero:true,position:"right",grid:{drawOnChartArea:false},title:{display:true,text:"CPL ($)"}}}}
+  });
+}
+
+// ================= eventos =================
+document.getElementById("prevW").onclick=()=>{refMonday=addDays(refMonday,-7);render();};
+document.getElementById("nextW").onclick=()=>{refMonday=addDays(refMonday,7);render();};
+document.getElementById("thisW").onclick=()=>{refMonday=mondayOf(new Date());render();};
+document.getElementById("metaInput").addEventListener("change",(e)=>{
+  const v=parseFloat(e.target.value);
+  if(!isNaN(v)&&v>0){setGoal(monthKey(refMonday),v);render();}
+});
+
+// restaurar ads previos
+try{const a=JSON.parse(localStorage.getItem(ADS_KEY)||"null");if(a&&a.byWeek!==undefined){adsParsed=a;renderAds();document.getElementById("adsMap").innerHTML='<div class="note">Mostrando el último archivo cargado (se sincroniza con la semana seleccionada). Sube uno nuevo para actualizar.</div>';}}catch(e){}
+
+render();
+loadSales();
+</script>
+</body>
+</html>
