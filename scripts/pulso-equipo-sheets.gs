@@ -1,17 +1,22 @@
 // ════════════════════════════════════════════════════════════
 //  APPS SCRIPT — Pulso del Equipo Ulpik → Google Sheets + OpenAI
-//  Pegar en: Extensions > Apps Script del Sheet
-//  https://docs.google.com/spreadsheets/d/14Ubs_VXX_DLa86exaL4XslvCfY7XTKthER4CpYQBmpE
+//  Sheet: https://docs.google.com/spreadsheets/d/14Ubs_VXX_DLa86exaL4XslvCfY7XTKthER4CpYQBmpE
+//
+//  Acciones via ?action=
+//    save      → guarda una respuesta
+//    get_all   → devuelve todas las respuestas
+//    classify  → categoriza sugerencia (OpenAI)
+//    observe   → observaciones del período (OpenAI)
+//    feedback  → recomendación individual al enviar (OpenAI)
+//    (sin action) → ping
 //
 //  SETUP OpenAI:
-//  1. ⚙ Proyecto > Configuración del proyecto > Propiedades del script:
+//  1. ⚙ Proyecto > Configuración > Propiedades del script:
 //       OPENAI_API_KEY  = sk-...
 //       OPENAI_MODEL    = gpt-4o-mini   (opcional)
 //  2. Implementar > Nueva implementación > Aplicación web
-//       Ejecutar como: Yo
-//       Quién tiene acceso: Cualquier persona
-//  3. Copiar URL /exec → APPS_SCRIPT_URL en pulso-equipo-ulpik.html
-//  4. Probar: ejecutar testConfig() y testObserve()
+//       Ejecutar como: Yo | Acceso: Cualquier persona
+//  3. Probar: testConfig() → testFeedback() → testObtenerTodas()
 // ════════════════════════════════════════════════════════════
 
 const SHEET_NAME = 'Respuestas';
@@ -19,61 +24,76 @@ const DEFAULT_MODEL = 'gpt-4o-mini';
 const CATEGORIAS = ['PROCESOS', 'COMUNICACIÓN', 'CARGA DE TRABAJO', 'AMBIENTE', 'SIN SUGERENCIA'];
 
 const HEADERS = [
-  'Timestamp',
-  'Semana ISO',
-  'Nombre',
-  'Score Bienestar',
-  'Carga de Trabajo',
-  'Claridad de Rol',
-  'Motivación',
-  'Sugerencia',
-  'Categoría IA',
-  'ID Respuesta'
+  'Timestamp', 'Semana ISO', 'Nombre', 'Score Bienestar',
+  'Carga de Trabajo', 'Claridad de Rol', 'Motivación',
+  'Sugerencia', 'Categoría IA', 'ID Respuesta'
+];
+
+const CAMPO_MAP = [
+  'timestamp', 'semana', 'nombre', 'score',
+  'carga', 'claridad', 'motivacion',
+  'sugerencia', 'categoria', 'id'
 ];
 
 // ════════════════════════════════════════════════════════════
-//  HTTP
+//  HTTP — router principal
 // ════════════════════════════════════════════════════════════
 
 function doGet(e) {
   try {
-    const action = (e && e.parameter && e.parameter.action) || '';
+    const action = (e && e.parameter && e.parameter.action) || 'ping';
+
+    if (action === 'save') {
+      guardarRespuesta(parsePayload_(e));
+      return jsonResponse({ status: 'ok' }, e);
+    }
 
     if (action === 'get_all') {
-      return respond_({ status: 'ok', data: getAllRespuestas_() }, e);
-    }
-    if (action === 'save') {
-      guardarRespuesta_(parsePayload_(e));
-      return respond_({ status: 'ok' }, e);
-    }
-    if (action === 'classify') {
-      return respond_(clasificarSugerencia_(parsePayload_(e)), e);
-    }
-    if (action === 'observe') {
-      return respond_(generarObservaciones_(parsePayload_(e)), e);
-    }
-    if (action === 'feedback') {
-      return respond_(generarFeedback_(parsePayload_(e)), e);
+      return jsonResponse({ status: 'ok', data: obtenerTodas() }, e);
     }
 
-    return respond_({ status: 'ok', message: 'Pulso Ulpik API activa ✓' }, e);
+    if (action === 'classify') {
+      return jsonResponse(clasificarSugerencia_(parsePayload_(e)), e);
+    }
+
+    if (action === 'observe') {
+      return jsonResponse(generarObservaciones_(parsePayload_(e)), e);
+    }
+
+    if (action === 'feedback') {
+      return jsonResponse(generarFeedback_(parsePayload_(e)), e);
+    }
+
+    return jsonResponse({ status: 'ok', message: 'Pulso Ulpik API activa ✓' }, e);
+
   } catch (err) {
     logError(err.toString(), stringifyEvent_(e));
-    return respond_({ status: 'error', message: err.toString() }, e);
+    return jsonResponse({ status: 'error', message: err.toString() }, e);
   }
 }
 
 function doPost(e) {
-  try {
-    guardarRespuesta_(parsePayload_(e));
-    return respond_({ status: 'ok' }, e);
-  } catch (err) {
-    logError(err.toString(), stringifyEvent_(e));
-    return respond_({ status: 'error', message: err.toString() }, e);
-  }
+  return doGet(e);
 }
 
-function respond_(obj, e) {
+function parsePayload_(e) {
+  if (!e) {
+    throw new Error('Sin evento HTTP. Usa testGuardar() o testFeedback() desde el editor.');
+  }
+  if (e.parameter && e.parameter.payload) {
+    try {
+      return JSON.parse(decodeURIComponent(e.parameter.payload));
+    } catch (err) {
+      return JSON.parse(e.parameter.payload);
+    }
+  }
+  if (e.postData && e.postData.contents) {
+    return JSON.parse(e.postData.contents);
+  }
+  throw new Error('Petición vacía. Envía el campo "payload" con el JSON.');
+}
+
+function jsonResponse(obj, e) {
   const text = JSON.stringify(obj);
   const cb = e && e.parameter && e.parameter.callback;
   if (cb && /^[a-zA-Z_$][\w$]*$/.test(cb)) {
@@ -86,75 +106,65 @@ function respond_(obj, e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-function parsePayload_(e) {
-  if (!e) {
-    throw new Error('Sin evento HTTP. No ejecutes doPost directamente: usa testManual().');
-  }
-  if (e.parameter && e.parameter.payload) {
-    return JSON.parse(e.parameter.payload);
-  }
-  if (e.postData && e.postData.contents) {
-    return JSON.parse(e.postData.contents);
-  }
-  throw new Error('Petición vacía. Envía el campo "payload" con el JSON.');
+function stringifyEvent_(e) {
+  if (!e) return '';
+  if (e.parameter && e.parameter.payload) return e.parameter.payload;
+  if (e.postData && e.postData.contents) return e.postData.contents;
+  return '';
 }
 
 // ════════════════════════════════════════════════════════════
 //  Google Sheets
 // ════════════════════════════════════════════════════════════
 
-function guardarRespuesta_(payload) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(SHEET_NAME);
-
-  if (!sheet) {
-    sheet = ss.insertSheet(SHEET_NAME);
-    sheet.appendRow(HEADERS);
-    const headerRange = sheet.getRange(1, 1, 1, HEADERS.length);
-    headerRange.setBackground('#FF5A1F');
-    headerRange.setFontColor('#FFFFFF');
-    headerRange.setFontWeight('bold');
-    sheet.setFrozenRows(1);
-  }
-
-  const semanaISO = calcularSemanaISO(new Date(payload.timestamp || new Date()));
-
+function guardarRespuesta(payload) {
+  const sheet = getOrCreateSheet();
+  const semana = payload.semana || calcularSemanaISO(new Date(payload.timestamp || new Date()));
   sheet.appendRow([
-    payload.timestamp || new Date().toISOString(),
-    semanaISO,
-    payload.nombre || 'Anónimo/a',
-    payload.score || '',
-    payload.carga || '',
-    payload.claridad || '',
+    payload.timestamp  || new Date().toISOString(),
+    semana,
+    payload.nombre     || 'Anónimo/a',
+    payload.score      || '',
+    payload.carga      || '',
+    payload.claridad   || '',
     payload.motivacion || '',
     payload.sugerencia || '',
-    payload.categoria || '',
-    payload.id || ''
+    payload.categoria  || '',
+    payload.id         || ''
   ]);
-
   sheet.autoResizeColumns(1, HEADERS.length);
 }
 
-function getAllRespuestas_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_NAME);
-  if (!sheet || sheet.getLastRow() < 2) return [];
+function obtenerTodas() {
+  const sheet = getOrCreateSheet();
+  const rows = sheet.getDataRange().getValues();
+  if (rows.length <= 1) return [];
 
-  const rows = sheet.getRange(2, 1, sheet.getLastRow(), HEADERS.length).getValues();
-  return rows.map(function(row) {
-    return {
-      timestamp: row[0] ? new Date(row[0]).toISOString() : '',
-      semana: String(row[1] || ''),
-      nombre: String(row[2] || 'Anónimo/a'),
-      score: Number(row[3]) || 0,
-      carga: String(row[4] || ''),
-      claridad: String(row[5] || ''),
-      motivacion: String(row[6] || ''),
-      sugerencia: String(row[7] || ''),
-      categoria: String(row[8] || ''),
-      id: row[9] || ''
-    };
-  }).filter(function(r) { return r.id || r.score; });
+  return rows.slice(1).map(function(row) {
+    const obj = {};
+    CAMPO_MAP.forEach(function(campo, i) {
+      let val = row[i];
+      if (val instanceof Date) val = val.toISOString();
+      if (campo === 'score' || campo === 'id') val = Number(val) || val;
+      obj[campo] = val;
+    });
+    return obj;
+  }).filter(function(r) { return r.timestamp; });
+}
+
+function getOrCreateSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME);
+    sheet.appendRow(HEADERS);
+    const hr = sheet.getRange(1, 1, 1, HEADERS.length);
+    hr.setBackground('#FF5A1F');
+    hr.setFontColor('#FFFFFF');
+    hr.setFontWeight('bold');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
 }
 
 // ════════════════════════════════════════════════════════════
@@ -192,7 +202,7 @@ function clasificarSugerencia_(payload) {
 }
 
 // ════════════════════════════════════════════════════════════
-//  OpenAI — observaciones del período
+//  OpenAI — observaciones del período (Diagnóstico General)
 // ════════════════════════════════════════════════════════════
 
 function generarObservaciones_(payload) {
@@ -251,12 +261,11 @@ function generarObservaciones_(payload) {
   ].join('\n');
 
   const raw = callOpenAI_(prompt, 900, true);
-  const observaciones = parseObservaciones_(raw);
-  return { status: 'ok', observaciones: observaciones };
+  return { status: 'ok', observaciones: parseObservaciones_(raw) };
 }
 
 // ════════════════════════════════════════════════════════════
-//  OpenAI — feedback individual al enviar pulso
+//  OpenAI — feedback individual al enviar pulso (score ≤ 5)
 // ════════════════════════════════════════════════════════════
 
 function generarFeedback_(payload) {
@@ -264,11 +273,6 @@ function generarFeedback_(payload) {
   if (!score || score < 1 || score > 10) {
     throw new Error('Score inválido para feedback.');
   }
-
-  const carga = String(payload.carga || '');
-  const claridad = String(payload.claridad || '');
-  const motivacion = String(payload.motivacion || '');
-  const sugerencia = String(payload.sugerencia || '').trim();
 
   const prompt = [
     'Eres coach de bienestar laboral en Ulpik, una legaltech en Ecuador.',
@@ -278,18 +282,19 @@ function generarFeedback_(payload) {
     'Si el bienestar es 5 o menos, valida lo que siente y ofrece 1-2 acciones concretas y realizables esta semana.',
     '',
     'BIENESTAR (1-10): ' + score,
-    'Carga de trabajo: ' + carga,
-    'Claridad de rol: ' + claridad,
-    'Motivación: ' + motivacion,
-    sugerencia ? 'Sugerencia opcional del empleado: ' + sugerencia : 'Sin sugerencia escrita.',
+    'Carga de trabajo: ' + String(payload.carga || ''),
+    'Claridad de rol: ' + String(payload.claridad || ''),
+    'Motivación: ' + String(payload.motivacion || ''),
+    String(payload.sugerencia || '').trim()
+      ? 'Sugerencia opcional del empleado: ' + String(payload.sugerencia).trim()
+      : 'Sin sugerencia escrita.',
     '',
     'Responde ÚNICAMENTE JSON:',
     '{"mensaje":"1-2 oraciones de validación empática","recomendacion":"1-3 oraciones con acciones concretas para esta semana"}'
   ].join('\n');
 
   const raw = callOpenAI_(prompt, 350, true);
-  const feedback = parseFeedback_(raw);
-  return { status: 'ok', feedback: feedback };
+  return { status: 'ok', feedback: parseFeedback_(raw) };
 }
 
 function parseFeedback_(rawText) {
@@ -314,7 +319,6 @@ function parseObservaciones_(rawText) {
   } catch (e) {
     throw new Error('La IA no devolvió JSON válido.');
   }
-
   return {
     resumen: String(parsed.resumen || '').trim(),
     senales_positivas: Array.isArray(parsed.senales_positivas) ? parsed.senales_positivas : [],
@@ -393,7 +397,7 @@ function calcularSemanaISO(date) {
   return d.getFullYear() + '-W' + String(wn).padStart(2, '0');
 }
 
-function logError(errorMsg, payload) {
+function logError(errorMsg, payloadStr) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     let logSheet = ss.getSheetByName('Logs');
@@ -401,59 +405,44 @@ function logError(errorMsg, payload) {
       logSheet = ss.insertSheet('Logs');
       logSheet.appendRow(['Timestamp', 'Error', 'Payload']);
     }
-    logSheet.appendRow([new Date().toISOString(), errorMsg, String(payload).slice(0, 500)]);
-  } catch (e) {
-    // ignore
-  }
-}
-
-function stringifyEvent_(e) {
-  if (!e) return '';
-  if (e.parameter && e.parameter.payload) return e.parameter.payload;
-  if (e.postData && e.postData.contents) return e.postData.contents;
-  return '';
+    logSheet.appendRow([new Date().toISOString(), errorMsg, String(payloadStr).slice(0, 500)]);
+  } catch (e) { /* silencioso */ }
 }
 
 // ════════════════════════════════════════════════════════════
-//  Pruebas manuales
+//  Pruebas manuales (editor Apps Script)
 // ════════════════════════════════════════════════════════════
 
-function datosPrueba_() {
-  return {
+function testGuardar() {
+  guardarRespuesta({
     id: Date.now(),
     timestamp: new Date().toISOString(),
-    nombre: 'Test Usuario',
-    score: 8,
-    carga: 'Alta pero bien',
+    semana: calcularSemanaISO(new Date()),
+    nombre: 'Test',
+    score: 9,
+    carga: 'Manejable',
     claridad: 'Sí siempre',
     motivacion: 'Muy motivado/a',
-    sugerencia: 'Mejorar la comunicación entre áreas en proyectos urgentes',
-    categoria: 'COMUNICACIÓN'
-  };
+    sugerencia: 'Test ok',
+    categoria: 'PROCESOS'
+  });
+  Logger.log('Guardado OK');
 }
 
-function testManual() {
-  const result = doPost({
-    postData: { contents: JSON.stringify(datosPrueba_()) }
-  });
-  Logger.log(result.getContent());
+function testObtenerTodas() {
+  Logger.log(JSON.stringify(obtenerTodas()));
 }
 
-function testManualWeb() {
-  const result = doGet({
-    parameter: {
-      action: 'save',
-      payload: JSON.stringify(datosPrueba_())
-    }
-  });
-  Logger.log(result.getContent());
+function testConfig() {
+  const key = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
+  Logger.log(key ? 'OPENAI_API_KEY configurada ✓' : 'Falta OPENAI_API_KEY en Propiedades del script');
 }
 
 function testClassify() {
   const result = doGet({
     parameter: {
       action: 'classify',
-      payload: JSON.stringify({ texto: 'Necesitamos mejorar los procesos de onboarding' })
+      payload: encodeURIComponent(JSON.stringify({ texto: 'Necesitamos mejorar los procesos de onboarding' }))
     }
   });
   Logger.log(result.getContent());
@@ -463,13 +452,13 @@ function testFeedback() {
   const result = doGet({
     parameter: {
       action: 'feedback',
-      payload: JSON.stringify({
+      payload: encodeURIComponent(JSON.stringify({
         score: 4,
         carga: 'Desbordante',
         claridad: 'A veces',
         motivacion: 'Regular',
         sugerencia: ''
-      })
+      }))
     }
   });
   Logger.log(result.getContent());
@@ -479,7 +468,7 @@ function testObserve() {
   const result = doGet({
     parameter: {
       action: 'observe',
-      payload: JSON.stringify({
+      payload: encodeURIComponent(JSON.stringify({
         periodo: { tipo: 'semana', label: 'Semana de prueba', clave: '2026-W22' },
         stats: {
           total: 4,
@@ -496,14 +485,9 @@ function testObserve() {
         sugerencias: [
           { texto: 'Más claridad en prioridades', categoria: 'COMUNICACIÓN' }
         ],
-        categorias: { COMUNICACIÓN: 1, PROCESOS: 0 }
-      })
+        categorias: { 'COMUNICACIÓN': 1, 'PROCESOS': 0 }
+      }))
     }
   });
   Logger.log(result.getContent());
-}
-
-function testConfig() {
-  const key = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
-  Logger.log(key ? 'OPENAI_API_KEY configurada ✓' : 'Falta OPENAI_API_KEY en Propiedades del script');
 }
