@@ -86,6 +86,15 @@ body.vista-equipo { background:#FAFAF8; font-family:'DM Sans',sans-serif; color:
 .eq-thanks-score { font-family:'Syne',sans-serif; font-size:48px; font-weight:800; color:var(--naranja); margin:20px 0 8px; }
 .eq-thanks-score-label { font-size:12px; color:#AAA; letter-spacing:1px; text-transform:uppercase; }
 .eq-thanks-cat { display:inline-block; background:#FFF4F0; border:1px solid #FFD4C4; border-radius:20px; padding:6px 16px; font-size:12px; color:var(--naranja); font-weight:600; margin-top:16px; }
+.eq-thanks-feedback { max-width:400px; margin:22px auto 0; text-align:left; background:#FFF8F5; border:1px solid #FFD4C4; border-radius:14px; padding:16px 18px; }
+.eq-thanks-feedback.alerta { background:#FEF2F2; border-color:#FECACA; }
+.eq-thanks-feedback.positiva { background:#F0FDF4; border-color:#BBF7D0; }
+.eq-thanks-feedback-label { font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--naranja); font-weight:600; margin-bottom:8px; }
+.eq-thanks-feedback.alerta .eq-thanks-feedback-label { color:#DC2626; }
+.eq-thanks-feedback.positiva .eq-thanks-feedback-label { color:#16A34A; }
+.eq-thanks-feedback-msg { font-size:14px; line-height:1.65; color:#333; margin:0; }
+.eq-thanks-feedback-rec { margin-top:12px; padding-top:12px; border-top:1px solid rgba(0,0,0,0.06); font-size:13px; line-height:1.6; color:#555; }
+.eq-thanks-feedback-rec strong { color:#333; }
 @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
 
 /* ══════════════ VISTA DIAGNÓSTICO ══════════════ */
@@ -320,6 +329,7 @@ body.vista-sofia { background:var(--dark); font-family:'DM Sans',sans-serif; col
       <p>Tu respuesta ayuda al equipo a tomar mejores decisiones. Cada semana contamos.</p>
       <div class="eq-thanks-score" id="thanks-score">–</div>
       <div class="eq-thanks-score-label">Tu puntuación de esta semana</div>
+      <div id="thanks-feedback-wrap"></div>
       <div id="thanks-cat-wrap"></div>
     </div>
   </div>
@@ -1048,17 +1058,128 @@ function selectOpt(group,btn) {
 }
 
 async function clasificarSugerencia(texto) {
-  if (!texto || texto.trim().length < 5) return 'SIN SUGERENCIA';
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') return 'SIN SUGERENCIA';
+  if (!texto || texto.trim().length < 5) return null;
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') return null;
   try {
     const url = APPS_SCRIPT_URL + '?action=classify&payload=' + encodeURIComponent(JSON.stringify({ texto }));
     const data = await fetchJsonp(url);
     if (data.status === 'error') throw new Error(data.message);
     const cat = String(data.categoria || '').trim().toUpperCase();
-    return CATEGORIAS.includes(cat) ? cat : 'SIN SUGERENCIA';
+    return CATEGORIAS.includes(cat) ? cat : null;
   } catch (e) {
     console.warn('Clasificación IA:', e);
-    return 'SIN SUGERENCIA';
+    return null;
+  }
+}
+
+function feedbackLocal(respuesta) {
+  const tips = [];
+  if (respuesta.score <= 5) {
+    tips.push('Tu bienestar esta semana está en zona de atención — es válido sentirte así.');
+  }
+  if (respuesta.carga === 'Desbordante') {
+    tips.push('Con carga desbordante, conviene hablar con tu líder para repriorizar entregables urgentes.');
+  } else if (respuesta.carga === 'Alta pero bien') {
+    tips.push('La semana fue intensa: protege al menos un bloque de descanso sin reuniones.');
+  }
+  if (respuesta.claridad === 'No del todo') {
+    tips.push('Pide una conversación breve sobre expectativas y prioridades de tu rol.');
+  } else if (respuesta.claridad === 'A veces') {
+    tips.push('Anota las dudas concretas de la semana y compártelas en tu próximo 1:1.');
+  }
+  if (respuesta.motivacion === 'Desmotivado/a') {
+    tips.push('Identifica una tarea pequeña que te dé sentido, o pide apoyo a alguien de confianza del equipo.');
+  } else if (respuesta.motivacion === 'Regular') {
+    tips.push('Un cambio pequeño en tu rutina (pausas, orden de tareas) puede ayudar a recuperar energía.');
+  }
+  return {
+    mensaje: respuesta.score <= 5
+      ? 'Gracias por compartir con honestidad. Tu pulso importa y el equipo puede actuar con esta información.'
+      : 'Gracias por tu check-in semanal.',
+    recomendacion: tips.length
+      ? tips.join(' ')
+      : 'Si algo te pesa, este espacio está para expresarlo — no tienes que cargarlo solo/a.'
+  };
+}
+
+function feedbackPositivoLocal(respuesta) {
+  if (respuesta.score >= 8) {
+    return {
+      mensaje: '¡Buen pulso esta semana! Tu bienestar se ve sólido.',
+      recomendacion: 'Sigue cuidando tu ritmo. Si algo cambia, aquí puedes registrarlo de inmediato.'
+    };
+  }
+  return {
+    mensaje: 'Gracias por completar tu pulso.',
+    recomendacion: 'Hay margen para subir el bienestar hacia 8/10. Pequeños ajustes en carga o claridad pueden marcar la diferencia.'
+  };
+}
+
+async function obtenerFeedbackPulso(respuesta) {
+  if (respuesta.score > 5) {
+    return { feedback: feedbackPositivoLocal(respuesta), ia: false };
+  }
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') {
+    return { feedback: feedbackLocal(respuesta), ia: false };
+  }
+  try {
+    const url = APPS_SCRIPT_URL + '?action=feedback&payload=' + encodeURIComponent(JSON.stringify({
+      score: respuesta.score,
+      carga: respuesta.carga,
+      claridad: respuesta.claridad,
+      motivacion: respuesta.motivacion,
+      sugerencia: respuesta.sugerencia || ''
+    }));
+    const data = await fetchJsonp(url);
+    if (data.status === 'error') throw new Error(data.message);
+    if (data.feedback && data.feedback.mensaje) {
+      return { feedback: data.feedback, ia: true };
+    }
+    throw new Error('Respuesta vacía');
+  } catch (e) {
+    console.warn('Feedback IA:', e);
+    return { feedback: feedbackLocal(respuesta), ia: false };
+  }
+}
+
+function mostrarPantallaGracias(respuesta, categoria, feedbackResult) {
+  const esBajo = respuesta.score <= 5;
+  const iconEl = document.querySelector('#eq-thanks .eq-thanks-icon');
+  const titleEl = document.querySelector('#eq-thanks h2');
+  const descEl = document.querySelector('#eq-thanks p');
+
+  if (iconEl) iconEl.textContent = esBajo ? '🤝' : '🎉';
+  if (titleEl) titleEl.textContent = esBajo ? 'Gracias por tu honestidad' : '¡Gracias por tu pulso!';
+  if (descEl) {
+    descEl.textContent = esBajo
+      ? 'Tu respuesta ayuda al equipo a entender cómo están las cosas y tomar acción.'
+      : 'Tu respuesta ayuda al equipo a tomar mejores decisiones. Cada semana contamos.';
+  }
+
+  document.getElementById('eq-form').style.display = 'none';
+  document.getElementById('eq-hero').style.display = 'none';
+  document.getElementById('eq-thanks').classList.add('active');
+
+  const scoreEl = document.getElementById('thanks-score');
+  scoreEl.textContent = respuesta.score + '/10';
+  scoreEl.style.color = esBajo ? '#DC2626' : respuesta.score >= 8 ? '#16A34A' : 'var(--naranja)';
+
+  const fb = feedbackResult.feedback;
+  const fbWrap = document.getElementById('thanks-feedback-wrap');
+  const fbClass = esBajo ? 'alerta' : respuesta.score >= 8 ? 'positiva' : '';
+  fbWrap.innerHTML = `
+    <div class="eq-thanks-feedback ${fbClass}">
+      <div class="eq-thanks-feedback-label">${esBajo ? '💡 Para ti esta semana' : '✨ Reflexión rápida'}</div>
+      <p class="eq-thanks-feedback-msg">${fb.mensaje}</p>
+      <div class="eq-thanks-feedback-rec"><strong>Recomendación:</strong> ${fb.recomendacion}</div>
+    </div>
+  `;
+
+  const catWrap = document.getElementById('thanks-cat-wrap');
+  if (respuesta.sugerencia && respuesta.sugerencia.length >= 5 && categoria) {
+    catWrap.innerHTML = `<div class="eq-thanks-cat">💬 Tu sugerencia · ${categoria}</div>`;
+  } else {
+    catWrap.innerHTML = '';
   }
 }
 
@@ -1069,45 +1190,42 @@ async function enviarFormulario() {
   if (!selections.mot) { alert('Por favor indica tu motivación'); return; }
 
   const btn = document.getElementById('btn-submit');
-  btn.disabled=true;
+  btn.disabled = true;
   const sugerencia = document.getElementById('inp-sugerencia').value.trim();
   const nombre = document.getElementById('inp-nombre').value.trim();
-  btn.innerHTML=`<div class="eq-submit-loading"><svg class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Procesando…</div>`;
+  btn.innerHTML = `<div class="eq-submit-loading"><svg class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Procesando…</div>`;
 
-  const categoria = await clasificarSugerencia(sugerencia);
   const respuesta = {
     id: Date.now(),
     timestamp: new Date().toISOString(),
-    nombre: nombre||'Anónimo/a',
+    nombre: nombre || 'Anónimo/a',
     score: selectedScore,
     carga: selections.carga,
     claridad: selections.claridad,
     motivacion: selections.mot,
-    sugerencia, categoria
+    sugerencia: sugerencia,
+    categoria: 'SIN SUGERENCIA'
   };
 
-  // Guardar en semana actual (localStorage)
+  const [categoria, feedbackResult] = await Promise.all([
+    clasificarSugerencia(sugerencia),
+    obtenerFeedbackPulso(respuesta)
+  ]);
+  if (categoria) respuesta.categoria = categoria;
+
   const data = getStorage();
   const clave = semanaActual();
-  if (!data[clave]) data[clave]=[];
+  if (!data[clave]) data[clave] = [];
   data[clave].push(respuesta);
   saveStorage(data);
+  iaObsCache = {};
 
-  // Sincronizar con Google Sheets (en paralelo, no bloqueante)
   sincronizarConSheets(respuesta).then(result => {
     if (!result.ok) console.warn('No se pudo sincronizar con Sheets:', result.reason);
     else console.log('✅ Respuesta guardada en Google Sheets');
   });
 
-  // Gracias
-  document.getElementById('eq-form').style.display='none';
-  document.getElementById('eq-hero').style.display='none';
-  const thanks = document.getElementById('eq-thanks');
-  thanks.classList.add('active');
-  document.getElementById('thanks-score').textContent = selectedScore+'/10';
-  if (sugerencia.length>=5) {
-    document.getElementById('thanks-cat-wrap').innerHTML=`<div class="eq-thanks-cat">💡 Clasificada como: ${categoria}</div>`;
-  }
+  mostrarPantallaGracias(respuesta, categoria, feedbackResult);
 }
 
 // ════════════════════════════════════════

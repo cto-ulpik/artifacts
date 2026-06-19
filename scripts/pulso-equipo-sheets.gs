@@ -52,6 +52,9 @@ function doGet(e) {
     if (action === 'observe') {
       return respond_(generarObservaciones_(parsePayload_(e)), e);
     }
+    if (action === 'feedback') {
+      return respond_(generarFeedback_(parsePayload_(e)), e);
+    }
 
     return respond_({ status: 'ok', message: 'Pulso Ulpik API activa ✓' }, e);
   } catch (err) {
@@ -252,6 +255,57 @@ function generarObservaciones_(payload) {
   return { status: 'ok', observaciones: observaciones };
 }
 
+// ════════════════════════════════════════════════════════════
+//  OpenAI — feedback individual al enviar pulso
+// ════════════════════════════════════════════════════════════
+
+function generarFeedback_(payload) {
+  const score = Number(payload && payload.score);
+  if (!score || score < 1 || score > 10) {
+    throw new Error('Score inválido para feedback.');
+  }
+
+  const carga = String(payload.carga || '');
+  const claridad = String(payload.claridad || '');
+  const motivacion = String(payload.motivacion || '');
+  const sugerencia = String(payload.sugerencia || '').trim();
+
+  const prompt = [
+    'Eres coach de bienestar laboral en Ulpik, una legaltech en Ecuador.',
+    'Un empleado acaba de enviar su pulso semanal. Escribe un mensaje breve, empático y práctico para ESA persona.',
+    'Basa tu respuesta en las 4 dimensiones del pulso (bienestar, carga, claridad, motivación).',
+    'No uses nombre. Tono cercano y humano, no corporativo. Español de Ecuador.',
+    'Si el bienestar es 5 o menos, valida lo que siente y ofrece 1-2 acciones concretas y realizables esta semana.',
+    '',
+    'BIENESTAR (1-10): ' + score,
+    'Carga de trabajo: ' + carga,
+    'Claridad de rol: ' + claridad,
+    'Motivación: ' + motivacion,
+    sugerencia ? 'Sugerencia opcional del empleado: ' + sugerencia : 'Sin sugerencia escrita.',
+    '',
+    'Responde ÚNICAMENTE JSON:',
+    '{"mensaje":"1-2 oraciones de validación empática","recomendacion":"1-3 oraciones con acciones concretas para esta semana"}'
+  ].join('\n');
+
+  const raw = callOpenAI_(prompt, 350, true);
+  const feedback = parseFeedback_(raw);
+  return { status: 'ok', feedback: feedback };
+}
+
+function parseFeedback_(rawText) {
+  const clean = String(rawText).replace(/```json|```/g, '').trim();
+  let parsed;
+  try {
+    parsed = JSON.parse(clean);
+  } catch (e) {
+    throw new Error('La IA no devolvió JSON válido.');
+  }
+  return {
+    mensaje: String(parsed.mensaje || '').trim(),
+    recomendacion: String(parsed.recomendacion || '').trim()
+  };
+}
+
 function parseObservaciones_(rawText) {
   const clean = String(rawText).replace(/```json|```/g, '').trim();
   let parsed;
@@ -400,6 +454,22 @@ function testClassify() {
     parameter: {
       action: 'classify',
       payload: JSON.stringify({ texto: 'Necesitamos mejorar los procesos de onboarding' })
+    }
+  });
+  Logger.log(result.getContent());
+}
+
+function testFeedback() {
+  const result = doGet({
+    parameter: {
+      action: 'feedback',
+      payload: JSON.stringify({
+        score: 4,
+        carga: 'Desbordante',
+        claridad: 'A veces',
+        motivacion: 'Regular',
+        sugerencia: ''
+      })
     }
   });
   Logger.log(result.getContent());
