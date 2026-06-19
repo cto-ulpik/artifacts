@@ -322,6 +322,258 @@ async function parseExcel(file){
   return r;
 }
 
+function csvToRows(csv){
+  return String(csv||'').split('\n').map(line=>{
+    const row=[];let cur='',inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){inQ=!inQ;continue;}
+      if(c===','&&!inQ){row.push(cur.trim());cur='';continue;}
+      cur+=c;
+    }
+    row.push(cur.trim());
+    return row;
+  }).filter(r=>r.some(c=>c));
+}
+
+function normLabel(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/\p{M}/gu,'').replace(/\s+/g,' ').trim();
+}
+
+function parseMoneyCell(s){
+  if(s==null||s==='')return null;
+  const raw=String(s).trim();
+  if(!raw||raw==='-')return null;
+  let t=raw.replace(/[^\d,.-]/g,'');
+  if(!t)return null;
+  if(t.includes(',')&&t.includes('.')){
+    if(t.lastIndexOf(',')>t.lastIndexOf('.'))t=t.replace(/\./g,'').replace(',','.');
+    else t=t.replace(/,/g,'');
+  }else if(t.includes(','))t=t.replace(',','.');
+  else if((t.match(/\./g)||[]).length>1)t=t.replace(/\./g,'');
+  const n=parseFloat(t);
+  return isNaN(n)?null:n;
+}
+
+function findSheet(excelData,names){
+  for(const [name,csv] of Object.entries(excelData||{})){
+    const n=normLabel(name);
+    if(names.some(x=>n.includes(x)))return{name,csv,rows:csvToRows(csv)};
+  }
+  return null;
+}
+
+function scanLabelValue(rows){
+  const map={};
+  rows.forEach(row=>{
+    for(let i=0;i<row.length;i++){
+      const label=normLabel(row[i]);
+      if(!label||label.length<2)continue;
+      for(let j=i+1;j<Math.min(i+4,row.length);j++){
+        const money=parseMoneyCell(row[j]);
+        if(money!=null){map[label]={num:money,raw:row[j]};break;}
+        const plain=String(row[j]||'').replace(/\s/g,'');
+        if(/^\d+([.,]\d+)?%?$/.test(plain)){
+          const n=parseFloat(plain.replace('%','').replace(',','.'));
+          if(!isNaN(n)){map[label]={num:n,raw:row[j]};break;}
+        }
+      }
+    }
+  });
+  return map;
+}
+
+function pickMap(map,...keys){
+  for(const k of keys){if(map[k]?.num!=null)return map[k].num;}
+  for(const [k,v] of Object.entries(map||{})){
+    if(keys.some(q=>k.includes(q))&&v?.num!=null)return v.num;
+  }
+  return null;
+}
+
+function parseInscritosSheet(rows){
+  let headerIdx=-1,pagos=0;
+  rows.forEach((row,idx)=>{
+    if(row.some(c=>normLabel(c).includes('cliente')))headerIdx=idx;
+  });
+  const start=headerIdx>=0?headerIdx+1:1;
+  for(let i=start;i<rows.length;i++){
+    const row=rows[i];
+    const cliente=(row[1]||'').trim();
+    const hasMoney=row.some(c=>parseMoneyCell(c)!=null);
+    if(cliente&&!normLabel(cliente).includes('cliente')&&(parseFloat(row[0])>0||hasMoney))pagos++;
+  }
+  return{inscritos_pagos:pagos||null};
+}
+
+function parseMarketingSheet(rows){
+  const camps=[];
+  let current=null;
+  rows.forEach(row=>{
+    const t0=row[0]||'',t1=row[1]||'',t2=row[2]||'';
+    const head=(t0+t1).toUpperCase();
+    if(head.includes('CAMPAÑA')||head.includes('CAMPANA')){
+      if(current)camps.push(current);
+      current={
+        nombre:(t1||t0).trim(),
+        descripcion_breve:'',
+        color_tema:['naranja','verde','morado'][camps.length]||'morado',
+        inversion:0,
+        embudo:[],
+        metricas_clave:[]
+      };
+      return;
+    }
+    if(!current)return;
+    const label=(t1||t0).trim();
+    const nl=normLabel(label);
+    const n=parseMoneyCell(t2)??parseMoneyCell(t1);
+    if(!label||n==null||nl.includes('campa'))return;
+    if(nl.includes('inversion')){
+      current.inversion=n;
+      current.embudo.push({paso:'Inversión',valor:n});
+    }else{
+      current.embudo.push({paso:label,valor:n});
+    }
+  });
+  if(current)camps.push(current);
+  camps.forEach(cp=>{
+    const ventas=cp.embudo.find(e=>{const p=normLabel(e.paso);return p.includes('venta')||p.includes('conversion');});
+    const leads=cp.embudo.find(e=>normLabel(e.paso).includes('leads meta'));
+    cp.metricas_clave=[];
+    if(leads)cp.metricas_clave.push({label:'Leads Meta',val:String(leads.valor)});
+    if(ventas)cp.metricas_clave.push({label:'Ventas / Conv.',val:String(ventas.valor)});
+  });
+  return camps;
+}
+
+function buildFinanciero(presMap,resMap){
+  const defs=[
+    ['ventas brutas','ingreso'],['ventas netas','ingreso'],
+    ['comisiones cierre venta','gasto'],['gasto en ads','gasto'],
+    ['utilidad operativa','ingreso'],['utilidad final curso','ingreso'],
+    ['utilidad final ulpik','ingreso'],['25% pao','gasto']
+  ];
+  const proyectado={lineas:[],ventas_brutas:null,utilidad:null};
+  const real={lineas:[],ventas_brutas:null,utilidad:null};
+  defs.forEach(([key,tipo])=>{
+    if(presMap[key]?.num!=null){
+      proyectado.lineas.push({label:key.replace(/\b\w/g,c=>c.toUpperCase()),val:presMap[key].num,tipo});
+      if(key.includes('ventas brutas'))proyectado.ventas_brutas=presMap[key].num;
+      if(key.includes('utilidad final ulpik'))proyectado.utilidad=presMap[key].num;
+    }
+    if(resMap[key]?.num!=null){
+      real.lineas.push({label:key.replace(/\b\w/g,c=>c.toUpperCase()),val:resMap[key].num,tipo});
+      if(key.includes('ventas brutas'))real.ventas_brutas=resMap[key].num;
+      if(key.includes('utilidad final ulpik'))real.utilidad=resMap[key].num;
+    }
+  });
+  const brecha=[];
+  ['ventas brutas','gasto en ads','utilidad final ulpik'].forEach(concepto=>{
+    const p=presMap[concepto]?.num,re=resMap[concepto]?.num;
+    if(p!=null||re!=null){
+      brecha.push({
+        concepto:concepto.replace(/\b\w/g,c=>c.toUpperCase()),
+        proyectado:p??0,
+        real:re??0,
+        ejecucion_pct:p?((re??0)/p)*100:null
+      });
+    }
+  });
+  return{proyectado,real,brecha};
+}
+
+function extractCourseName(excelData){
+  for(const csv of Object.values(excelData||{})){
+    const m=csv.match(/Curso\s+([^,\n]+)|M[eé]todo\s+([^\n,]+)/i);
+    if(m)return(m[1]||m[2]).trim();
+  }
+  return null;
+}
+
+function extractLaunchExcel(excelData){
+  const pres=findSheet(excelData,['presupuesto']);
+  const ins=findSheet(excelData,['inscritos']);
+  const mkt=findSheet(excelData,['marketing']);
+  const res=findSheet(excelData,['resumen']);
+  const presMap=pres?scanLabelValue(pres.rows):{};
+  const resMap=res?scanLabelValue(res.rows):{};
+  const insData=ins?parseInscritosSheet(ins.rows):{};
+  const campanas=mkt?parseMarketingSheet(mkt.rows):[];
+
+  const inscritosTotal=pickMap(resMap,'inscritos');
+  const hotmart=pickMap(resMap,'hotmart');
+  const inscritosPagos=insData.inscritos_pagos||hotmart;
+  const ventasBrutasReal=pickMap(resMap,'ventas brutas');
+  const gastoAdsReal=pickMap(resMap,'gasto en ads');
+  const utilidadReal=pickMap(resMap,'utilidad final ulpik','ut ulpik');
+  const ventasBrutasProy=pickMap(presMap,'ventas brutas');
+  const inversionTotal=campanas.reduce((a,c)=>a+(c.inversion||0),0)||gastoAdsReal;
+  const ventasAtrib=ventasBrutasReal;
+  const roas=inversionTotal&&ventasBrutasReal?ventasBrutasReal/inversionTotal:null;
+  const leadsMeta=campanas.flatMap(c=>c.embudo).find(e=>normLabel(e.paso).includes('leads meta'));
+  const cpa=inscritosPagos&&gastoAdsReal?gastoAdsReal/inscritosPagos:null;
+  const conv=leadsMeta&&inscritosPagos?(inscritosPagos/leadsMeta.valor)*100:null;
+  const becas=(inscritosTotal!=null&&inscritosPagos!=null)?Math.max(0,inscritosTotal-inscritosPagos):null;
+  const financiero=buildFinanciero(presMap,resMap);
+
+  return{
+    meta:{curso:extractCourseName(excelData),periodo:null,instructor:null,fecha_analisis:new Date().toISOString().slice(0,10)},
+    kpis_principales:{
+      inscritos_total:inscritosTotal,
+      inscritos_pagos:inscritosPagos,
+      becas,
+      ingresos_brutos:ventasBrutasReal,
+      nps:null,
+      satisfaccion_general:null,
+      rating_instructor:null,
+      respuestas_encuesta:null
+    },
+    marketing:{
+      inversion_total:inversionTotal,
+      ventas_atribuidas:ventasAtrib,
+      roas,
+      cpa_principal:cpa,
+      conversion_lead_venta_pct:conv,
+      'campañas':campanas
+    },
+    financiero
+  };
+}
+
+function mergeExcelIntoResult(ai,ex){
+  if(!ex)return ai||{};
+  const r={...(ai||{})};
+  r.meta={...(ex.meta||{}),...(r.meta||{})};
+  if(!r.meta.curso&&ex.meta?.curso)r.meta.curso=ex.meta.curso;
+  r.kpis_principales={...(ex.kpis_principales||{}),...(r.kpis_principales||{})};
+  Object.keys(ex.kpis_principales||{}).forEach(k=>{
+    const ev=ex.kpis_principales[k],av=r.kpis_principales[k];
+    if(ev!=null&&(av==null||av===''||(typeof ev==='number'&&ev!==0&&(av===0||av==null))))r.kpis_principales[k]=ev;
+  });
+  if(r.kpis_principales.inscritos_total!=null&&r.kpis_principales.inscritos_pagos!=null&&!r.kpis_principales.becas){
+    r.kpis_principales.becas=Math.max(0,r.kpis_principales.inscritos_total-r.kpis_principales.inscritos_pagos);
+  }
+  r.marketing={...(ex.marketing||{}),...(r.marketing||{})};
+  ['inversion_total','ventas_atribuidas','roas','cpa_principal','conversion_lead_venta_pct'].forEach(f=>{
+    const ev=ex.marketing?.[f],av=r.marketing[f];
+    if(ev!=null&&(av==null||av===''||(typeof ev==='number'&&ev!==0&&(av===0||av==null))))r.marketing[f]=ev;
+  });
+  if(!(r.marketing.campañas||[]).length&&(ex.marketing?.campañas||[]).length)r.marketing.campañas=ex.marketing.campañas;
+  r.financiero=r.financiero||{};
+  const ef=ex.financiero||{};
+  r.financiero.proyectado={...(ef.proyectado||{}),...(r.financiero.proyectado||{})};
+  r.financiero.real={...(ef.real||{}),...(r.financiero.real||{})};
+  if(!(r.financiero.proyectado?.lineas||[]).length&&ef.proyectado?.lineas?.length)r.financiero.proyectado=ef.proyectado;
+  if(!(r.financiero.real?.lineas||[]).length&&ef.real?.lineas?.length)r.financiero.real=ef.real;
+  if(!(r.financiero.brecha||[]).length&&ef.brecha?.length)r.financiero.brecha=ef.brecha;
+  ['ventas_brutas','utilidad'].forEach(f=>{
+    if(r.financiero.proyectado?.[f]==null&&ef.proyectado?.[f]!=null)r.financiero.proyectado[f]=ef.proyectado[f];
+    if(r.financiero.real?.[f]==null&&ef.real?.[f]!=null)r.financiero.real[f]=ef.real[f];
+  });
+  return r;
+}
+
 function fileToB64(file){
   return new Promise((res,rej)=>{
     const r=new FileReader();
@@ -421,13 +673,15 @@ async function analyze(){
   try{
     const notes=document.getElementById('extraNotes').value;
     const excelText=Object.entries(excelData).map(([n,csv])=>`=== HOJA: ${n} ===\n${csv}`).join('\n\n');
+    const excelParsed=extractLaunchExcel(excelData);
     let userMsg=`Analiza este lanzamiento. Devuelve EXCLUSIVAMENTE el JSON.\n\n═══ EXCEL DEL LANZAMIENTO ═══\n${excelText}\n\n`;
     if(surveyType==='csv'||surveyType==='xlsx'){userMsg+=`═══ ENCUESTA ═══\n${surveyText}\n\n`;}
     if(notes&&notes.trim()){userMsg+=`═══ NOTAS DEL EQUIPO ═══\n${notes}\n\n`;}
+    userMsg+=`═══ NÚMEROS CLAVE YA EXTRAÍDOS DEL EXCEL (úsalo para kpis_principales, marketing y financiero) ═══\n${JSON.stringify(excelParsed)}\n\n`;
     userMsg+=`Responde con el JSON completo ahora. Primer carácter { último }.
-OBLIGATORIO: extrae TODOS los números del Excel hacia kpis_principales, marketing y financiero.
+OBLIGATORIO: usa los números pre-extraídos del Excel en kpis_principales, marketing y financiero.
 alertas, red_flags y oportunidades deben ser arrays de strings (texto plano), no objetos.`;
-    const result=normalizeLaunchResult(await callLaunchAPI(userMsg));
+    const result=normalizeLaunchResult(mergeExcelIntoResult(await callLaunchAPI(userMsg),excelParsed));
     clearInterval(li);
     document.getElementById('loadingState').classList.remove('active');
     renderResults(result);
