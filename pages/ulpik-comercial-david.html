@@ -158,7 +158,7 @@ function balanceJSON(str){let inS=false,esc=false,o=0,b=0;for(let i=0;i<str.leng
 function parseJSON(txt){let c=(txt||"").replace(/```json/gi,"").replace(/```/g,"").trim();const s=c.indexOf("{");if(s===-1)throw new Error("Sin JSON en la respuesta");c=c.slice(s);const clean=c.replace(/[\u0000-\u001F]+/g," ");const e=clean.lastIndexOf("}");const cands=[];if(e!==-1)cands.push(clean.slice(0,e+1));cands.push(clean);cands.push(clean.replace(/,\s*([}\]])/g,"$1"));cands.push(balanceJSON(clean));cands.push(balanceJSON(clean).replace(/,\s*([}\]])/g,"$1"));for(const x of cands){try{return JSON.parse(x);}catch(_){}}throw new Error("JSON inválido tras intentar reparar");}
 
 // Mismo Web App que Pulso del Equipo (scripts/pulso-equipo-sheets.gs, action=chat)
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx17ROb8-eBTKgXCCS-JNKqhtVG9W_PStF6IJhjwdlKkFdltXA_44TUlm7Eco8qKT0a-w/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4TBSsIpLm8ddD1R0Zuo_5AQBhfz3DJ2GrKnlJgib8IkANKOpnGtF4_ABYXXj8NKDwtQ/exec';
 
 function fetchJsonp(url) {
   return new Promise((resolve, reject) => {
