@@ -354,7 +354,7 @@ function newAnalysis(){
 }
 
 // OpenAI vía Apps Script de Pulso del Equipo (misma key que Pulso / Apoyo Comercial)
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby7KF7hi4DSdFeNzYcJfzguU5-MkSFmKV1QAC_BEIkY5gk02xnKGdw2Xmpg8NbNIuhR6Q/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwgFQNvQznsj09xGCyh2qJdb19NFyDShx7-Vu5Couq6DIQH8lFLlS23gGi7pcLTT5r7Q/exec';
 
 function balanceJSON(str){let inS=false,esc=false,o=0,b=0;for(let i=0;i<str.length;i++){const c=str[i];if(esc){esc=false;continue;}if(c==="\\"){esc=true;continue;}if(c==='"'){inS=!inS;continue;}if(inS)continue;if(c==="{")o++;else if(c==="}")o--;else if(c==="[")b++;else if(c==="]")b--;}let s=str;if(inS)s+='"';s=s.replace(/\s+$/,"").replace(/[,:]$/,"").replace(/,\s*"[^"]*"$/,"");if(b>0)s+="]".repeat(b);if(o>0)s+="}".repeat(o);return s;}
 function parseJSON(txt){let c=(txt||"").replace(/```json/gi,"").replace(/```/g,"").trim();const s=c.indexOf("{");if(s===-1)throw new Error("Sin JSON en la respuesta");c=c.slice(s);const clean=c.replace(/[\u0000-\u001F]+/g," ");const e=clean.lastIndexOf("}");const cands=[];if(e!==-1)cands.push(clean.slice(0,e+1));cands.push(clean);cands.push(clean.replace(/,\s*([}\]])/g,"$1"));cands.push(balanceJSON(clean));cands.push(balanceJSON(clean).replace(/,\s*([}\]])/g,"$1"));for(const x of cands){try{return JSON.parse(x);}catch(_){}}throw new Error("JSON inválido tras intentar reparar");}
