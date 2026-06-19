@@ -469,7 +469,31 @@
     const v = state.vendedores.find(x=>x.id===id);
     if(!v) return;
     v[field] = field==='nombre' ? value : parseFloat(value)||0;
-    save(); renderAll();
+    save();
+    syncRowCalcs(id);
+    syncTableFooter();
+    renderDashboard();
+    renderRanking();
+    renderReport();
+  }
+
+  function syncRowCalcs(id){
+    const v = state.vendedores.find(x=>x.id===id);
+    const tr = document.querySelector(`tr[data-id="${id}"]`);
+    if(!v || !tr) return;
+    const ticket = v.cierres>0 ? v.facturado/v.cierres : 0;
+    const com = v.facturado * (v.comPct/100);
+    const cells = tr.querySelectorAll('td.calc');
+    if(cells[0]) cells[0].textContent = fmt(ticket);
+    if(cells[1]) cells[1].textContent = fmtDec(com);
+  }
+
+  function syncTableFooter(){
+    const el = document.querySelector('.table-footer-totals');
+    if(!el) return;
+    const totFact = state.vendedores.reduce((s,v)=>s+v.facturado,0);
+    const totCom = state.vendedores.reduce((s,v)=>s+v.facturado*(v.comPct/100),0);
+    el.innerHTML = `Total facturado: <strong>${fmt(totFact)}</strong> · Total comisiones: <strong>${fmtDec(totCom)}</strong>`;
   }
 
   // ===== RENDER TABLA =====
