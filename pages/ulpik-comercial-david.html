@@ -159,7 +159,7 @@ function parseJSON(txt){let c=(txt||"").replace(/```json/gi,"").replace(/```/g,"
 function friendlyApiError(msg){const m=String(msg||'');if(/UrlFetchApp\.fetch|script\.external_request/i.test(m))return'Falta autorizar OpenAI en Apps Script. Abre el editor de Google, ejecuta testOpenAIAuth(), acepta los permisos y vuelve a probar.';return m;}
 
 // Mismo Web App que Pulso del Equipo (scripts/pulso-equipo-sheets.gs, action=chat)
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4TBSsIpLm8ddD1R0Zuo_5AQBhfz3DJ2GrKnlJgib8IkANKOpnGtF4_ABYXXj8NKDwtQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby7KF7hi4DSdFeNzYcJfzguU5-MkSFmKV1QAC_BEIkY5gk02xnKGdw2Xmpg8NbNIuhR6Q/exec';
 
 function fetchJsonp(url) {
   return new Promise((resolve, reject) => {
