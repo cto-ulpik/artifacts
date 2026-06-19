@@ -325,7 +325,7 @@ function chatComercial_(payload) {
     system = buildComercialSystem_(sub);
   }
 
-  const defaultTokens = profile === 'launch' ? 8000 : 4000;
+  const defaultTokens = profile === 'launch' ? 10000 : 4000;
   const text = callOpenAIChat_(system, userMsg, Number(payload.maxTokens) || defaultTokens);
   return { status: 'ok', text: text };
 }
@@ -363,10 +363,18 @@ var LAUNCH_ANALYZER_SYSTEM = [
   '',
   'Devuelve ÚNICAMENTE el objeto JSON pedido. Sin texto antes ni después, sin markdown, sin backticks.',
   'REGLA CRÍTICA: dentro de los VALORES de texto NUNCA uses comilla doble ("); para citar usa comillas simples o «».',
-  'Primer carácter {, último }. Si falta dato, [] o null. NO inventes. NO incluyas objeto "becas".',
-  'VALENTÍA OBLIGATORIA: si ventas reales fueron 9% del presupuesto, eso es FRACASO COMERCIAL — nómbralo así. NPS alto puede coexistir con fracaso comercial: nombra ambos.',
+  'Primer carácter {, último }. Si falta dato en el Excel, usa null — NO inventes.',
+  'OBLIGATORIO: llena kpis_principales, marketing, satisfaccion y financiero con números extraídos del Excel y encuesta.',
+  'alertas, red_flags y oportunidades: arrays de STRINGS (texto plano), NUNCA objetos.',
+  'VALENTÍA OBLIGATORIA: si ventas reales fueron 9% del presupuesto, eso es FRACASO COMERCIAL — nómbralo así.',
   '',
-  'Esquema JSON: {"meta":{"curso":"","periodo":"","instructor":null,"fecha_analisis":""},"verdict":{"semaforo":"verde|amarillo|rojo","titular":"","conclusion_ejecutiva":"","alertas":[],"red_flags":[],"oportunidades":[],"mejoras_concretas":[{"que":"","como":""}],"siguiente_accion":""},"kpis_principales":{},"marketing":{},"satisfaccion":{},"financiero":{}}'
+  'Esquema JSON completo (respeta nombres de campo):',
+  '{"meta":{"curso":"","periodo":"","instructor":null,"fecha_analisis":""},',
+  '"verdict":{"semaforo":"verde|amarillo|rojo","titular":"","conclusion_ejecutiva":"","alertas":["string","string","string"],"red_flags":["string","string","string"],"oportunidades":["string","string"],"mejoras_concretas":[{"que":"","como":""}],"siguiente_accion":""},',
+  '"kpis_principales":{"inscritos_total":0,"inscritos_pagos":0,"becas":0,"ingresos_brutos":0,"nps":0,"satisfaccion_general":0,"rating_instructor":null,"respuestas_encuesta":0},',
+  '"marketing":{"inversion_total":0,"ventas_atribuidas":0,"roas":0,"cpa_principal":0,"conversion_lead_venta_pct":0,"campañas":[{"nombre":"","descripcion_breve":"","color_tema":"naranja|verde|morado","inversion":0,"embudo":[{"paso":"","valor":0}],"metricas_clave":[{"label":"","val":""}]}]},',
+  '"satisfaccion":{"respuestas_totales":0,"promedios_por_pregunta":[{"pregunta":"","promedio":0}],"distribucion_principal":{"pregunta":"","votos_por_nota":{"10":0}},"si_dejara_existir":{"muy_decepcionado":0,"poco_decepcionado":0,"me_daria_igual":0},"nps_breakdown":{"promotores":0,"pasivos":0,"detractores":0},"modulo_favorito":[{"nombre":"","votos":0}],"ritmo_duracion":[{"respuesta":"","n":0}],"soporte_equipo":[{"respuesta":"","n":0}],"ciudades":[{"nombre":"","n":0}],"edades":[{"rango":"","n":0}],"quotes_aprendizaje":[],"quotes_mejora":[]},',
+  '"financiero":{"proyectado":{"ventas_brutas":0,"utilidad":0,"lineas":[{"label":"","val":0,"tipo":"gasto|ingreso"}]},"real":{"ventas_brutas":0,"utilidad":0,"lineas":[{"label":"","val":0,"tipo":"gasto|ingreso"}]},"brecha":[{"concepto":"","proyectado":0,"real":0,"ejecucion_pct":0}]}}'
 ].join('\n');
 
 function buildComercialSystem_(sub) {

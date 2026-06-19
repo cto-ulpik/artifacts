@@ -376,7 +376,7 @@ function fetchJsonp(url){
 
 async function callLaunchAPI(userMsg){
   if(!APPS_SCRIPT_URL)throw new Error('Apps Script no configurado.');
-  const payload={profile:'launch',userMsg,maxTokens:8000};
+  const payload={profile:'launch',userMsg,maxTokens:10000};
   const jsonPayload=JSON.stringify(payload);
   const getUrl=APPS_SCRIPT_URL+'?action=chat&payload='+encodeURIComponent(jsonPayload);
   let data;
@@ -424,8 +424,10 @@ async function analyze(){
     let userMsg=`Analiza este lanzamiento. Devuelve EXCLUSIVAMENTE el JSON.\n\n═══ EXCEL DEL LANZAMIENTO ═══\n${excelText}\n\n`;
     if(surveyType==='csv'||surveyType==='xlsx'){userMsg+=`═══ ENCUESTA ═══\n${surveyText}\n\n`;}
     if(notes&&notes.trim()){userMsg+=`═══ NOTAS DEL EQUIPO ═══\n${notes}\n\n`;}
-    userMsg+=`Responde con el JSON ahora. Primer carácter { último }.`;
-    const result=await callLaunchAPI(userMsg);
+    userMsg+=`Responde con el JSON completo ahora. Primer carácter { último }.
+OBLIGATORIO: extrae TODOS los números del Excel hacia kpis_principales, marketing y financiero.
+alertas, red_flags y oportunidades deben ser arrays de strings (texto plano), no objetos.`;
+    const result=normalizeLaunchResult(await callLaunchAPI(userMsg));
     clearInterval(li);
     document.getElementById('loadingState').classList.remove('active');
     renderResults(result);
@@ -477,6 +479,76 @@ function hlw(s){
 }
 
 function eh(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function listItemText(x){
+  if(x==null)return'';
+  if(typeof x==='string')return x.trim();
+  if(typeof x==='object'){
+    const t=x.text||x.alerta||x.flag||x.red_flag||x.oportunidad||x.descripcion||x.mensaje||x.titulo||x.hallazgo;
+    if(t)return String(t).trim();
+    const vals=Object.values(x).filter(v=>typeof v==='string'&&v.trim());
+    if(vals.length)return vals[0].trim();
+  }
+  return String(x);
+}
+function toNum(v){
+  if(v==null||v==='')return null;
+  if(typeof v==='number'&&!isNaN(v))return v;
+  let s=String(v).replace(/[$%\s]/g,'').trim();
+  if(!s)return null;
+  if(s.includes(',')&&s.includes('.')){
+    if(s.lastIndexOf(',')>s.lastIndexOf('.'))s=s.replace(/\./g,'').replace(',','.');
+    else s=s.replace(/,/g,'');
+  }else if(s.includes(','))s=s.replace(',','.');
+  const n=Number(s);
+  return isNaN(n)?null:n;
+}
+function normalizeLaunchResult(r){
+  if(!r||typeof r!=='object')return r;
+  r.verdict=r.verdict||{};
+  ['alertas','red_flags','oportunidades'].forEach(k=>{
+    const arr=r.verdict[k];
+    if(Array.isArray(arr))r.verdict[k]=arr.map(listItemText).filter(Boolean);
+    else if(arr&&typeof arr==='object')r.verdict[k]=Object.values(arr).map(listItemText).filter(Boolean);
+  });
+  if(Array.isArray(r.verdict.mejoras_concretas)){
+    r.verdict.mejoras_concretas=r.verdict.mejoras_concretas.map(m=>typeof m==='object'?{que:String(m.que||m.que_hacer||''),como:String(m.como||m.como_aplicar||'')}:{que:'',como:''});
+  }
+  const k=r.kpis_principales=r.kpis_principales||{};
+  ['inscritos_total','inscritos_pagos','becas','ingresos_brutos','nps','satisfaccion_general','rating_instructor','respuestas_encuesta'].forEach(f=>{
+    if(k[f]!=null&&k[f]!==''){const n=toNum(k[f]);if(n!=null)k[f]=n;}
+  });
+  const m=r.marketing=r.marketing||{};
+  ['inversion_total','ventas_atribuidas','roas','cpa_principal','conversion_lead_venta_pct'].forEach(f=>{
+    if(m[f]!=null&&m[f]!==''){const n=toNum(m[f]);if(n!=null)m[f]=n;}
+  });
+  if(Array.isArray(m.campañas)){
+    m.campañas.forEach(cp=>{
+      if(cp.inversion!=null){const n=toNum(cp.inversion);if(n!=null)cp.inversion=n;}
+      if(Array.isArray(cp.embudo))cp.embudo.forEach(s=>{if(s.valor!=null){const n=toNum(s.valor);if(n!=null)s.valor=n;}});
+    });
+  }
+  const f=r.financiero=r.financiero||{};
+  f.proyectado=f.proyectado||{};
+  f.real=f.real||{};
+  ['ventas_brutas','utilidad'].forEach(field=>{
+    [f.proyectado,f.real].forEach(sec=>{
+      if(sec[field]!=null&&sec[field]!==''){const n=toNum(sec[field]);if(n!=null)sec[field]=n;}
+    });
+  });
+  if(Array.isArray(f.brecha))f.brecha.forEach(b=>{
+    ['proyectado','real','ejecucion_pct'].forEach(field=>{
+      if(b[field]!=null&&b[field]!==''){const n=toNum(b[field]);if(n!=null)b[field]=n;}
+    });
+  });
+  const s=r.satisfaccion=r.satisfaccion||{};
+  if(s.respuestas_totales!=null){const n=toNum(s.respuestas_totales);if(n!=null)s.respuestas_totales=n;}
+  if(s.nps_breakdown){
+    ['promotores','pasivos','detractores'].forEach(field=>{
+      if(s.nps_breakdown[field]!=null){const n=toNum(s.nps_breakdown[field]);if(n!=null)s.nps_breakdown[field]=n;}
+    });
+  }
+  return r;
+}
 function fmtU(n){if(n==null||isNaN(n))return '—';return '$'+Number(n).toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function fmtN(n){if(n==null||isNaN(n))return '—';return Number(n).toLocaleString('es-EC')}
 
@@ -502,9 +574,9 @@ function renderResumen(r){
     <div class="kc"><div class="ka"></div><div class="kl">Ventas brutas</div><div class="kv naranja">${fmtU(rl.ventas_brutas)}</div><div class="ksub">vs. ${fmtU(py.ventas_brutas)} proyectado</div></div>
     <div class="kc"><div class="ka verde"></div><div class="kl">Utilidad real</div><div class="kv verde">${fmtU(rl.utilidad)}</div><div class="ksub">vs. ${fmtU(py.utilidad)} proyectada</div></div>
     <div class="kc"><div class="ka morado"></div><div class="kl">Cumplimiento</div><div class="kv morado">${(py.ventas_brutas&&rl.ventas_brutas)?((rl.ventas_brutas/py.ventas_brutas)*100).toFixed(1)+'%':'—'}</div><div class="ksub">Real vs. proyectado</div></div>`;
-  document.getElementById('alertsList').innerHTML=(r.verdict?.alertas||[]).map((a,i)=>`<div class="ir"><div class="ii rojo">${i+1}</div><div class="ix">${eh(a)}</div></div>`).join('')||'<div class="ix" style="color:var(--t3);">Sin alertas.</div>';
-  document.getElementById('redFlagsList').innerHTML=(r.verdict?.red_flags||[]).map((f,i)=>`<div class="ir"><div class="ii amarillo">${i+1}</div><div class="ix">${eh(f)}</div></div>`).join('')||'<div class="ix" style="color:var(--t3);">Sin red flags.</div>';
-  document.getElementById('oppList').innerHTML=(r.verdict?.oportunidades||[]).map((o,i)=>`<div class="ir"><div class="ii verde">${i+1}</div><div class="ix">${eh(o)}</div></div>`).join('')||'<div class="ix" style="color:var(--t3);">Sin oportunidades.</div>';
+  document.getElementById('alertsList').innerHTML=(r.verdict?.alertas||[]).map((a,i)=>`<div class="ir"><div class="ii rojo">${i+1}</div><div class="ix">${eh(listItemText(a))}</div></div>`).join('')||'<div class="ix" style="color:var(--t3);">Sin alertas.</div>';
+  document.getElementById('redFlagsList').innerHTML=(r.verdict?.red_flags||[]).map((f,i)=>`<div class="ir"><div class="ii amarillo">${i+1}</div><div class="ix">${eh(listItemText(f))}</div></div>`).join('')||'<div class="ix" style="color:var(--t3);">Sin red flags.</div>';
+  document.getElementById('oppList').innerHTML=(r.verdict?.oportunidades||[]).map((o,i)=>`<div class="ir"><div class="ii verde">${i+1}</div><div class="ix">${eh(listItemText(o))}</div></div>`).join('')||'<div class="ix" style="color:var(--t3);">Sin oportunidades.</div>';
   const mj=r.verdict?.mejoras_concretas||[];
   document.getElementById('mejorasList').innerHTML=mj.length?mj.map((m,i)=>`<div class="mi"><div class="mn">${i+1}</div><div class="mc"><div class="mq">${eh(m.que||'')}</div><div class="mh"><span class="ml">Cómo →</span>${eh(m.como||'')}</div></div></div>`).join(''):'<div style="color:var(--t3);font-size:13px;padding:14px;">Sin mejoras concretas.</div>';
   document.getElementById('nextActionText').textContent=r.verdict?.siguiente_accion||'—';
@@ -694,13 +766,13 @@ LAUNCH INTELLIGENCE · ${r.meta?.curso||'—'} · ${r.meta?.periodo||'—'}
 ${v.conclusion_ejecutiva||'—'}
 
 🚨 ALERTAS CRÍTICAS
-${(v.alertas||[]).map((a,i)=>`${i+1}. ${a}`).join('\n')}
+${(v.alertas||[]).map((a,i)=>`${i+1}. ${listItemText(a)}`).join('\n')}
 
 ⚠ RED FLAGS DE DATOS
-${(v.red_flags||[]).map((f,i)=>`${i+1}. ${f}`).join('\n')}
+${(v.red_flags||[]).map((f,i)=>`${i+1}. ${listItemText(f)}`).join('\n')}
 
 💡 OPORTUNIDADES
-${(v.oportunidades||[]).map((o,i)=>`${i+1}. ${o}`).join('\n')}
+${(v.oportunidades||[]).map((o,i)=>`${i+1}. ${listItemText(o)}`).join('\n')}
 
 🛠 MEJORAS TÁCTICAS
 ${mj}
