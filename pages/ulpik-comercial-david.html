@@ -182,7 +182,7 @@ async function callAPI(sub, userMsg) {
   if (!APPS_SCRIPT_URL) {
     throw new Error('Apps Script no configurado.');
   }
-  const payload = { system: buildSys(sub), userMsg };
+  const payload = { sub, userMsg };
   const jsonPayload = JSON.stringify(payload);
   const getUrl = APPS_SCRIPT_URL + '?action=chat&payload=' + encodeURIComponent(jsonPayload);
 
@@ -195,10 +195,16 @@ async function callAPI(sub, userMsg) {
       redirect: 'follow',
       body: new URLSearchParams({ action: 'chat', payload: jsonPayload })
     });
-    data = await res.json();
+    const raw = await res.text();
+    try { data = JSON.parse(raw); } catch (e) {
+      throw new Error('Respuesta inválida del servidor. Redespliega Apps Script con action=chat.');
+    }
   }
 
   if (data.status === 'error') throw new Error(data.message || 'Error de API');
+  if (data.message && !data.text) {
+    throw new Error('Apps Script sin action=chat. Pega el código nuevo de pulso-equipo-sheets.gs en Google y redespliega la Web App.');
+  }
   const t = data.text || '';
   if (!t.trim()) throw new Error('Respuesta vacía del modelo');
   return parseJSON(t);

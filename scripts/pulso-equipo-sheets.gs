@@ -307,13 +307,68 @@ function generarFeedback_(payload) {
 // ════════════════════════════════════════════════════════════
 
 function chatComercial_(payload) {
-  const system = String(payload.system || '').trim();
   const userMsg = String(payload.userMsg || payload.user || '').trim();
-  if (!system) throw new Error('Falta el prompt de sistema.');
   if (!userMsg) throw new Error('Falta el mensaje del usuario.');
+
+  let system;
+  if (payload.system) {
+    system = String(payload.system).trim();
+  } else {
+    const sub = String(payload.sub || '').trim();
+    if (!sub) throw new Error('Falta la instrucción (sub).');
+    system = buildComercialSystem_(sub);
+  }
+
   const text = callOpenAIChat_(system, userMsg, Number(payload.maxTokens) || 4000);
   return { status: 'ok', text: text };
 }
+
+function buildComercialSystem_(sub) {
+  return [
+    'Actúa como copiloto comercial experto de ULPIK (registro de marcas en Ecuador), apoyando al ASESOR en su venta por WhatsApp/chat.',
+    'Básate EXCLUSIVAMENTE en el Playbook. No inventes datos, precios ni garantías fuera del Playbook.',
+    'Tono confiado, cálido y comercial. Responde en español.',
+    '',
+    PLAYBOOK_COMERCIAL_MESSY,
+    '',
+    '=== PLAYBOOK ===',
+    PLAYBOOK_COMERCIAL,
+    '',
+    '=== TU TAREA ===',
+    sub,
+    '',
+    'Devuelve ÚNICAMENTE el objeto JSON pedido. Sin texto antes ni después, sin markdown, sin backticks.',
+    'REGLA CRÍTICA: dentro de los VALORES de texto NUNCA uses comilla doble ("); para citar usa comillas simples o «».',
+    'No uses saltos de línea dentro de un valor. Esto es OBLIGATORIO para que el JSON sea válido.'
+  ].join('\n');
+}
+
+var PLAYBOOK_COMERCIAL_MESSY = 'Los textos pueden venir pegados tal cual desde un CRM con ruido (horas, [Audio], <Multimedia omitido>, emojis, líneas sin etiqueta). Infiere quién habla: el ASESOR representa a ULPIK (manda precios, garantía, link de pago, datos bancarios); el CLIENTE pregunta precio, da el nombre de su marca u objeta. Ignora el ruido; no te bases en audios/multimedia que no puedes leer.';
+
+var PLAYBOOK_COMERCIAL = [
+  'PLAYBOOK DE VENTAS ULPIK v2.0 — Referencia única.',
+  'LAS 6 FASES: 1. APERTURA (saludo + nombre + pregunta abierta). 2. DESCUBRIMIENTO (nombre, rubro producto/servicio, logo, antigüedad, "botón rojo"). 3. PROPUESTA (conector dolor->solución + precio anclado $620->$480 + garantía + pregunta binaria con NOMBRE DE LA MARCA). 4. MANEJO DE DUDAS (validar + responder + reforzar garantía). 5. PAGO (datos según método). 6. POST-VENTA (confirmar + encuesta + búsqueda fonética 48h).',
+  'REGLA UNIVERSAL #1: CADA mensaje del asesor termina en PREGUNTA. RITMO: llegar a la propuesta antes del mensaje #4.',
+  'BOTÓN ROJO: "Perfecto [Nombre], ¿por qué busca registrar su marca? ¿Tal vez por seguridad o por formalizar? Esto no cambia nada en el proceso, es solo para entenderle 100% personalizado."',
+  'PROPUESTA compacta: conector dolor->solución (eco verbal) + "$620 normal, promo TODO en $480" + garantía (si damos luz verde en la búsqueda fonética y no se registra, devolvemos el 100%) + pregunta de cierre con [Marca].',
+  'Conectores: seguridad->proteger lo construido/evitar copias; formalidad->respaldo legal, facturación, contratos; inversión grande->blindar la inversión y el branding; exportar/franquiciar->escalar/licenciar; redes/Amazon->reclamar marca en plataformas; marca propia->activo que se vende/hereda; susto->prioridad legal.',
+  'CIERRE RÁPIDO (al ver señal de compra): "Perfecto [Nombre], para iniciar ¿le gustaría hacerlo con transferencia o con tarjeta?". Si ninguno: PayPal/débito/cripto. Tiempos: 6-9 meses con seguimiento semanal.',
+  'OBJECIONES (semáforo: ROJO me detengo y escucho; AMARILLO empatizo sin contradecir; VERDE avanzo con pregunta). Validar -> responder -> cerrar en pregunta. Las 7:',
+  '1. ¿Es seguro/estafa? -> remoto desde 2020, casos Daniel Pintado (medallista olímpico), Caro Sánchez (Masterchef), Deportivo Cuenca; ofrecer videollamada.',
+  '2. ¿Y si no sale registrada/me devuelven? -> garantía por luces.',
+  '3. Está caro/hay más barato -> los $480 incluyen TODO (tasa SENADI $208, asesoría 6-9 meses, vigilancia 10 años, garantía); los baratos cobran la tasa aparte.',
+  '4. Tengo que pensarlo -> ~1500 marcas/mes en Ecuador, protección solo desde el registro; ¿qué duda puntual le frena?',
+  '5. Consultarlo con socio/familia -> enviar resumen para compartir + agendar día de retoma y reservar la promo.',
+  '6. ¿2 pagos? -> diferido 3 y 6 meses sin intereses (Datafast) o hasta 12 con intereses (Payphone).',
+  '7. Luz amarilla/riesgo -> 50-65% se registra en la mayoría + cubrimos oposición sin costo; sugerir término distintivo.',
+  'GARANTÍA POR LUCES: Verde (70-100%) si no se registra devolvemos 100%. Amarilla (50-65%) la mayoría se registra + cubrimos oposición. Roja (0-45%) asesoramos para hacerla registrable + regalamos otra búsqueda fonética.',
+  'PAGO: TARJETA -> link https://ulpik.com/marca/ (Datafast hasta 6 meses sin intereses, o Payphone). TRANSFERENCIA -> Banco Pichincha ahorros 2209097624 / Produbanco corriente 27059026109, IK SAS BIC RUC 0195112436001. Siempre cerrar pidiendo comprobante + datos de facturación + pregunta.',
+  'POST-VENTA: tras el pago en <2 min: confirmación + encuesta + 3 preguntas (denominación, productos/servicios, logotipo).',
+  'SEGUIMIENTO (cierra el 80%): 24-48h recordatorio + garantía; 3-5 días reactivación con dato ~1500 marcas/mes + invitación a llamada; 1-2 semanas renovación/videollamada 10 min. RECONTACTO: NO repetir el pitch; reconocer la conversación previa. Mínimo 5 toques.',
+  'PALABRAS PROHIBIDAS -> alternativa: "te garantizo el registro"->"altas probabilidades según la búsqueda fonética"; "tu marca quedará registrada"->"vamos a gestionar el registro ante el SENADI"; "100% seguro"->"100% respaldado: si damos luz verde y no se registra, devolvemos el 100%". El SENADI es la única autoridad; NUNCA prometer el registro.',
+  'MATA LA VENTA: afirmación sin pregunta; precio antes de descubrir; olvidar el nombre; repetir pitch a recontacto; debatir objeción; prometer llamada y no llegar; prometer el registro; abandonar tras un visto.',
+  'PRUEBA SOCIAL: +1000 marcas registradas; remoto desde 2020; casos Daniel Pintado, Caro Sánchez, Deportivo Cuenca.'
+].join('\n');
 
 function callOpenAIChat_(systemMsg, userMsg, maxTokens) {
   const props = PropertiesService.getScriptProperties();
@@ -539,7 +594,7 @@ function testChat() {
     parameter: {
       action: 'chat',
       payload: encodeURIComponent(JSON.stringify({
-        system: 'Responde solo JSON: {"ok":true,"msg":"hola"}',
+        sub: 'Responde solo JSON: {"ok":true,"msg":"hola"}',
         userMsg: 'Di hola en el campo msg'
       }))
     }
