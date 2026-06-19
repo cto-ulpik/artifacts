@@ -11,10 +11,7 @@
   .logo{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:20px;}
   .htop h1{font-size:18px;margin:0;font-weight:700;letter-spacing:-.01em;}
   .htop p{margin:2px 0 0;color:#94a3b8;font-size:12px;}
-  .keybar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:14px 0 0;}
-  .keybar input{flex:1;min-width:200px;padding:9px 12px;border-radius:10px;border:1px solid #334155;background:#1e293b;color:#fff;font-size:13px;}
-  .keybar input::placeholder{color:#64748b;}
-  .keystatus{font-size:12px;color:#94a3b8;}
+  .apistatus{font-size:11px;color:#64748b;padding:8px 0 0;}
   .tabs{display:flex;gap:4px;padding-top:14px;}
   .tab{display:flex;align-items:center;gap:6px;border:0;background:transparent;color:#cbd5e1;font-weight:600;font-size:14px;padding:10px 16px;border-radius:12px 12px 0 0;cursor:pointer;}
   .tab.on{background:var(--bg);color:var(--slate);}
@@ -93,10 +90,7 @@
 <div class="head">
   <div class="wrap">
     <div class="htop"><div class="logo">◷</div><div><h1>Apoyo Comercial ULPIK</h1><p>Tu copiloto de ventas, basado en el Playbook ULPIK v2.0</p></div></div>
-    <div class="keybar">
-      <input id="key" type="password" placeholder="Pega aquí tu Anthropic API key (sk-ant-...)" autocomplete="off">
-      <span class="keystatus" id="keystatus">Sin key</span>
-    </div>
+    <p class="apistatus">IA vía OpenAI · key segura en Apps Script</p>
     <div class="tabs">
       <button class="tab on" data-mode="apoyo" id="t-apoyo">🎧 Apoyo en vivo</button>
       <button class="tab" data-mode="auditoria" id="t-aud">📊 Auditar conversación</button>
@@ -163,15 +157,50 @@ const SUB_MENSAJES=`Elige 3-5 momentos mejorables. Devuelve: {"mensajesReescrito
 function balanceJSON(str){let inS=false,esc=false,o=0,b=0;for(let i=0;i<str.length;i++){const c=str[i];if(esc){esc=false;continue;}if(c==="\\"){esc=true;continue;}if(c==='"'){inS=!inS;continue;}if(inS)continue;if(c==="{")o++;else if(c==="}")o--;else if(c==="[")b++;else if(c==="]")b--;}let s=str;if(inS)s+='"';s=s.replace(/\s+$/,"").replace(/[,:]$/,"").replace(/,\s*"[^"]*"$/,"");if(b>0)s+="]".repeat(b);if(o>0)s+="}".repeat(o);return s;}
 function parseJSON(txt){let c=(txt||"").replace(/```json/gi,"").replace(/```/g,"").trim();const s=c.indexOf("{");if(s===-1)throw new Error("Sin JSON en la respuesta");c=c.slice(s);const clean=c.replace(/[\u0000-\u001F]+/g," ");const e=clean.lastIndexOf("}");const cands=[];if(e!==-1)cands.push(clean.slice(0,e+1));cands.push(clean);cands.push(clean.replace(/,\s*([}\]])/g,"$1"));cands.push(balanceJSON(clean));cands.push(balanceJSON(clean).replace(/,\s*([}\]])/g,"$1"));for(const x of cands){try{return JSON.parse(x);}catch(_){}}throw new Error("JSON inválido tras intentar reparar");}
 
-let API_KEY="";
-async function callAPI(sub,userMsg){
-  if(!API_KEY)throw new Error("Falta tu API key arriba");
-  const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:4000,system:buildSys(sub),messages:[{role:"user",content:userMsg}]})});
-  if(!r.ok){let b="";try{b=await r.text();}catch(_){}throw new Error("HTTP "+r.status+" — "+b.slice(0,220));}
-  const d=await r.json();
-  if(d.error)throw new Error("API error: "+JSON.stringify(d.error).slice(0,220));
-  const t=(d.content||[]).map(i=>i.type==="text"?i.text:"").join("");
-  if(!t.trim())throw new Error("Respuesta vacía del modelo");
+// Mismo Web App que Pulso del Equipo (scripts/pulso-equipo-sheets.gs, action=chat)
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx17ROb8-eBTKgXCCS-JNKqhtVG9W_PStF6IJhjwdlKkFdltXA_44TUlm7Eco8qKT0a-w/exec';
+
+function fetchJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = '_ulpikDavid_' + Date.now();
+    const timer = setTimeout(() => { cleanup(); reject(new Error('Timeout')); }, 120000);
+    const script = document.createElement('script');
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cb];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cb] = (data) => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error('No se pudo conectar con Apps Script')); };
+    const sep = url.includes('?') ? '&' : '?';
+    script.src = url + sep + 'callback=' + encodeURIComponent(cb);
+    document.head.appendChild(script);
+  });
+}
+
+async function callAPI(sub, userMsg) {
+  if (!APPS_SCRIPT_URL) {
+    throw new Error('Apps Script no configurado.');
+  }
+  const payload = { system: buildSys(sub), userMsg };
+  const jsonPayload = JSON.stringify(payload);
+  const getUrl = APPS_SCRIPT_URL + '?action=chat&payload=' + encodeURIComponent(jsonPayload);
+
+  let data;
+  if (getUrl.length <= 7500) {
+    data = await fetchJsonp(getUrl);
+  } else {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      body: new URLSearchParams({ action: 'chat', payload: jsonPayload })
+    });
+    data = await res.json();
+  }
+
+  if (data.status === 'error') throw new Error(data.message || 'Error de API');
+  const t = data.text || '';
+  if (!t.trim()) throw new Error('Respuesta vacía del modelo');
   return parseJSON(t);
 }
 
@@ -185,9 +214,8 @@ const luzC=l=>l==="verde"?["#dcfce7","#15803d","Luz verde — avanza"]:l==="amar
 let copyStore=[];
 function bindCopies(){document.querySelectorAll("[data-copy]").forEach(btn=>{btn.onclick=async()=>{try{await navigator.clipboard.writeText(copyStore[+btn.dataset.copy]||"");btn.classList.add("done");const o=btn.innerHTML;btn.innerHTML="✓ Copiado";setTimeout(()=>{btn.classList.remove("done");btn.innerHTML=o;},1600);}catch(_){}};});}
 
-//==================== estado / key ====================
+//==================== estado ====================
 let mode="apoyo",need="objecion";
-$("#key").addEventListener("input",e=>{API_KEY=e.target.value.trim();const st=$("#keystatus");if(API_KEY){st.textContent="Key cargada ✓";st.style.color="#4ade80";}else{st.textContent="Sin key";st.style.color="#94a3b8";}});
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{mode=t.dataset.mode;$("#t-apoyo").classList.toggle("on",mode==="apoyo");$("#t-aud").classList.toggle("on",mode==="auditoria");render();});
 
 //==================== MODO APOYO ====================

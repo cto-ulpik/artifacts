@@ -8,6 +8,7 @@
 //    classify  → categoriza sugerencia (OpenAI)
 //    observe   → observaciones del período (OpenAI)
 //    feedback  → recomendación individual al enviar (OpenAI)
+//    chat      → Apoyo Comercial David (OpenAI, system + userMsg)
 //    (sin action) → ping
 //
 //  SETUP OpenAI:
@@ -62,6 +63,10 @@ function doGet(e) {
 
     if (action === 'feedback') {
       return jsonResponse(generarFeedback_(parsePayload_(e)), e);
+    }
+
+    if (action === 'chat') {
+      return jsonResponse(chatComercial_(parsePayload_(e)), e);
     }
 
     return jsonResponse({ status: 'ok', message: 'Pulso Ulpik API activa ✓' }, e);
@@ -297,6 +302,71 @@ function generarFeedback_(payload) {
   return { status: 'ok', feedback: parseFeedback_(raw) };
 }
 
+// ════════════════════════════════════════════════════════════
+//  OpenAI — Apoyo Comercial David (chat con system + user)
+// ════════════════════════════════════════════════════════════
+
+function chatComercial_(payload) {
+  const system = String(payload.system || '').trim();
+  const userMsg = String(payload.userMsg || payload.user || '').trim();
+  if (!system) throw new Error('Falta el prompt de sistema.');
+  if (!userMsg) throw new Error('Falta el mensaje del usuario.');
+  const text = callOpenAIChat_(system, userMsg, Number(payload.maxTokens) || 4000);
+  return { status: 'ok', text: text };
+}
+
+function callOpenAIChat_(systemMsg, userMsg, maxTokens) {
+  const props = PropertiesService.getScriptProperties();
+  const apiKey = props.getProperty('OPENAI_API_KEY');
+
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY no configurada. Ve a Configuración del proyecto > Propiedades del script.');
+  }
+
+  const model = props.getProperty('OPENAI_MODEL') || DEFAULT_MODEL;
+
+  const response = UrlFetchApp.fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + apiKey },
+    payload: JSON.stringify({
+      model: model,
+      messages: [
+        { role: 'system', content: systemMsg },
+        { role: 'user', content: userMsg }
+      ],
+      temperature: 0.4,
+      max_tokens: maxTokens || 4000
+    }),
+    muteHttpExceptions: true
+  });
+
+  const code = response.getResponseCode();
+  const bodyText = response.getContentText();
+  let bodyParsed;
+
+  try {
+    bodyParsed = JSON.parse(bodyText);
+  } catch (e) {
+    throw new Error('Respuesta inválida de OpenAI (HTTP ' + code + ').');
+  }
+
+  if (code !== 200) {
+    const msg = (bodyParsed.error && bodyParsed.error.message) ? bodyParsed.error.message : bodyText;
+    throw new Error('OpenAI error ' + code + ': ' + msg);
+  }
+
+  const content = bodyParsed.choices && bodyParsed.choices[0] && bodyParsed.choices[0].message
+    ? bodyParsed.choices[0].message.content
+    : '';
+
+  if (!content) {
+    throw new Error('OpenAI devolvió una respuesta vacía.');
+  }
+
+  return content;
+}
+
 function parseFeedback_(rawText) {
   const clean = String(rawText).replace(/```json|```/g, '').trim();
   let parsed;
@@ -458,6 +528,19 @@ function testFeedback() {
         claridad: 'A veces',
         motivacion: 'Regular',
         sugerencia: ''
+      }))
+    }
+  });
+  Logger.log(result.getContent());
+}
+
+function testChat() {
+  const result = doGet({
+    parameter: {
+      action: 'chat',
+      payload: encodeURIComponent(JSON.stringify({
+        system: 'Responde solo JSON: {"ok":true,"msg":"hola"}',
+        userMsg: 'Di hola en el campo msg'
       }))
     }
   });
