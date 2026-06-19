@@ -179,7 +179,7 @@ tr:last-child td{border-bottom:none}
   <div class="hero">
     <div class="hl">Inteligencia de comité ejecutivo</div>
     <div class="hn">Sube los archivos · <span>recibe el dictamen</span></div>
-    <div class="hs">Excel del lanzamiento + CSV/PDF del Forms. La IA actúa como CFO/CMO/Director de Educación: alertas con número, red flags de datos, mejoras tácticas con cómo, y acción inmediata.</div>
+    <div class="hs">Excel del lanzamiento + CSV/Excel del Forms. La IA (OpenAI vía Apps Script de Pulso) actúa como CFO/CMO/Director de Educación: alertas con número, red flags de datos, mejoras tácticas con cómo, y acción inmediata.</div>
   </div>
   <div class="section">
     <div class="ugrid">
@@ -195,9 +195,9 @@ tr:last-child td{border-bottom:none}
         <div class="dzr">Requerido</div>
         <div class="dzi">📋</div>
         <div class="dzt">Encuesta de satisfacción</div>
-        <div class="dzs">CSV o PDF de Google Forms</div>
+        <div class="dzs">CSV o Excel de Google Forms</div>
         <div class="dzf" style="display:none;"></div>
-        <input type="file" id="fileSurvey" accept=".csv,.pdf,.xlsx,.xls">
+        <input type="file" id="fileSurvey" accept=".csv,.xlsx,.xls">
       </label>
     </div>
     <div class="xn">
@@ -353,96 +353,46 @@ function newAnalysis(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-const SP=`Eres el motor de inteligencia de negocio de ULPIK. Actúas como CFO + CMO + Director de Educación al mismo tiempo. ANÁLISIS DENSO, CORTO Y ACCIONABLE. Cada frase agrega información — cero relleno, cero diplomacia. Tu trabajo es proteger al equipo de la autocomplacencia.
+// OpenAI vía Apps Script de Pulso del Equipo (misma key que Pulso / Apoyo Comercial)
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby7KF7hi4DSdFeNzYcJfzguU5-MkSFmKV1QAC_BEIkY5gk02xnKGdw2Xmpg8NbNIuhR6Q/exec';
 
-ULPIK es empresa ecuatoriana de registro de marcas + educación bajo la marca DSAC ("De shunsho a crack"). Cada lanzamiento tiene proyección, ads Meta, ventas Hotmart, comisiones a instructores.
+function balanceJSON(str){let inS=false,esc=false,o=0,b=0;for(let i=0;i<str.length;i++){const c=str[i];if(esc){esc=false;continue;}if(c==="\\"){esc=true;continue;}if(c==='"'){inS=!inS;continue;}if(inS)continue;if(c==="{")o++;else if(c==="}")o--;else if(c==="[")b++;else if(c==="]")b--;}let s=str;if(inS)s+='"';s=s.replace(/\s+$/,"").replace(/[,:]$/,"").replace(/,\s*"[^"]*"$/,"");if(b>0)s+="]".repeat(b);if(o>0)s+="}".repeat(o);return s;}
+function parseJSON(txt){let c=(txt||"").replace(/```json/gi,"").replace(/```/g,"").trim();const s=c.indexOf("{");if(s===-1)throw new Error("Sin JSON en la respuesta");c=c.slice(s);const clean=c.replace(/[\u0000-\u001F]+/g," ");const e=clean.lastIndexOf("}");const cands=[];if(e!==-1)cands.push(clean.slice(0,e+1));cands.push(clean);cands.push(clean.replace(/,\s*([}\]])/g,"$1"));cands.push(balanceJSON(clean));cands.push(balanceJSON(clean).replace(/,\s*([}\]])/g,"$1"));for(const x of cands){try{return JSON.parse(x);}catch(_){}}throw new Error("JSON inválido tras intentar reparar");}
+function friendlyApiError(msg){const m=String(msg||'');if(/UrlFetchApp\.fetch|script\.external_request/i.test(m))return'Falta autorizar OpenAI en Apps Script. Ejecuta testOpenAIAuth() en el editor de Pulso y acepta los permisos.';return m;}
 
-BENCHMARKS:
-- NPS sector educación online: 45-55 (>55 bueno, >70 excelente)
-- ROAS saludable: ≥ 2.5
-- Conversión lead → venta esperada: ≥ 1.5%
-- Cumplimiento presupuesto sano: ≥ 60%
-
-SEMÁFORO:
-- verde = cumplimiento >60% Y ROAS >2
-- amarillo = cumplimiento 30-60% O ROAS 1-2
-- rojo = cumplimiento <30% O ROAS <1
-
-INPUT: Excel del lanzamiento + encuesta CSV/PDF + notas opcionales. Lee, agrega y analiza TODO con criterio de CEO. Si el formato cambia, usa criterio para identificar variables clave. Si falta dato, null pero NO inventes.
-
-ENCUESTA — cálculos exactos:
-- Solo respuestas válidas (no en blanco)
-- NPS: Promotores 9-10, Pasivos 7-8, Detractores 0-6. NPS = (%Promotores - %Detractores) × 100
-- Quotes literales sin parafrasear
-
-═══ REGLAS DEL ANÁLISIS ═══
-
-REGLA DE ORO: NO REPITAS LO OBVIO. Si el ROAS está bajo, di POR QUÉ y QUÉ HACER. No "el NPS es alto" sino "NPS 75 con solo 41% de tasa de respuesta → el verdadero NPS puede estar 15-20 pts más abajo por sesgo".
-
-CONCLUSIÓN EJECUTIVA: DOS párrafos cortos y densos (máx 3-4 oraciones cada uno) separados por \\n\\n. Primero qué pasó con números. Segundo qué significa para el negocio. CERO relleno.
-
-ALERTAS (3): hallazgos sobre RESULTADOS con número específico. Ej: "ROAS 1.47x está 41% bajo benchmark 2.5x — cada $1 en ads pierde $1.03 de utilidad".
-
-RED FLAGS DE DATOS (3): riesgos OCULTOS que el equipo podría ignorar. Sesgos, vacíos, contradicciones, métricas vanity. Profundidad esperada:
-- "Solo 12 de 29 inscritas (41%) respondieron — NPS 75 tiene sesgo de selección hacia promotoras; real puede ser 15-20 pts menos"
-- "19 becas inflan inscritos a 29 pero generan $0 — embudo de conversión pagada real es 10/2278 = 0.44%, 3x peor que benchmark"
-- "Audiencia cayó 52% post-pitch (910→435) — el live no convirtió, fue ad pagada disfrazada de orgánico"
-- "Campaña 2 reporta 14 conversiones pero solo 10 ventas en P&L — atribución de ads sobreinflada"
-
-OPORTUNIDADES (2): de NEGOCIO basadas en señales positivas. Específicas, no genéricas.
-
-MEJORAS CONCRETAS (3-4): cada una con {que, como}. NUNCA genéricas. Nivel esperado:
-- que: "Bajar CPA masterclass de $119 a <$60"
-  como: "Crear lookalike 1% de los 10 compradores actuales + excluir intereses genéricos"
-- que: "Convertir 50% de becarias en pago en 30 días"
-  como: "Beca con upgrade: módulo 1 gratis, módulos 2-3 con 30% descuento solo 7 días post-curso"
-
-SIGUIENTE ACCIÓN: una en 7 días con responsable explícito (ej: "Esteban + David: rediseñar audiencias Meta antes del viernes con lookalike de los 10 compradores actuales").
-
-═══ DEVUELVE SOLO ESTE JSON ═══
-Sin markdown, sin backticks. Primer carácter {, último }.
-
-{
-  "meta":{"curso":"string","periodo":"string","instructor":"string o null","fecha_analisis":"string"},
-  "verdict":{
-    "semaforo":"verde|amarillo|rojo",
-    "titular":"máx 12 palabras directas",
-    "conclusion_ejecutiva":"dos párrafos cortos separados por \\n\\n",
-    "alertas":["3 con número específico"],
-    "red_flags":["3 sobre datos: sesgos, vacíos, métricas vanity"],
-    "oportunidades":["2 concretas"],
-    "mejoras_concretas":[{"que":"...","como":"..."}],
-    "siguiente_accion":"acción + responsable + plazo"
-  },
-  "kpis_principales":{"inscritos_total":N,"inscritos_pagos":N,"becas":N,"ingresos_brutos":N,"nps":N,"satisfaccion_general":N,"rating_instructor":N o null,"respuestas_encuesta":N},
-  "marketing":{
-    "inversion_total":N,"ventas_atribuidas":N,"roas":N,"cpa_principal":N,"conversion_lead_venta_pct":N,
-    "campañas":[{"nombre":"...","descripcion_breve":"...","color_tema":"naranja|verde|morado","inversion":N,"embudo":[{"paso":"...","valor":N}],"metricas_clave":[{"label":"...","val":"..."}]}]
-  },
-  "satisfaccion":{
-    "respuestas_totales":N,
-    "promedios_por_pregunta":[{"pregunta":"...","promedio":N}],
-    "distribucion_principal":{"pregunta":"...","votos_por_nota":{"10":N}},
-    "si_dejara_existir":{"muy_decepcionado":N,"poco_decepcionado":N,"me_daria_igual":N},
-    "nps_breakdown":{"promotores":N,"pasivos":N,"detractores":N},
-    "modulo_favorito":[{"nombre":"...","votos":N}],
-    "ritmo_duracion":[{"respuesta":"...","n":N}],
-    "soporte_equipo":[{"respuesta":"...","n":N}],
-    "ciudades":[{"nombre":"...","n":N}],
-    "edades":[{"rango":"...","n":N}],
-    "quotes_aprendizaje":["5 literales"],
-    "quotes_mejora":["5 literales"]
-  },
-  "financiero":{
-    "proyectado":{"ventas_brutas":N,"utilidad":N,"lineas":[{"label":"...","val":N,"tipo":"gasto|ingreso"}]},
-    "real":{"ventas_brutas":N,"utilidad":N,"lineas":[{"label":"...","val":N,"tipo":"gasto|ingreso"}]},
-    "brecha":[{"concepto":"...","proyectado":N,"real":N,"ejecucion_pct":N}]
-  }
+function fetchJsonp(url){
+  return new Promise((resolve,reject)=>{
+    const cb='_launchJsonp_'+Date.now();
+    const timer=setTimeout(()=>{cleanup();reject(new Error('Timeout esperando respuesta de IA'));},180000);
+    const script=document.createElement('script');
+    function cleanup(){clearTimeout(timer);delete window[cb];if(script.parentNode)script.parentNode.removeChild(script);}
+    window[cb]=(data)=>{cleanup();resolve(data);};
+    script.onerror=()=>{cleanup();reject(new Error('No se pudo conectar con Apps Script'));};
+    const sep=url.includes('?')?'&':'?';
+    script.src=url+sep+'callback='+encodeURIComponent(cb);
+    document.head.appendChild(script);
+  });
 }
 
-Si falta dato, [] o null. NO inventes. NO incluyas objeto "becas" — fue removido del análisis.
-
-VALENTÍA OBLIGATORIA: si ventas reales fueron 9% del presupuesto, eso es FRACASO COMERCIAL — nómbralo así. NPS alto puede coexistir con fracaso comercial: nombra ambos.`;
+async function callLaunchAPI(userMsg){
+  if(!APPS_SCRIPT_URL)throw new Error('Apps Script no configurado.');
+  const payload={profile:'launch',userMsg,maxTokens:8000};
+  const jsonPayload=JSON.stringify(payload);
+  const getUrl=APPS_SCRIPT_URL+'?action=chat&payload='+encodeURIComponent(jsonPayload);
+  let data;
+  if(getUrl.length<=7500){
+    data=await fetchJsonp(getUrl);
+  }else{
+    const res=await fetch(APPS_SCRIPT_URL,{method:'POST',redirect:'follow',body:new URLSearchParams({action:'chat',payload:jsonPayload})});
+    const raw=await res.text();
+    try{data=JSON.parse(raw);}catch(e){throw new Error('Respuesta inválida del servidor.');}
+  }
+  if(data.status==='error')throw new Error(data.message||'Error de API');
+  if(data.message&&!data.text)throw new Error('Apps Script sin action=chat. Actualiza pulso-equipo-sheets.gs y redespliega.');
+  const t=data.text||'';
+  if(!t.trim())throw new Error('Respuesta vacía del modelo');
+  return parseJSON(t);
+}
 
 const LMS=[
   {t:"Procesando Excel y encuesta...",s:"Extrayendo datos crudos"},
@@ -458,6 +408,7 @@ async function analyze(){
   const eb=document.getElementById('errorBox');
   eb.classList.remove('active');
   if(!excelFile||!surveyFile){eb.textContent="⚠ Faltan archivos.";eb.classList.add('active');return;}
+  if(surveyType==='pdf'){eb.textContent="⚠ Exporta la encuesta como CSV o Excel desde Google Forms (OpenAI no procesa PDF en este modo).";eb.classList.add('active');return;}
   const btn=document.getElementById('analyzeBtn');
   btn.disabled=true;
   document.getElementById('loadingState').classList.add('active');
@@ -470,36 +421,18 @@ async function analyze(){
   try{
     const notes=document.getElementById('extraNotes').value;
     const excelText=Object.entries(excelData).map(([n,csv])=>`=== HOJA: ${n} ===\n${csv}`).join('\n\n');
-    const content=[];
-    if(surveyType==='pdf'&&surveyPdfBase64){
-      content.push({type:"document",source:{type:"base64",media_type:"application/pdf",data:surveyPdfBase64}});
-    }
-    let tp=`Analiza este lanzamiento. Devuelve EXCLUSIVAMENTE el JSON.\n\n═══ EXCEL DEL LANZAMIENTO ═══\n${excelText}\n\n`;
-    if(surveyType==='csv'||surveyType==='xlsx'){tp+=`═══ ENCUESTA ═══\n${surveyText}\n\n`;}
-    else if(surveyType==='pdf'){tp+=`═══ ENCUESTA ═══\nVer PDF adjunto. Procesa TODAS las filas.\n\n`;}
-    if(notes&&notes.trim()){tp+=`═══ NOTAS DEL EQUIPO ═══\n${notes}\n\n`;}
-    tp+=`Responde con el JSON ahora. Primer carácter { último }.`;
-    content.push({type:"text",text:tp});
-    const r=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:8000,system:SP,messages:[{role:"user",content:content}]})
-    });
-    if(!r.ok){const t=await r.text();throw new Error(`API ${r.status}: ${t.slice(0,250)}`);}
-    const d=await r.json();
-    const ft=d.content.filter(b=>b.type==="text").map(b=>b.text).join("");
-    let cl=ft.replace(/```json|```/g,"").trim();
-    const f=cl.indexOf('{'),l=cl.lastIndexOf('}');
-    if(f===-1||l===-1)throw new Error("Sin JSON válido");
-    cl=cl.slice(f,l+1);
-    const result=JSON.parse(cl);
+    let userMsg=`Analiza este lanzamiento. Devuelve EXCLUSIVAMENTE el JSON.\n\n═══ EXCEL DEL LANZAMIENTO ═══\n${excelText}\n\n`;
+    if(surveyType==='csv'||surveyType==='xlsx'){userMsg+=`═══ ENCUESTA ═══\n${surveyText}\n\n`;}
+    if(notes&&notes.trim()){userMsg+=`═══ NOTAS DEL EQUIPO ═══\n${notes}\n\n`;}
+    userMsg+=`Responde con el JSON ahora. Primer carácter { último }.`;
+    const result=await callLaunchAPI(userMsg);
     clearInterval(li);
     document.getElementById('loadingState').classList.remove('active');
     renderResults(result);
   }catch(e){
     clearInterval(li);
     document.getElementById('loadingState').classList.remove('active');
-    eb.textContent="⚠ Error: "+e.message;
+    eb.textContent="⚠ "+friendlyApiError(e.message||e);
     eb.classList.add('active');
     console.error(e);
   }finally{

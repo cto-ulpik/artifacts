@@ -8,7 +8,7 @@
 //    classify  → categoriza sugerencia (OpenAI)
 //    observe   → observaciones del período (OpenAI)
 //    feedback  → recomendación individual al enviar (OpenAI)
-//    chat      → Apoyo Comercial David (OpenAI, system + userMsg)
+//    chat      → OpenAI chat (Apoyo Comercial: sub+userMsg | Launch Analyzer: profile=launch+userMsg)
 //    (sin action) → ping
 //
 //  SETUP OpenAI:
@@ -313,8 +313,11 @@ function chatComercial_(payload) {
   const userMsg = String(payload.userMsg || payload.user || '').trim();
   if (!userMsg) throw new Error('Falta el mensaje del usuario.');
 
+  const profile = String(payload.profile || '').trim();
   let system;
-  if (payload.system) {
+  if (profile === 'launch') {
+    system = LAUNCH_ANALYZER_SYSTEM;
+  } else if (payload.system) {
     system = String(payload.system).trim();
   } else {
     const sub = String(payload.sub || '').trim();
@@ -322,9 +325,49 @@ function chatComercial_(payload) {
     system = buildComercialSystem_(sub);
   }
 
-  const text = callOpenAIChat_(system, userMsg, Number(payload.maxTokens) || 4000);
+  const defaultTokens = profile === 'launch' ? 8000 : 4000;
+  const text = callOpenAIChat_(system, userMsg, Number(payload.maxTokens) || defaultTokens);
   return { status: 'ok', text: text };
 }
+
+var LAUNCH_ANALYZER_SYSTEM = [
+  'Eres el motor de inteligencia de negocio de ULPIK. Actúas como CFO + CMO + Director de Educación al mismo tiempo. ANÁLISIS DENSO, CORTO Y ACCIONABLE. Cada frase agrega información — cero relleno, cero diplomacia. Tu trabajo es proteger al equipo de la autocomplacencia.',
+  '',
+  'ULPIK es empresa ecuatoriana de registro de marcas + educación bajo la marca DSAC ("De shunsho a crack"). Cada lanzamiento tiene proyección, ads Meta, ventas Hotmart, comisiones a instructores.',
+  '',
+  'BENCHMARKS:',
+  '- NPS sector educación online: 45-55 (>55 bueno, >70 excelente)',
+  '- ROAS saludable: ≥ 2.5',
+  '- Conversión lead → venta esperada: ≥ 1.5%',
+  '- Cumplimiento presupuesto sano: ≥ 60%',
+  '',
+  'SEMÁFORO:',
+  '- verde = cumplimiento >60% Y ROAS >2',
+  '- amarillo = cumplimiento 30-60% O ROAS 1-2',
+  '- rojo = cumplimiento <30% O ROAS <1',
+  '',
+  'INPUT: Excel del lanzamiento + encuesta CSV + notas opcionales. Lee, agrega y analiza TODO con criterio de CEO. Si el formato cambia, usa criterio para identificar variables clave. Si falta dato, null pero NO inventes.',
+  '',
+  'ENCUESTA — cálculos exactos:',
+  '- Solo respuestas válidas (no en blanco)',
+  '- NPS: Promotores 9-10, Pasivos 7-8, Detractores 0-6. NPS = (%Promotores - %Detractores) × 100',
+  '- Quotes literales sin parafrasear',
+  '',
+  'REGLA DE ORO: NO REPITAS LO OBVIO. Si el ROAS está bajo, di POR QUÉ y QUÉ HACER.',
+  'CONCLUSIÓN EJECUTIVA: DOS párrafos cortos y densos separados por \\n\\n.',
+  'ALERTAS (3): hallazgos con número específico.',
+  'RED FLAGS DE DATOS (3): sesgos, vacíos, contradicciones, métricas vanity.',
+  'OPORTUNIDADES (2): concretas, no genéricas.',
+  'MEJORAS CONCRETAS (3-4): cada una con que + como.',
+  'SIGUIENTE ACCIÓN: una en 7 días con responsable explícito.',
+  '',
+  'Devuelve ÚNICAMENTE el objeto JSON pedido. Sin texto antes ni después, sin markdown, sin backticks.',
+  'REGLA CRÍTICA: dentro de los VALORES de texto NUNCA uses comilla doble ("); para citar usa comillas simples o «».',
+  'Primer carácter {, último }. Si falta dato, [] o null. NO inventes. NO incluyas objeto "becas".',
+  'VALENTÍA OBLIGATORIA: si ventas reales fueron 9% del presupuesto, eso es FRACASO COMERCIAL — nómbralo así. NPS alto puede coexistir con fracaso comercial: nombra ambos.',
+  '',
+  'Esquema JSON: {"meta":{"curso":"","periodo":"","instructor":null,"fecha_analisis":""},"verdict":{"semaforo":"verde|amarillo|rojo","titular":"","conclusion_ejecutiva":"","alertas":[],"red_flags":[],"oportunidades":[],"mejoras_concretas":[{"que":"","como":""}],"siguiente_accion":""},"kpis_principales":{},"marketing":{},"satisfaccion":{},"financiero":{}}'
+].join('\n');
 
 function buildComercialSystem_(sub) {
   return [
@@ -617,6 +660,20 @@ function testChat() {
       payload: encodeURIComponent(JSON.stringify({
         sub: 'Responde solo JSON: {"ok":true,"msg":"hola"}',
         userMsg: 'Di hola en el campo msg'
+      }))
+    }
+  });
+  Logger.log(result.getContent());
+}
+
+function testLaunch() {
+  const result = doGet({
+    parameter: {
+      action: 'chat',
+      payload: encodeURIComponent(JSON.stringify({
+        profile: 'launch',
+        userMsg: 'Analiza lanzamiento de prueba. Devuelve JSON mínimo con meta.curso="Test" y verdict.semaforo="amarillo".',
+        maxTokens: 500
       }))
     }
   });
