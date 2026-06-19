@@ -17,7 +17,10 @@
 //       OPENAI_MODEL    = gpt-4o-mini   (opcional)
 //  2. Implementar > Nueva implementación > Aplicación web
 //       Ejecutar como: Yo | Acceso: Cualquier persona
-//  3. Probar: testConfig() → testFeedback() → testObtenerTodas()
+//  3. Autorizar OpenAI (OBLIGATORIO tras cada deploy nuevo):
+//       Ejecutar testOpenAIAuth() desde el editor → Aceptar permisos
+//       (sin esto, la Web App falla con "No cuentas con permiso UrlFetchApp.fetch")
+//  4. Probar: testChat() → testFeedback() → testObtenerTodas()
 // ════════════════════════════════════════════════════════════
 
 const SHEET_NAME = 'Respuestas';
@@ -561,6 +564,24 @@ function testObtenerTodas() {
 function testConfig() {
   const key = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
   Logger.log(key ? 'OPENAI_API_KEY configurada ✓' : 'Falta OPENAI_API_KEY en Propiedades del script');
+}
+
+/** Ejecutar una vez tras desplegar: fuerza la autorización de UrlFetchApp (OpenAI). */
+function testOpenAIAuth() {
+  const key = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
+  if (!key) throw new Error('Falta OPENAI_API_KEY en Propiedades del script');
+  const response = UrlFetchApp.fetch('https://api.openai.com/v1/models', {
+    method: 'get',
+    headers: { Authorization: 'Bearer ' + key },
+    muteHttpExceptions: true
+  });
+  const code = response.getResponseCode();
+  Logger.log('OpenAI auth test — HTTP ' + code);
+  if (code >= 400) {
+    Logger.log(response.getContentText().slice(0, 300));
+    throw new Error('OpenAI respondió ' + code + '. Revisa la API key.');
+  }
+  Logger.log('UrlFetchApp autorizado ✓ — ya puedes usar la Web App');
 }
 
 function testClassify() {
