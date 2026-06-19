@@ -1,0 +1,292 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apoyo Comercial ULPIK</title>
+<style>
+  :root{--slate:#0f172a;--slate2:#1e293b;--line:#e2e8f0;--mut:#64748b;--mut2:#94a3b8;--bg:#f8fafc;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:#1e293b;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-size:14px;line-height:1.5;}
+  .head{background:var(--slate);color:#fff;}
+  .wrap{max-width:880px;margin:0 auto;padding:0 16px;}
+  .htop{display:flex;align-items:center;gap:12px;padding-top:20px;}
+  .logo{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .htop h1{font-size:18px;margin:0;font-weight:700;letter-spacing:-.01em;}
+  .htop p{margin:2px 0 0;color:#94a3b8;font-size:12px;}
+  .keybar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:14px 0 0;}
+  .keybar input{flex:1;min-width:200px;padding:9px 12px;border-radius:10px;border:1px solid #334155;background:#1e293b;color:#fff;font-size:13px;}
+  .keybar input::placeholder{color:#64748b;}
+  .keystatus{font-size:12px;color:#94a3b8;}
+  .tabs{display:flex;gap:4px;padding-top:14px;}
+  .tab{display:flex;align-items:center;gap:6px;border:0;background:transparent;color:#cbd5e1;font-weight:600;font-size:14px;padding:10px 16px;border-radius:12px 12px 0 0;cursor:pointer;}
+  .tab.on{background:var(--bg);color:var(--slate);}
+  .main{padding:24px 0 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 1px 2px rgba(0,0,0,.04);padding:20px;margin-bottom:16px;}
+  label.lbl{display:block;font-size:12px;font-weight:600;color:var(--mut);margin-bottom:6px;}
+  .opt{color:var(--mut2);font-weight:400;}
+  input.txt,textarea.txt{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);font-size:14px;font-family:inherit;resize:vertical;}
+  input.txt:focus,textarea.txt:focus{outline:2px solid #cbd5e1;border-color:#cbd5e1;}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:560px){.row{grid-template-columns:1fr;}}
+  .needs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+  @media(max-width:560px){.needs{grid-template-columns:1fr 1fr;}}
+  .need{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:12px 8px;border-radius:12px;border:1px solid var(--line);background:#fff;color:#475569;font-weight:600;font-size:12px;cursor:pointer;}
+  .need.on{background:var(--slate);color:#fff;border-color:var(--slate);}
+  .need .ic{font-size:18px;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border-radius:12px;background:var(--slate);color:#fff;border:0;font-weight:600;font-size:14px;cursor:pointer;}
+  .btn:disabled{opacity:.6;cursor:default;}
+  .btn.ghost{background:#fff;color:#475569;border:1px solid #cbd5e1;}
+  .mt{margin-top:16px;}
+  .mb{margin-bottom:12px;}
+  .err{color:#dc2626;font-size:13px;margin:0 0 8px;}
+  .errd{color:#f87171;font-size:11px;font-family:ui-monospace,monospace;background:#fef2f2;border:1px solid #fee2e2;border-radius:8px;padding:8px;word-break:break-word;}
+  .bar{height:8px;border-radius:99px;background:#f1f5f9;overflow:hidden;margin-top:14px;}
+  .bar>span{display:block;height:8px;background:var(--slate);transition:width .3s;}
+  .hint{font-size:12px;color:var(--mut2);margin-top:8px;}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;}
+  .resp{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .resp .hd{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#f8fafc;border-bottom:1px solid #f1f5f9;padding:10px 14px;}
+  .resp .hd b{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#475569;}
+  .resp .bd{padding:14px;white-space:pre-wrap;color:#1e293b;}
+  .copy{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:8px;background:#f1f5f9;color:#475569;font-size:12px;font-weight:600;padding:6px 10px;cursor:pointer;}
+  .copy.done{background:#dcfce7;color:#15803d;}
+  .nextbox{display:flex;gap:12px;background:#ecfdf5;border:1px solid #d1fae5;border-radius:18px;padding:16px;margin-top:16px;}
+  .nextbox .t{font-size:10px;font-weight:700;text-transform:uppercase;color:#059669;}
+  .tipsbox{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:12px;}
+  .tipsbox .t{font-size:10px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;}
+  .tipsbox li{font-size:12px;color:#475569;margin-bottom:6px;list-style:none;}
+  .lectura{font-size:14px;color:#334155;}
+  .sec{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 1px 2px rgba(0,0,0,.04);margin-bottom:16px;overflow:hidden;}
+  .sec>h3{margin:0;padding:16px 18px;font-size:15px;cursor:pointer;display:flex;align-items:center;gap:10px;}
+  .sec .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+  .sec .body{padding:0 18px 18px;}
+  .gscore{display:flex;gap:20px;align-items:center;flex-wrap:wrap;}
+  .ring{width:108px;height:108px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+  .ring>div{width:78px;height:78px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ring b{font-size:28px;}
+  .step{border:1px solid #f1f5f9;border-radius:12px;overflow:hidden;margin-bottom:10px;}
+  .step .sh{display:flex;justify-content:space-between;gap:8px;padding:9px 14px;font-size:13px;font-weight:600;}
+  .step .sb{padding:10px 14px;font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;}
+  @media(max-width:560px){.step .sb{grid-template-columns:1fr;}}
+  .step .full{grid-column:1/-1;}
+  .k{color:#94a3b8;font-weight:600;}
+  .dims{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media(max-width:560px){.dims{grid-template-columns:1fr;}}
+  .dim{border:1px solid #f1f5f9;border-radius:12px;padding:12px;}
+  .dim .top{display:flex;justify-content:space-between;font-weight:600;font-size:13px;margin-bottom:6px;}
+  .dim .pb{height:6px;border-radius:99px;background:#f1f5f9;margin-bottom:8px;}
+  .dim .pb>span{display:block;height:6px;border-radius:99px;}
+  .dim p{margin:3px 0;font-size:12px;color:#475569;}
+  .errg{border-radius:12px;padding:12px;margin-bottom:10px;}
+  .errg b{font-size:13px;display:block;margin-bottom:6px;}
+  .errg p{margin:2px 0;font-size:12px;color:#475569;}
+  .amber{background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:12px;padding:10px 12px;font-size:12px;margin-bottom:16px;}
+  .plan{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+  @media(max-width:560px){.plan{grid-template-columns:1fr;}}
+  .planb{border-radius:12px;padding:12px;}
+  .planb .t{font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:8px;}
+  .planb li{font-size:12px;color:#475569;margin-bottom:6px;list-style:none;}
+  .focus{background:var(--slate);color:#fff;border-radius:12px;padding:14px;}
+  .focus .t{font-size:10px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:4px;}
+  ul{padding-left:0;margin:0;}
+  .cite{font-style:italic;color:#64748b;border-left:2px solid var(--line);padding-left:8px;}
+</style>
+
+<div class="head">
+  <div class="wrap">
+    <div class="htop"><div class="logo">◷</div><div><h1>Apoyo Comercial ULPIK</h1><p>Tu copiloto de ventas, basado en el Playbook ULPIK v2.0</p></div></div>
+    <div class="keybar">
+      <input id="key" type="password" placeholder="Pega aquí tu Anthropic API key (sk-ant-...)" autocomplete="off">
+      <span class="keystatus" id="keystatus">Sin key</span>
+    </div>
+    <div class="tabs">
+      <button class="tab on" data-mode="apoyo" id="t-apoyo">🎧 Apoyo en vivo</button>
+      <button class="tab" data-mode="auditoria" id="t-aud">📊 Auditar conversación</button>
+    </div>
+  </div>
+</div>
+<div class="main"><div class="wrap" id="view"></div></div>
+
+<script>
+//==================== PLAYBOOK ====================
+const PLAYBOOK = `
+PLAYBOOK DE VENTAS ULPIK v2.0 — Referencia única.
+LAS 6 FASES: 1. APERTURA (saludo + nombre + pregunta abierta). 2. DESCUBRIMIENTO (nombre, rubro producto/servicio, logo, antigüedad, "botón rojo"). 3. PROPUESTA (conector dolor->solución + precio anclado $620->$480 + garantía + pregunta binaria con NOMBRE DE LA MARCA). 4. MANEJO DE DUDAS (validar + responder + reforzar garantía). 5. PAGO (datos según método). 6. POST-VENTA (confirmar + encuesta + búsqueda fonética 48h).
+REGLA UNIVERSAL #1: CADA mensaje del asesor termina en PREGUNTA. RITMO: llegar a la propuesta antes del mensaje #4.
+BOTÓN ROJO: "Perfecto [Nombre], ¿por qué busca registrar su marca? ¿Tal vez por seguridad o por formalizar? Esto no cambia nada en el proceso, es solo para entenderle 100% personalizado."
+PROPUESTA compacta: conector dolor->solución (eco verbal) + "$620 normal, promo TODO en $480" + garantía (si damos luz verde en la búsqueda fonética y no se registra, devolvemos el 100%) + pregunta de cierre con [Marca].
+Conectores: seguridad->proteger lo construido/evitar copias; formalidad->respaldo legal, facturación, contratos; inversión grande->blindar la inversión y el branding; exportar/franquiciar->escalar/licenciar; redes/Amazon->reclamar marca en plataformas; marca propia->activo que se vende/hereda; susto->prioridad legal.
+CIERRE RÁPIDO (al ver señal de compra): "Perfecto [Nombre], para iniciar ¿le gustaría hacerlo con transferencia o con tarjeta?". Si ninguno: PayPal/débito/cripto. Tiempos: 6-9 meses con seguimiento semanal.
+OBJECIONES (semáforo: ROJO me detengo y escucho; AMARILLO empatizo sin contradecir; VERDE avanzo con pregunta). Validar -> responder -> cerrar en pregunta. Las 7:
+1. ¿Es seguro/estafa? -> remoto desde 2020, casos Daniel Pintado (medallista olímpico), Caro Sánchez (Masterchef), Deportivo Cuenca; ofrecer videollamada.
+2. ¿Y si no sale registrada/me devuelven? -> garantía por luces.
+3. Está caro/hay más barato -> los $480 incluyen TODO (tasa SENADI $208, asesoría 6-9 meses, vigilancia 10 años, garantía); los baratos cobran la tasa aparte.
+4. Tengo que pensarlo -> ~1500 marcas/mes en Ecuador, protección solo desde el registro; ¿qué duda puntual le frena?
+5. Consultarlo con socio/familia -> enviar resumen para compartir + agendar día de retoma y reservar la promo.
+6. ¿2 pagos? -> diferido 3 y 6 meses sin intereses (Datafast) o hasta 12 con intereses (Payphone).
+7. Luz amarilla/riesgo -> 50-65% se registra en la mayoría + cubrimos oposición sin costo; sugerir término distintivo.
+GARANTÍA POR LUCES: Verde (70-100%) si no se registra devolvemos 100%. Amarilla (50-65%) la mayoría se registra + cubrimos oposición. Roja (0-45%) asesoramos para hacerla registrable + regalamos otra búsqueda fonética.
+PAGO: TARJETA -> link https://ulpik.com/marca/ (Datafast hasta 6 meses sin intereses, o Payphone). TRANSFERENCIA -> Banco Pichincha ahorros 2209097624 / Produbanco corriente 27059026109, IK SAS BIC RUC 0195112436001. Siempre cerrar pidiendo comprobante + datos de facturación + pregunta.
+POST-VENTA: tras el pago en <2 min: confirmación + encuesta + 3 preguntas (denominación, productos/servicios, logotipo).
+SEGUIMIENTO (cierra el 80%): 24-48h recordatorio + garantía; 3-5 días reactivación con dato ~1500 marcas/mes + invitación a llamada; 1-2 semanas renovación/videollamada 10 min. RECONTACTO: NO repetir el pitch; reconocer la conversación previa. Mínimo 5 toques.
+PALABRAS PROHIBIDAS -> alternativa: "te garantizo el registro"->"altas probabilidades según la búsqueda fonética"; "tu marca quedará registrada"->"vamos a gestionar el registro ante el SENADI"; "100% seguro"->"100% respaldado: si damos luz verde y no se registra, devolvemos el 100%". El SENADI es la única autoridad; NUNCA prometer el registro.
+MATA LA VENTA: afirmación sin pregunta; precio antes de descubrir; olvidar el nombre; repetir pitch a recontacto; debatir objeción; prometer llamada y no llegar; prometer el registro; abandonar tras un visto.
+PRUEBA SOCIAL: +1000 marcas registradas; remoto desde 2020; casos Daniel Pintado, Caro Sánchez, Deportivo Cuenca.
+`;
+const MESSY="Los textos pueden venir pegados tal cual desde un CRM con ruido (horas, [Audio], <Multimedia omitido>, emojis, líneas sin etiqueta). Infiere quién habla: el ASESOR representa a ULPIK (manda precios, garantía, link de pago, datos bancarios); el CLIENTE pregunta precio, da el nombre de su marca u objeta. Ignora el ruido; no te bases en audios/multimedia que no puedes leer.";
+
+function buildSys(sub){return `Actúa como copiloto comercial experto de ULPIK (registro de marcas en Ecuador), apoyando al ASESOR en su venta por WhatsApp/chat. Básate EXCLUSIVAMENTE en el Playbook. No inventes datos, precios ni garantías fuera del Playbook. Tono confiado, cálido y comercial. Responde en español.
+
+${MESSY}
+
+=== PLAYBOOK ===
+${PLAYBOOK}
+
+=== TU TAREA ===
+${sub}
+
+Devuelve ÚNICAMENTE el objeto JSON pedido. Sin texto antes ni después, sin markdown, sin backticks. REGLA CRÍTICA: dentro de los VALORES de texto NUNCA uses comilla doble ("); para citar usa comillas simples o «». No uses saltos de línea dentro de un valor. Esto es OBLIGATORIO para que el JSON sea válido.`;}
+
+const apoyoSchema=`Devuelve este JSON: {"lectura":"qué pasa en 1-2 frases","tipo":"objeción o situación","luz":"verde|amarillo|rojo|—","respuestas":[{"label":"2-4 palabras del ángulo","mensaje":"texto listo para WhatsApp, termina en pregunta"}],"siguientePaso":"qué hacer tras enviar","tips":["recordatorio breve del Playbook"]}. Da 2 o 3 respuestas. Si no conoces nombre o marca usa [Nombre] y [su marca]. Cada mensaje termina en pregunta y respeta las palabras prohibidas.`;
+function subApoyo(n){const b={
+  objecion:`El ASESOR necesita responder una OBJECIÓN. Identifica a cuál de las 7 del Playbook corresponde (ponla en "tipo"). Aplica validar->responder->reforzar garantía->cerrar en pregunta. En "luz" verde/amarillo/rojo según cómo manejarla. Respuestas con ángulos distintos (empática, con valor/datos, invitar a videollamada).`,
+  seguimiento:`El cliente quedó en visto/no responde. Usa el protocolo de SEGUIMIENTO según el tiempo (24-48h recordatorio+garantía; 3-5 días reactivación con dato ~1500 marcas/mes; 1-2 semanas renovación/videollamada). Si es RECONTACTO no repitas el pitch. "tipo"=etapa. "luz":"—". 2-3 mensajes con tono distinto.`,
+  cierre:`El cliente mostró señal de compra. Llévalo al cierre con la pregunta binaria (transferencia o tarjeta) y/o resumen de valor. No agregues más beneficios. "tipo":"Señal de compra / cierre". "luz":"verde". 2-3 variantes (alternativo, invitación, resumen).`,
+  consejo:`Apoyo general. Lee la situación, di en "tipo" qué pasa, propón la mejor siguiente acción del Playbook con 2-3 mensajes listos que terminen en pregunta. "luz" según corresponda o "—".`
+};return b[n]+"\n\n"+apoyoSchema;}
+
+const SUB_RESUMEN=`Devuelve: {"puntajeGeneral":{"puntaje":0,"nivel":"Excelente|Bueno|Regular|Necesita mejora urgente","resumen":"máx 4 frases"},"diagnosticoCliente":{"interes":"","urgencia":"","objExplicitas":"","objImplicitas":"","senalesCompra":"","necesitaba":"","siguientePaso":""},"siguienteAccion":{"accion":"Enviar información|Hacer una pregunta|Agendar llamada|Pedir decisión|Hacer seguimiento|Cerrar venta|Reencuadrar objeción|Otro","justificacion":""},"planMejora":{"seguir":["","",""],"corregir":["","",""],"frasesRecursos":["","",""],"focoPrincipal":""}} Niveles: 90-100 Excelente,75-89 Bueno,60-74 Regular,<60 Necesita mejora urgente.`;
+const SUB_PASOS=`Evalúa las fases del Playbook (Apertura, Descubrimiento, Propuesta, Manejo de dudas, Pago, Post-venta; incluye Regla #1 y Seguimiento si aplican). Devuelve: {"evaluacionPasos":[{"paso":"","debiaHacer":"","queHice":"","evidencia":"cita corta o —","cumplimiento":"Cumplido|Parcial|No cumplido|No evaluable","puntaje":0,"comentario":""}]}`;
+const SUB_CALIDAD=`Evalúa 12 dimensiones en este orden: Apertura, Diagnóstico del cliente, Calidad de preguntas, Escucha activa, Personalización, Presentación de la solución, Manejo de objeciones, Generación de confianza, Claridad del siguiente paso, Cierre o avance comercial, Tono y profesionalismo, Seguimiento. Devuelve: {"calidadComercial":[{"dimension":"","puntaje":0,"bien":"","mejorar":"","ejemplo":"cita o —"}]} puntaje 1-10.`;
+const SUB_ERRORES=`Devuelve: {"errores":{"criticos":[{"que":"","porque":"","debia":"","corregir":""}],"tacticos":[],"forma":[]},"oportunidades":[{"mejora":"","porque":"","comoAplicar":"","ejemploMensaje":""}]} Críticos: afectan la venta. Tácticos: bajan la calidad. Forma: tono/claridad/orden. Vacías=[]. Máx 3 por categoría y 4 oportunidades.`;
+const SUB_MENSAJES=`Elige 3-5 momentos mejorables. Devuelve: {"mensajesReescritos":[{"original":"","problema":"","mejorado":"reescrito humano y comercial","motivo":""}]}`;
+
+//==================== JSON robusto ====================
+function balanceJSON(str){let inS=false,esc=false,o=0,b=0;for(let i=0;i<str.length;i++){const c=str[i];if(esc){esc=false;continue;}if(c==="\\"){esc=true;continue;}if(c==='"'){inS=!inS;continue;}if(inS)continue;if(c==="{")o++;else if(c==="}")o--;else if(c==="[")b++;else if(c==="]")b--;}let s=str;if(inS)s+='"';s=s.replace(/\s+$/,"").replace(/[,:]$/,"").replace(/,\s*"[^"]*"$/,"");if(b>0)s+="]".repeat(b);if(o>0)s+="}".repeat(o);return s;}
+function parseJSON(txt){let c=(txt||"").replace(/```json/gi,"").replace(/```/g,"").trim();const s=c.indexOf("{");if(s===-1)throw new Error("Sin JSON en la respuesta");c=c.slice(s);const clean=c.replace(/[\u0000-\u001F]+/g," ");const e=clean.lastIndexOf("}");const cands=[];if(e!==-1)cands.push(clean.slice(0,e+1));cands.push(clean);cands.push(clean.replace(/,\s*([}\]])/g,"$1"));cands.push(balanceJSON(clean));cands.push(balanceJSON(clean).replace(/,\s*([}\]])/g,"$1"));for(const x of cands){try{return JSON.parse(x);}catch(_){}}throw new Error("JSON inválido tras intentar reparar");}
+
+let API_KEY="";
+async function callAPI(sub,userMsg){
+  if(!API_KEY)throw new Error("Falta tu API key arriba");
+  const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:4000,system:buildSys(sub),messages:[{role:"user",content:userMsg}]})});
+  if(!r.ok){let b="";try{b=await r.text();}catch(_){}throw new Error("HTTP "+r.status+" — "+b.slice(0,220));}
+  const d=await r.json();
+  if(d.error)throw new Error("API error: "+JSON.stringify(d.error).slice(0,220));
+  const t=(d.content||[]).map(i=>i.type==="text"?i.text:"").join("");
+  if(!t.trim())throw new Error("Respuesta vacía del modelo");
+  return parseJSON(t);
+}
+
+//==================== utilidades UI ====================
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const $=s=>document.querySelector(s);
+const lvlC=n=>n>=90?"#16a34a":n>=75?"#0ea5e9":n>=60?"#d97706":"#dc2626";
+const dimC=n=>n>=8?"#16a34a":n>=6?"#d97706":"#dc2626";
+const cump=c=>c==="Cumplido"?["#dcfce7","#15803d","#16a34a"]:c==="Parcial"?["#fef9c3","#a16207","#d97706"]:c==="No cumplido"?["#fee2e2","#b91c1c","#dc2626"]:["#f1f5f9","#64748b","#94a3b8"];
+const luzC=l=>l==="verde"?["#dcfce7","#15803d","Luz verde — avanza"]:l==="amarillo"?["#fef9c3","#a16207","Luz amarilla — empatiza"]:l==="rojo"?["#fee2e2","#b91c1c","Luz roja — escucha"]:null;
+let copyStore=[];
+function bindCopies(){document.querySelectorAll("[data-copy]").forEach(btn=>{btn.onclick=async()=>{try{await navigator.clipboard.writeText(copyStore[+btn.dataset.copy]||"");btn.classList.add("done");const o=btn.innerHTML;btn.innerHTML="✓ Copiado";setTimeout(()=>{btn.classList.remove("done");btn.innerHTML=o;},1600);}catch(_){}};});}
+
+//==================== estado / key ====================
+let mode="apoyo",need="objecion";
+$("#key").addEventListener("input",e=>{API_KEY=e.target.value.trim();const st=$("#keystatus");if(API_KEY){st.textContent="Key cargada ✓";st.style.color="#4ade80";}else{st.textContent="Sin key";st.style.color="#94a3b8";}});
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{mode=t.dataset.mode;$("#t-apoyo").classList.toggle("on",mode==="apoyo");$("#t-aud").classList.toggle("on",mode==="auditoria");render();});
+
+//==================== MODO APOYO ====================
+const NEEDS=[["objecion","🛡️","Responder objeción"],["seguimiento","⏱️","Ideas de seguimiento"],["cierre","🏁","Empujar al cierre"],["consejo","🧭","Consejo general"]];
+function viewApoyo(){
+  const ph={objecion:"Ej. 'Está muy caro, vi otra opción en $200'",seguimiento:"Ej. Le mandé la oferta hace 3 días y quedó en visto.",cierre:"Ej. El cliente dijo 'me interesa, ¿cómo procedemos?'",consejo:"Ej. El cliente da vueltas y no concreta, ¿qué hago?"}[need];
+  return `<div class="card">
+    <label class="lbl">¿Con qué te ayudo?</label>
+    <div class="needs">${NEEDS.map(n=>`<div class="need ${need===n[0]?'on':''}" data-need="${n[0]}"><span class="ic">${n[1]}</span>${n[2]}</div>`).join("")}</div>
+    <label class="lbl">Último mensaje del cliente o situación <span style="color:#f43f5e">*</span></label>
+    <textarea id="a-msg" class="txt mb" rows="4" placeholder="${esc(ph)}"></textarea>
+    <div class="row mb"><input id="a-nom" class="txt" placeholder="Nombre del cliente (opcional)"><input id="a-mar" class="txt" placeholder="Nombre de la marca (opcional)"></div>
+    <input id="a-ctx" class="txt mb" placeholder="Contexto: fase, si es recontacto, qué descubriste... (opcional)">
+    <div id="a-err"></div>
+    <button class="btn" id="a-go">📨 Generar respuesta</button>
+    <div id="a-out"></div>
+  </div>`;
+}
+function bindApoyo(){
+  document.querySelectorAll("[data-need]").forEach(d=>d.onclick=()=>{need=d.dataset.need;const m=$("#a-msg")?$("#a-msg").value:"";render();if($("#a-msg"))$("#a-msg").value=m;});
+  $("#a-go").onclick=async()=>{
+    const msg=$("#a-msg").value.trim();const errEl=$("#a-err");
+    if(!msg){errEl.innerHTML='<p class="err">Pega el último mensaje del cliente o describe la situación.</p>';return;}
+    errEl.innerHTML="";const btn=$("#a-go");btn.disabled=true;btn.textContent="Preparando tu respuesta…";$("#a-out").innerHTML="";
+    const u=`Soy el ASESOR de ULPIK. Ayúdame con esta situación.\nCliente: ${$("#a-nom").value||"(desconocido)"}\nMarca: ${$("#a-mar").value||"(desconocida)"}\nContexto: ${$("#a-ctx").value||"(ninguno)"}\n\n=== ÚLTIMO MENSAJE / SITUACIÓN ===\n${msg}`;
+    try{const r=await callAPI(subApoyo(need),u);renderApoyoOut(r);}
+    catch(e){errEl.innerHTML='<p class="err">No se pudo generar la respuesta. Inténtalo de nuevo en unos segundos.</p><p class="errd">Detalle técnico: '+esc(e.message||e)+'</p>';}
+    finally{btn.disabled=false;btn.textContent="📨 Generar respuesta";}
+  };
+}
+function renderApoyoOut(r){
+  copyStore=[];const luz=luzC(r.luz);
+  let h='<div class="card mt" style="margin-bottom:16px">';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">';
+  if(r.tipo)h+='<span style="font-size:11px;font-weight:700;text-transform:uppercase;color:#64748b">'+esc(r.tipo)+'</span>';
+  if(luz)h+='<span class="badge" style="background:'+luz[0]+';color:'+luz[1]+'">'+esc(luz[2])+'</span>';
+  h+='</div><p class="lectura">'+esc(r.lectura)+'</p></div>';
+  (r.respuestas||[]).forEach((x,i)=>{copyStore.push(x.mensaje||"");h+='<div class="resp"><div class="hd"><b>'+esc(x.label||("Opción "+(i+1)))+'</b><button class="copy" data-copy="'+i+'">⧉ Copiar</button></div><div class="bd">'+esc(x.mensaje)+'</div></div>';});
+  if(r.siguientePaso)h+='<div class="nextbox"><div>→</div><div><div class="t">Siguiente paso</div><div>'+esc(r.siguientePaso)+'</div></div></div>';
+  if((r.tips||[]).length)h+='<div class="tipsbox"><div class="t">💡 Recuerda del Playbook</div><ul>'+r.tips.map(t=>'<li>• '+esc(t)+'</li>').join("")+'</ul></div>';
+  $("#a-out").innerHTML=h;bindCopies();
+}
+
+//==================== MODO AUDITORÍA ====================
+let audState={loading:false,prog:0,res:null,err:"",errd:""};
+function viewAud(){
+  if(audState.res)return renderAudResults(audState.res);
+  return `<div class="card">
+    <h2 style="margin:0 0 4px;font-size:16px">📄 Conversación a auditar</h2>
+    <p class="hint" style="margin-top:0">Pega el chat tal cual sale del CRM. Interpreta solo quién es asesor/cliente e ignora audios y ruido.</p>
+    <div class="row mb"><div><label class="lbl">Nombre del cliente <span class="opt">(opcional)</span></label><input id="u-cli" class="txt" placeholder="Ej. Daniel"></div><div><label class="lbl">Tipo de venta <span class="opt">(opcional)</span></label><input id="u-tipo" class="txt" placeholder="Ej. Registro de marca"></div></div>
+    <label class="lbl">Conversación completa <span style="color:#f43f5e">*</span></label>
+    <textarea id="u-chat" class="txt mb" rows="9" placeholder="Pega aquí el chat completo. No importa si trae horas, [Audio], <Multimedia omitido> o líneas sin nombre."></textarea>
+    <label class="lbl">Contexto adicional <span class="opt">(opcional)</span></label>
+    <textarea id="u-ctx" class="txt mb" rows="2" placeholder="Ej. Es recontacto / es referido / hubo notas de voz..."></textarea>
+    <div id="u-err">${audState.err?'<p class="err">'+esc(audState.err)+'</p>'+(audState.errd?'<p class="errd">Detalle técnico: '+esc(audState.errd)+'</p>':''):''}</div>
+    <button class="btn" id="u-go" ${audState.loading?'disabled':''}>${audState.loading?'Auditando… ('+audState.prog+'/5)':'Generar auditoría comercial'}</button>
+    ${audState.loading?'<div class="bar"><span style="width:'+(audState.prog/5*100)+'%"></span></div><p class="hint">Comparando contra las 6 fases del Playbook por bloques.</p>':''}
+  </div>`;
+}
+function bindAud(){
+  const go=$("#u-go");if(!go)return;
+  go.onclick=async()=>{
+    const chat=$("#u-chat").value.trim();
+    if(!chat){audState.err="Pega la conversación con el cliente para analizar.";audState.errd="";render();return;}
+    audState={loading:true,prog:0,res:null,err:"",errd:""};const cli=$("#u-cli").value,tipo=$("#u-tipo").value,ctx=$("#u-ctx").value;render();
+    const u=`Audita esta conversación contra el Playbook ULPIK. Primero identifica quién es el ASESOR (ULPIK) y quién el CLIENTE, luego evalúa.\nCliente: ${cli||"(no especificado)"}\nTipo de venta: ${tipo||"(no especificado)"}\nContexto: ${ctx||"(ninguno)"}\n\n=== CONVERSACIÓN ===\n${chat}`;
+    const tasks=[SUB_RESUMEN,SUB_PASOS,SUB_CALIDAD,SUB_ERRORES,SUB_MENSAJES];let merged={},fails=0,firstErr="";
+    for(const sub of tasks){try{const p=await callAPI(sub,u);merged=Object.assign(merged,p);}catch(e){fails++;if(!firstErr)firstErr=String(e.message||e);}audState.prog++;if($("#u-go"))render();}
+    audState.loading=false;
+    if(Object.keys(merged).length===0){audState.err="No se pudo generar el análisis. Espera unos segundos y vuelve a intentarlo.";audState.errd=firstErr;render();return;}
+    if(fails>0)merged.__parcial=fails;audState.res=merged;render();
+  };
+}
+function secOpen(){document.querySelectorAll(".sec>h3").forEach(h=>h.onclick=()=>{const b=h.nextElementSibling;b.style.display=b.style.display==="none"?"block":"none";});}
+function sec(ic,col,title,sub,body){return '<div class="sec"><h3><span class="ic" style="background:'+col+'22;color:'+col+'">'+ic+'</span><span style="flex:1"><span style="display:block">'+title+'</span><span style="font-size:12px;color:#94a3b8;font-weight:400">'+sub+'</span></span></h3><div class="body">'+body+'</div></div>';}
+function renderAudResults(r){
+  copyStore=[];let h="";
+  if(r.__parcial)h+='<div class="amber">'+r.__parcial+' bloque(s) no se pudieron generar. El resto está completo; puedes auditar de nuevo para reintentar.</div>';
+  if(r.puntajeGeneral){const p=r.puntajeGeneral,c=lvlC(p.puntaje);
+    h+='<div class="card"><div class="gscore"><div class="ring" style="background:conic-gradient('+c+' '+((p.puntaje||0)*3.6)+'deg,#e2e8f0 0deg)"><div><b style="color:'+c+'">'+p.puntaje+'</b><span style="font-size:10px;color:#94a3b8">/ 100</span></div></div><div style="flex:1"><span class="badge" style="background:'+c+'1a;color:'+c+';margin-bottom:8px">'+esc(p.nivel)+'</span><p style="color:#475569;margin:8px 0 0">'+esc(p.resumen)+'</p></div></div></div>';}
+  if((r.evaluacionPasos||[]).length){let b="";r.evaluacionPasos.forEach(p=>{const[bg,tx,dt]=cump(p.cumplimiento);b+='<div class="step"><div class="sh" style="background:'+bg+';color:'+tx+'"><span>'+esc(p.paso)+'</span><span>● '+esc(p.cumplimiento)+' · '+p.puntaje+'/100</span></div><div class="sb"><div><span class="k">Qué debía hacer</span><br>'+esc(p.debiaHacer)+'</div><div><span class="k">Qué hizo</span><br>'+esc(p.queHice)+'</div>'+(p.evidencia&&p.evidencia!=="—"?'<div class="full"><span class="k">Evidencia</span><br><span class="cite">'+esc(p.evidencia)+'</span></div>':'')+'<div class="full"><span class="k">Mejora</span><br>'+esc(p.comentario)+'</div></div></div>';});h+=sec("✓","#0ea5e9","Evaluación por fases del Playbook","Cumplimiento paso a paso",b);}
+  if((r.calidadComercial||[]).length){let b='<div class="dims">';r.calidadComercial.forEach(d=>{const c=dimC(d.puntaje);b+='<div class="dim"><div class="top"><span>'+esc(d.dimension)+'</span><span style="color:'+c+'">'+d.puntaje+'/10</span></div><div class="pb"><span style="width:'+(d.puntaje*10)+'%;background:'+c+'"></span></div><p><span style="color:#059669;font-weight:600">✓ </span>'+esc(d.bien)+'</p><p><span style="color:#d97706;font-weight:600">→ </span>'+esc(d.mejorar)+'</p>'+(d.ejemplo&&d.ejemplo!=="—"?'<p class="cite">'+esc(d.ejemplo)+'</p>':'')+'</div>';});b+='</div>';h+=sec("📊","#7c3aed","Análisis de calidad comercial","12 dimensiones",b);}
+  if(r.errores){let b="";[["criticos","Críticos — afectan la venta","#dc2626","#fee2e2"],["tacticos","Tácticos — reducen la calidad","#d97706","#fef9c3"],["forma","De forma — tono, claridad, orden","#64748b","#f1f5f9"]].forEach(g=>{const arr=r.errores[g[0]]||[];if(arr.length){b+='<p style="font-size:11px;font-weight:700;text-transform:uppercase;color:'+g[2]+';margin:12px 0 8px">'+g[1]+'</p>';arr.forEach(e=>{b+='<div class="errg" style="background:'+g[3]+'"><b>'+esc(e.que)+'</b><p><span class="k">Por qué afecta:</span> '+esc(e.porque)+'</p><p><span class="k">Qué decía el playbook:</span> '+esc(e.debia)+'</p><p><span class="k">Cómo corregirlo:</span> '+esc(e.corregir)+'</p></div>';});}});h+=sec("⚠️","#dc2626","Errores principales","Críticos, tácticos y de forma",b);}
+  if((r.oportunidades||[]).length){let b="";r.oportunidades.forEach((o,i)=>{b+='<div class="errg" style="border:1px solid #f1f5f9"><b>'+(i+1)+'. '+esc(o.mejora)+'</b><p><span class="k">Por qué importa:</span> '+esc(o.porque)+'</p><p><span class="k">Cómo aplicarla:</span> '+esc(o.comoAplicar)+'</p><p style="background:#f8fafc;border:1px solid #f1f5f9;border-radius:8px;padding:8px"><span class="k">Ejemplo:</span> '+esc(o.ejemploMensaje)+'</p></div>';});h+=sec("💡","#d97706","Oportunidades de mejora","Recomendaciones accionables",b);}
+  if((r.mensajesReescritos||[]).length){let b="";r.mensajesReescritos.forEach((m,i)=>{copyStore.push(m.mejorado||"");b+='<div class="resp"><div class="bd" style="background:#fef2f2"><b style="font-size:10px;text-transform:uppercase;color:#ef4444">Original</b><br>'+esc(m.original)+'</div><div style="padding:8px 14px;background:#fffbeb;font-size:12px;color:#92400e"><b>Problema:</b> '+esc(m.problema)+'</div><div class="hd" style="background:#ecfdf5"><b style="color:#059669">Mejorado</b><button class="copy" data-copy="'+i+'">⧉ Copiar</button></div><div class="bd">'+esc(m.mejorado)+'</div><div style="padding:8px 14px;font-size:12px;color:#64748b"><b>Por qué funciona:</b> '+esc(m.motivo)+'</div></div>';});h+=sec("✍️","#0891b2","Mensajes reescritos","Los momentos clave, mejorados",b);}
+  if(r.diagnosticoCliente){const d=r.diagnosticoCliente;let b='<div class="sb" style="display:grid">';[["Nivel de interés",d.interes],["Nivel de urgencia",d.urgencia],["Objeciones explícitas",d.objExplicitas],["Objeciones implícitas",d.objImplicitas],["Señales de compra",d.senalesCompra],["Qué necesitaba realmente",d.necesitaba]].forEach(x=>b+='<div><span class="k">'+x[0]+'</span><br>'+esc(x[1])+'</div>');b+='<div class="full"><span class="k">Siguiente paso que tenía más sentido</span><br>'+esc(d.siguientePaso)+'</div></div>';h+=sec("🔍","#4f46e5","Diagnóstico del cliente","Lectura comercial",b);}
+  if(r.siguienteAccion)h+=sec("➡️","#16a34a","Siguiente mejor acción","La jugada óptima",'<div class="nextbox" style="margin-top:0"><div></div><div><b style="color:#065f46;font-size:15px">'+esc(r.siguienteAccion.accion)+'</b><p style="margin:4px 0 0">'+esc(r.siguienteAccion.justificacion)+'</p></div></div>');
+  if(r.planMejora){const p=r.planMejora;let b='<div class="plan">';b+='<div class="planb" style="background:#ecfdf5;border:1px solid #d1fae5"><div class="t" style="color:#059669">Seguir haciendo</div><ul>'+(p.seguir||[]).map(x=>'<li>✓ '+esc(x)+'</li>').join("")+'</ul></div>';b+='<div class="planb" style="background:#fef2f2;border:1px solid #fee2e2"><div class="t" style="color:#dc2626">Corregir</div><ul>'+(p.corregir||[]).map(x=>'<li>→ '+esc(x)+'</li>').join("")+'</ul></div>';b+='<div class="planb" style="background:#eff6ff;border:1px solid #dbeafe"><div class="t" style="color:#0284c7">Frases/recursos</div><ul>'+(p.frasesRecursos||[]).map(x=>'<li>+ '+esc(x)+'</li>').join("")+'</ul></div></div>';b+='<div class="focus"><div class="t">Foco principal para tu próxima conversación</div><div style="font-weight:500">'+esc(p.focoPrincipal)+'</div></div>';h+=sec("🎯","#1e293b","Plan de mejora personal","Tu foco para la próxima",b);}
+  h+='<button class="btn ghost" id="u-reset">↺ Auditar otra conversación</button>';
+  setTimeout(()=>{secOpen();bindCopies();const rs=$("#u-reset");if(rs)rs.onclick=()=>{audState={loading:false,prog:0,res:null,err:"",errd:""};render();};},0);
+  return h;
+}
+
+//==================== render principal ====================
+function render(){
+  $("#view").innerHTML=mode==="apoyo"?viewApoyo():viewAud();
+  if(mode==="apoyo")bindApoyo();else bindAud();
+  if(mode==="auditoria"&&audState.res){secOpen();bindCopies();const rs=$("#u-reset");if(rs)rs.onclick=()=>{audState={loading:false,prog:0,res:null,err:"",errd:""};render();};}
+}
+render();
+</script>
