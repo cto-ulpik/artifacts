@@ -318,6 +318,13 @@
         </div>
         <div class="card-footer">
           <span class="card-tag">NPS · Clientes</span>
+          <span class="card-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </div>
+      </a>
+
+      <a class="card" href="michael-ulpik_security_auditor.html">
         <div class="card-body">
           <div class="card-icon icon-security">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -358,7 +365,7 @@
 
     document.querySelectorAll('.card[href]').forEach((card) => {
       const href = card.getAttribute('href');
-      if (!href || href.startsWith('..')) return;
+      if (!href || href.startsWith('..') || card.querySelector('.card-author')) return;
 
       const author = document.createElement('p');
       author.className = 'card-author';
