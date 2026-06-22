@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reto 3 — Ulpik</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f9fafb;
+      --surface: #ffffff;
+      --border: rgba(0,0,0,0.08);
+      --border-hover: rgba(0,0,0,0.15);
+      --text-primary: #0f1117;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --radius-lg: 16px;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+    }
+
+    .wrapper { width: 100%; max-width: 780px; }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+
+    .back-link:hover { color: var(--text-primary); }
+
+    .header { margin-bottom: 2.75rem; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: 100px;
+      padding: 5px 13px;
+      margin-bottom: 1.1rem;
+    }
+
+    .eyebrow .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #1D9E75;
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.45; transform: scale(0.8); }
+    }
+
+    .header h1 {
+      font-size: clamp(24px, 4vw, 32px);
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.4rem;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 540px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      text-decoration: none;
+      color: inherit;
+      overflow: hidden;
+      transition: border-color 0.28s cubic-bezier(0.32,0.72,0,1),
+                  transform   0.28s cubic-bezier(0.32,0.72,0,1),
+                  box-shadow  0.28s cubic-bezier(0.32,0.72,0,1);
+    }
+
+    .card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px -8px rgba(0,0,0,0.08);
+    }
+
+    .card-body { padding: 1.4rem 1.4rem 1.1rem; flex: 1; }
+
+    .card-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.1rem;
+    }
+
+    .card-icon svg { width: 20px; height: 20px; stroke-width: 1.6; }
+
+    .card-name {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      letter-spacing: -0.01em;
+    }
+
+    .card-desc {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .card-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 0.9rem;
+    }
+
+    .pill {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 100px;
+      border: 0.5px solid var(--border);
+      color: var(--text-secondary);
+      background: var(--bg);
+    }
+
+    .card-footer {
+      border-top: 0.5px solid var(--border);
+      padding: 0.8rem 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-tag { font-size: 11px; color: var(--text-tertiary); }
+
+    .card-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 0.5px solid var(--border);
+      color: var(--text-secondary);
+      transition: transform 0.22s cubic-bezier(0.32,0.72,0,1), background 0.22s, border-color 0.22s;
+    }
+
+    .card:hover .card-arrow {
+      transform: translate(2px, -2px);
+      background: var(--bg);
+      border-color: var(--border-hover);
+    }
+
+    .card-arrow svg { width: 13px; height: 13px; stroke-width: 2; }
+
+    .icon-launch { background: #FCE8E6; }
+    .icon-launch svg { stroke: #C5221F; }
+
+    .icon-marcas { background: #F3E8FD; }
+    .icon-marcas svg { stroke: #6D28D9; }
+
+    .page-footer {
+      margin-top: 2.5rem;
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--text-tertiary);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+
+    <a class="back-link" href="../../index.html">&larr; Todas las secciones</a>
+
+    <header class="header">
+      <div class="eyebrow">
+        <span class="dot"></span>
+        Reto 3
+      </div>
+      <h1>Dashboards reto 3</h1>
+      <p>Herramientas de inteligencia y seguimiento del reto estratégico.</p>
+    </header>
+
+    <main class="grid">
+
+      <a class="card" href="launch-analyzer.html">
+        <div class="card-body">
+          <div class="card-icon icon-launch">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p class="card-name">Launch Intelligence</p>
+          <p class="card-desc">Análisis de lanzamientos con deliberación del comité ejecutivo y diagnóstico DSAC.</p>
+          <div class="card-pills">
+            <span class="pill">Lanzamientos</span>
+            <span class="pill">Comité</span>
+            <span class="pill">DSAC</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span class="card-tag">DSAC × Ulpik</span>
+          <span class="card-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </div>
+      </a>
+
+      <a class="card" href="MARCAS_live.html">
+        <div class="card-body">
+          <div class="card-icon icon-marcas">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p class="card-name">Marcas</p>
+          <p class="card-desc">Control de metas semanales y seguimiento de indicadores de marcas.</p>
+          <div class="card-pills">
+            <span class="pill">Metas</span>
+            <span class="pill">Semanal</span>
+            <span class="pill">KPIs</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span class="card-tag">Control en vivo</span>
+          <span class="card-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </div>
+      </a>
+
+    </main>
+
+    <footer class="page-footer">
+      Ulpik &mdash; Grupo MIK &copy; 2026
+    </footer>
+
+  </div>
+
+</body>
+</html>
