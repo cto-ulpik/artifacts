@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Launch Intelligence · DSAC × Ulpik</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--n:#ff2500;--v:#00adb0;--m:#823bda;--r:#ff4444;--a:#e8a040;--bg:#0a0a0a;--c:#161616;--c2:#1f1f1f;--b:rgba(255,255,255,.07);--b2:rgba(255,255,255,.13);--t1:#f0ede8;--t2:#a09a93;--t3:#6a6460;--f:'DM Sans',sans-serif;--mo:'DM Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t1);font-family:var(--f);font-size:15px;line-height:1.6;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--b2);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:62px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:32px;height:32px;background:var(--n);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff}
+.ttitle{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--t2)}
+.ttitle span{color:var(--t1)}
+.tbadge{font-size:11px;background:rgba(0,173,176,.12);color:var(--v);border:1px solid rgba(0,173,176,.25);border-radius:20px;padding:4px 12px;font-weight:500}
+.hero{padding:3rem 2rem 1.5rem;text-align:center;border-bottom:1px solid var(--b);background:linear-gradient(180deg,rgba(255,37,0,.04) 0%,transparent 100%)}
+.hl{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--n);margin-bottom:.8rem}
+.hn{font-size:2.6rem;font-weight:700;line-height:1.05;letter-spacing:-.035em;max-width:720px;margin:0 auto .8rem}
+.hn span{color:var(--n)}
+.hs{font-size:15px;color:var(--t2);max-width:620px;margin:0 auto}
+.section{max-width:1180px;margin:0 auto;padding:2.5rem 2rem}
+.ugrid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.5rem}
+.dz{background:var(--c);border:2px dashed var(--b2);border-radius:16px;padding:2rem 1.5rem;text-align:center;transition:all .2s;cursor:pointer;position:relative;min-height:200px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px}
+.dz:hover{border-color:var(--n);background:rgba(255,37,0,.03)}
+.dz.dragover{border-color:var(--n);background:rgba(255,37,0,.06)}
+.dz.loaded{border-style:solid;border-color:var(--v);background:rgba(0,173,176,.04)}
+.dz input{display:none}
+.dzi{width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--t2)}
+.dz.loaded .dzi{background:rgba(0,173,176,.12);color:var(--v)}
+.dzt{font-size:15px;font-weight:600;color:var(--t1)}
+.dzs{font-size:12px;color:var(--t3)}
+.dzf{font-family:var(--mo);font-size:12px;color:var(--v);background:rgba(0,173,176,.08);padding:4px 10px;border-radius:6px;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dzr{position:absolute;top:12px;right:12px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--n)}
+.xn{background:var(--c);border:1px solid var(--b);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+.xl{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
+.xt{width:100%;background:var(--c2);border:1px solid var(--b2);border-radius:8px;padding:11px 14px;color:var(--t1);font-family:var(--f);font-size:14px;min-height:80px;resize:vertical;line-height:1.5}
+.xt:focus{outline:none;border-color:var(--n)}
+.xh{font-size:11px;color:var(--t3);margin-top:6px}
+.arow{display:flex;gap:12px;flex-wrap:wrap}
+.btn{font-family:var(--f);font-size:14px;font-weight:500;padding:12px 22px;border-radius:10px;border:none;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:8px}
+.btn-p{background:var(--n);color:#fff;box-shadow:0 4px 14px rgba(255,37,0,.25)}
+.btn-p:hover{background:#e62200;transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,37,0,.35)}
+.btn-p:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-s{background:var(--c2);color:var(--t1);border:1px solid var(--b2)}
+.btn-s:hover{background:#262626;border-color:rgba(255,255,255,.2)}
+.btn-g{background:transparent;color:var(--t2);border:1px solid var(--b)}
+.btn-g:hover{color:var(--t1);background:rgba(255,255,255,.03)}
+.load{display:none;background:var(--c);border:1px solid var(--b);border-radius:16px;padding:3rem 2rem;text-align:center;margin-top:1.5rem}
+.load.active{display:block}
+.spin{width:38px;height:38px;border:3px solid rgba(255,37,0,.15);border-top-color:var(--n);border-radius:50%;animation:s .8s linear infinite;margin:0 auto 1rem}
+@keyframes s{to{transform:rotate(360deg)}}
+.lt{font-size:15px;color:var(--t1);font-weight:500;margin-bottom:6px}
+.ls{font-size:13px;color:var(--t3)}
+.err{display:none;background:rgba(255,68,68,.06);border:1px solid rgba(255,68,68,.25);border-radius:12px;padding:1rem 1.25rem;margin-top:1rem;color:var(--r);font-size:13px}
+.err.active{display:block}
+.is{transition:all .3s}
+.is.hidden{display:none}
+.res{display:none}
+.res.active{display:block}
+.tabs{position:sticky;top:62px;z-index:90;background:rgba(10,10,10,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--b);padding:0 2rem;display:flex;gap:4px;overflow-x:auto}
+.tb{background:transparent;border:none;color:var(--t2);font-family:var(--f);font-size:13px;font-weight:500;padding:16px 18px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tb:hover{color:var(--t1)}
+.tb.active{color:var(--n);border-bottom-color:var(--n)}
+.tp{display:none}
+.tp.active{display:block}
+.rh{padding:2.5rem 2rem 2rem;border-bottom:1px solid var(--b);background:var(--c)}
+.rhi{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:2rem;flex-wrap:wrap}
+.rhm{flex:1;min-width:280px}
+.rhl{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--n);margin-bottom:.5rem}
+.rhn{font-size:2.2rem;font-weight:700;line-height:1.1;letter-spacing:-.03em;color:var(--t1)}
+.rhn span{color:var(--n)}
+.rhs{font-size:13px;color:var(--t3);margin-top:6px}
+.vw{display:flex;align-items:center;gap:1.25rem;padding:1rem 1.5rem;border-radius:14px}
+.vw.verde{background:rgba(0,173,176,.08);border:1px solid rgba(0,173,176,.25)}
+.vw.amarillo{background:rgba(232,160,64,.08);border:1px solid rgba(232,160,64,.25)}
+.vw.rojo{background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.25)}
+.vd{width:70px;height:70px;min-width:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:700}
+.vd.verde{background:var(--v);box-shadow:0 0 35px rgba(0,173,176,.5)}
+.vd.amarillo{background:var(--a);box-shadow:0 0 35px rgba(232,160,64,.5)}
+.vd.rojo{background:var(--r);box-shadow:0 0 35px rgba(255,68,68,.5)}
+.vl{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px}
+.vl.verde{color:var(--v)}
+.vl.amarillo{color:var(--a)}
+.vl.rojo{color:var(--r)}
+.vh{font-size:15px;font-weight:600;color:var(--t1);line-height:1.4;max-width:360px}
+.st{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:10px;margin-top:.5rem}
+.st::before{content:'';display:inline-block;width:3px;height:12px;border-radius:2px;background:var(--n)}
+.st.verde::before{background:var(--v)}
+.st.morado::before{background:var(--m)}
+.st.amarillo::before{background:var(--a)}
+.st.rojo::before{background:var(--r)}
+.kg{display:grid;gap:1px;background:var(--b);border-radius:14px;overflow:hidden;margin-bottom:2rem}
+.kc{background:var(--c);padding:1.4rem 1.5rem;display:flex;flex-direction:column;gap:4px;position:relative}
+.kl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)}
+.kv{font-family:var(--mo);font-size:1.85rem;font-weight:500;letter-spacing:-.03em;line-height:1.1}
+.kv.naranja{color:var(--n)}.kv.verde{color:var(--v)}.kv.morado{color:var(--m)}.kv.rojo{color:var(--r)}.kv.amarillo{color:var(--a)}
+.ksub{font-size:11px;color:var(--t3);margin-top:2px}
+.ka{position:absolute;top:0;left:0;width:3px;height:100%;background:var(--n)}
+.ka.verde{background:var(--v)}.ka.morado{background:var(--m)}.ka.rojo{background:var(--r)}.ka.amarillo{background:var(--a)}
+.card{background:var(--c);border:1px solid var(--b);border-radius:14px;padding:1.5rem 1.75rem}
+.ct{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);margin-bottom:1.25rem}
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.5rem}
+.dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem;margin-bottom:1.5rem}
+.cc{background:linear-gradient(135deg,rgba(255,37,0,.06) 0%,rgba(255,37,0,.01) 100%);border:1px solid rgba(255,37,0,.18);border-radius:14px;padding:1.75rem 2rem;margin-bottom:1.5rem}
+.cx{font-size:16px;line-height:1.65;color:var(--t1)}
+.cx p{margin-bottom:1rem}.cx p:last-child{margin-bottom:0}
+.cx p:first-child::first-letter{font-size:1.4em;font-weight:600;color:var(--n)}
+.il{display:flex;flex-direction:column;gap:10px}
+.ir{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:10px;background:var(--c2);border:1px solid var(--b)}
+.ii{width:26px;height:26px;min-width:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--mo);font-size:11px;font-weight:600}
+.ii.rojo{background:rgba(255,68,68,.12);color:var(--r)}
+.ii.verde{background:rgba(0,173,176,.12);color:var(--v)}
+.ii.amarillo{background:rgba(232,160,64,.12);color:var(--a)}
+.ii.morado{background:rgba(130,59,218,.12);color:var(--m)}
+.ix{font-size:13px;line-height:1.5;color:var(--t1)}
+.mi{display:flex;gap:14px;padding:14px 16px;border-radius:10px;background:var(--c2);border:1px solid var(--b);margin-bottom:10px}
+.mi:last-child{margin-bottom:0}
+.mn{width:30px;height:30px;min-width:30px;border-radius:8px;background:rgba(130,59,218,.15);color:var(--m);display:flex;align-items:center;justify-content:center;font-family:var(--mo);font-size:13px;font-weight:600}
+.mc{flex:1}
+.mq{font-size:14px;font-weight:600;color:var(--t1);margin-bottom:6px;line-height:1.4}
+.mh{font-size:13px;color:var(--t2);line-height:1.55}
+.ml{color:var(--m);font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-right:8px}
+.na{background:linear-gradient(135deg,rgba(130,59,218,.12) 0%,rgba(130,59,218,.03) 100%);border:1px solid rgba(130,59,218,.3);border-radius:14px;padding:1.75rem 2rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.5rem}
+.ni{width:56px;height:56px;min-width:56px;border-radius:14px;background:rgba(130,59,218,.2);color:var(--m);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700}
+.nc{flex:1}
+.nl{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--m);margin-bottom:6px}
+.nt{font-size:16px;line-height:1.5;color:var(--t1);font-weight:500}
+.mr{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b)}
+.mr:last-child{border-bottom:none}
+.mname{font-size:13px;color:var(--t1)}
+.mct{font-family:var(--mo);font-size:18px;font-weight:500;color:var(--v)}
+.mp{font-size:11px;color:var(--t3);margin-left:6px}
+.bt{height:5px;background:var(--b);border-radius:3px;margin-bottom:14px;overflow:hidden}
+.bf{height:100%;border-radius:3px}
+.oi{padding:1rem 0;border-bottom:1px solid var(--b);display:flex;gap:12px;align-items:flex-start}
+.oi:last-child{border-bottom:none;padding-bottom:0}
+.oa{width:30px;height:30px;min-width:30px;border-radius:50%;background:rgba(255,37,0,.12);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--n)}
+.oa.morado{background:rgba(130,59,218,.12);color:var(--m)}
+.ox{font-size:13px;color:var(--t2);line-height:1.55;font-style:italic}
+.fw{display:flex;flex-direction:column;gap:5px}
+.fs{display:flex;align-items:center;gap:14px}
+.flt{font-size:13px;color:var(--t2);min-width:180px}
+.fbo{flex:1;height:32px;border-radius:6px;background:rgba(255,255,255,.04);overflow:hidden}
+.fbi{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:12px;font-size:12px;font-weight:500;white-space:nowrap;color:rgba(255,255,255,.95)}
+.fc{font-size:11px;font-family:var(--mo);color:var(--t3);min-width:52px;text-align:right}
+.fc.drop{color:#e07050}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);text-align:left;padding:8px 10px;border-bottom:1px solid var(--b2)}
+td{padding:9px 10px;border-bottom:1px solid var(--b);color:var(--t2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.tm{font-family:var(--mo);color:var(--t1)}
+.tr-r{text-align:right}
+.fr{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b)}
+.fr:last-child{border-bottom:none}
+.fl{font-size:13px;color:var(--t2)}
+.fv{font-family:var(--mo);font-size:14px;font-weight:500}
+.fv.g{color:var(--v)}.fv.rd{color:var(--r)}.fv.w{color:var(--t1)}
+.cw{position:relative;width:100%}
+.tst{position:fixed;bottom:24px;right:24px;background:var(--c);border:1px solid var(--b2);border-radius:10px;padding:12px 18px;color:var(--t1);font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.5);transform:translateY(20px);opacity:0;transition:all .25s;z-index:200;display:flex;align-items:center;gap:8px}
+.tst.show{transform:translateY(0);opacity:1}
+.ti{width:20px;height:20px;background:var(--v);border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.co{padding:12px 16px;border-radius:8px;font-size:12px;line-height:1.5;margin-top:14px;background:rgba(0,173,176,.05);border-left:3px solid var(--v);color:var(--t2)}
+@media(max-width:800px){.ugrid,.tc{grid-template-columns:1fr}.hn{font-size:1.85rem}.rhn{font-size:1.6rem}.na{flex-direction:column;text-align:center}.section{padding:1.75rem 1.25rem}.topbar{padding:0 1rem}.flt{min-width:110px}}
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="brand"><div class="logo">U</div><span class="ttitle">Launch <span>Intelligence</span> · DSAC × Ulpik</span></div>
+  <div class="tbadge" id="topBadge">v2.1</div>
+</nav>
+
+<div id="inputSection" class="is">
+  <div class="hero">
+    <div class="hl">Inteligencia de comité ejecutivo</div>
+    <div class="hn">Sube los archivos · <span>recibe el dictamen</span></div>
+    <div class="hs">Excel del lanzamiento + CSV/Excel del Forms. La IA (OpenAI vía Apps Script de Pulso) actúa como CFO/CMO/Director de Educación: alertas con número, red flags de datos, mejoras tácticas con cómo, y acción inmediata.</div>
+  </div>
+  <div class="section">
+    <div class="ugrid">
+      <label class="dz" id="dzExcel" for="fileExcel">
+        <div class="dzr">Requerido</div>
+        <div class="dzi">📊</div>
+        <div class="dzt">Excel del lanzamiento</div>
+        <div class="dzs">Resumen · P&L · Ads</div>
+        <div class="dzf" style="display:none;"></div>
+        <input type="file" id="fileExcel" accept=".xlsx,.xls">
+      </label>
+      <label class="dz" id="dzSurvey" for="fileSurvey">
+        <div class="dzr">Requerido</div>
+        <div class="dzi">📋</div>
+        <div class="dzt">Encuesta de satisfacción</div>
+        <div class="dzs">CSV o Excel de Google Forms</div>
+        <div class="dzf" style="display:none;"></div>
+        <input type="file" id="fileSurvey" accept=".csv,.xlsx,.xls">
+      </label>
+    </div>
+    <div class="xn">
+      <div class="xl">Contexto cualitativo (opcional)</div>
+      <textarea class="xt" id="extraNotes" placeholder="Ej: instructora externa, fallas técnicas en clase 1, primer lanzamiento del año, etc."></textarea>
+      <div class="xh">Observaciones del equipo que la IA debe considerar.</div>
+    </div>
+    <div class="arow">
+      <button class="btn btn-p" id="analyzeBtn" onclick="analyze()" disabled>Generar dictamen ejecutivo →</button>
+      <button class="btn btn-g" onclick="resetAll()">Limpiar</button>
+    </div>
+    <div class="err" id="errorBox"></div>
+    <div class="load" id="loadingState">
+      <div class="spin"></div>
+      <div class="lt" id="loadingText">El comité está deliberando...</div>
+      <div class="ls" id="loadingSub">Procesando archivos</div>
+    </div>
+  </div>
+</div>
+
+<div id="results" class="res">
+  <div class="rh">
+    <div class="rhi">
+      <div class="rhm">
+        <div class="rhl" id="rhLabel">DSAC · Educación</div>
+        <div class="rhn" id="rhName">—</div>
+        <div class="rhs" id="rhSub">—</div>
+      </div>
+      <div class="vw" id="verdictWrap">
+        <div class="vd" id="verdictDot">—</div>
+        <div>
+          <div class="vl" id="verdictLabel">VEREDICTO</div>
+          <div class="vh" id="verdictHeadline">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tb active" onclick="showTab('resumen',this)">Resumen ejecutivo</button>
+    <button class="tb" onclick="showTab('marketing',this)">Marketing</button>
+    <button class="tb" onclick="showTab('satisfaccion',this)">Satisfacción</button>
+    <button class="tb" onclick="showTab('financiero',this)">Financiero</button>
+  </div>
+  <div class="tp active" id="tab-resumen">
+    <div class="section">
+      <p class="st">Conclusión ejecutiva del comité</p>
+      <div class="cc"><div class="cx" id="conclusionText"></div></div>
+      <p class="st">KPIs principales</p>
+      <div class="kg" id="kpiGridMain" style="grid-template-columns:repeat(4,1fr);"></div>
+      <p class="st verde">Inversión publicitaria</p>
+      <div class="kg" id="kpiGridAds" style="grid-template-columns:repeat(4,1fr);"></div>
+      <p class="st morado">Resultado financiero</p>
+      <div class="kg" id="kpiGridFin" style="grid-template-columns:repeat(3,1fr);"></div>
+      <p class="st rojo">Diagnóstico del comité</p>
+      <div class="dg">
+        <div class="card"><div class="ct" style="color:var(--r);">🚨 Alertas críticas</div><div class="il" id="alertsList"></div></div>
+        <div class="card"><div class="ct" style="color:var(--a);">⚠ Red flags de datos</div><div class="il" id="redFlagsList"></div></div>
+        <div class="card"><div class="ct" style="color:var(--v);">💡 Oportunidades</div><div class="il" id="oppList"></div></div>
+      </div>
+      <p class="st morado">Mejoras tácticas · qué + cómo</p>
+      <div class="card" style="margin-bottom:1.5rem;padding:1rem 1.25rem;"><div id="mejorasList"></div></div>
+      <div class="na">
+        <div class="ni">→</div>
+        <div class="nc">
+          <div class="nl">Acción inmediata · próximos 7 días</div>
+          <div class="nt" id="nextActionText">—</div>
+        </div>
+      </div>
+      <div class="arow" style="margin-top:1.5rem;">
+        <button class="btn btn-s" onclick="copyExecSummary()">Copiar resumen ejecutivo</button>
+        <button class="btn btn-s" onclick="downloadHTML()">⬇ Descargar HTML</button>
+        <button class="btn btn-s" onclick="window.print()">Imprimir / PDF</button>
+        <button class="btn btn-g" onclick="newAnalysis()">Nuevo análisis</button>
+      </div>
+    </div>
+  </div>
+  <div class="tp" id="tab-marketing"><div class="section" id="marketingContent"></div></div>
+  <div class="tp" id="tab-satisfaccion"><div class="section" id="satisfactionContent"></div></div>
+  <div class="tp" id="tab-financiero"><div class="section" id="financialContent"></div></div>
+</div>
+
+<div class="tst" id="toast"><div class="ti">✓</div><span id="toastText">Copiado</span></div>
+
+<script>
+let excelFile=null,surveyFile=null,excelData=null,surveyText=null,surveyPdfBase64=null,surveyType=null,lastResult=null;
+
+function setupDZ(zoneId,inputId,type){
+  const zone=document.getElementById(zoneId),input=document.getElementById(inputId);
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('dragover')});
+  zone.addEventListener('dragleave',()=>zone.classList.remove('dragover'));
+  zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('dragover');if(e.dataTransfer.files.length)handleFile(e.dataTransfer.files[0],type,zone)});
+  input.addEventListener('change',e=>{if(e.target.files.length)handleFile(e.target.files[0],type,zone)});
+}
+setupDZ('dzExcel','fileExcel','excel');
+setupDZ('dzSurvey','fileSurvey','survey');
+
+async function handleFile(file,type,zone){
+  const nameEl=zone.querySelector('.dzf'),subEl=zone.querySelector('.dzs');
+  nameEl.textContent=file.name;
+  nameEl.style.display='block';
+  subEl.style.display='none';
+  zone.classList.add('loaded');
+  zone.querySelector('.dzi').textContent='✓';
+  if(type==='excel'){
+    excelFile=file;
+    excelData=await parseExcel(file);
+  }else{
+    surveyFile=file;
+    const ext=file.name.split('.').pop().toLowerCase();
+    if(ext==='csv'){surveyType='csv';surveyText=await file.text();surveyPdfBase64=null;}
+    else if(ext==='xlsx'||ext==='xls'){surveyType='xlsx';const d=await parseExcel(file);surveyText=Object.entries(d).map(([n,csv])=>`=== HOJA: ${n} ===\n${csv}`).join('\n\n');surveyPdfBase64=null;}
+    else if(ext==='pdf'){surveyType='pdf';surveyPdfBase64=await fileToB64(file);surveyText=null;}
+  }
+  document.getElementById('analyzeBtn').disabled=!(excelFile&&surveyFile);
+}
+
+async function parseExcel(file){
+  const buf=await file.arrayBuffer();
+  const wb=XLSX.read(buf,{type:'array'});
+  const r={};
+  wb.SheetNames.forEach(n=>{r[n]=XLSX.utils.sheet_to_csv(wb.Sheets[n],{blankrows:false})});
+  return r;
+}
+
+function csvToRows(csv){
+  return String(csv||'').split('\n').map(line=>{
+    const row=[];let cur='',inQ=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){inQ=!inQ;continue;}
+      if(c===','&&!inQ){row.push(cur.trim());cur='';continue;}
+      cur+=c;
+    }
+    row.push(cur.trim());
+    return row;
+  }).filter(r=>r.some(c=>c));
+}
+
+function normLabel(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/\p{M}/gu,'').replace(/\s+/g,' ').trim();
+}
+
+function parseMoneyCell(s){
+  if(s==null||s==='')return null;
+  const raw=String(s).trim();
+  if(!raw||raw==='-')return null;
+  let t=raw.replace(/[^\d,.-]/g,'');
+  if(!t)return null;
+  if(t.includes(',')&&t.includes('.')){
+    if(t.lastIndexOf(',')>t.lastIndexOf('.'))t=t.replace(/\./g,'').replace(',','.');
+    else t=t.replace(/,/g,'');
+  }else if(t.includes(','))t=t.replace(',','.');
+  else if((t.match(/\./g)||[]).length>1)t=t.replace(/\./g,'');
+  const n=parseFloat(t);
+  return isNaN(n)?null:n;
+}
+
+function findSheet(excelData,names){
+  for(const [name,csv] of Object.entries(excelData||{})){
+    const n=normLabel(name);
+    if(names.some(x=>n.includes(x)))return{name,csv,rows:csvToRows(csv)};
+  }
+  return null;
+}
+
+function scanLabelValue(rows){
+  const map={};
+  rows.forEach(row=>{
+    for(let i=0;i<row.length;i++){
+      const label=normLabel(row[i]);
+      if(!label||label.length<2)continue;
+      for(let j=i+1;j<Math.min(i+4,row.length);j++){
+        const money=parseMoneyCell(row[j]);
+        if(money!=null){map[label]={num:money,raw:row[j]};break;}
+        const plain=String(row[j]||'').replace(/\s/g,'');
+        if(/^\d+([.,]\d+)?%?$/.test(plain)){
+          const n=parseFloat(plain.replace('%','').replace(',','.'));
+          if(!isNaN(n)){map[label]={num:n,raw:row[j]};break;}
+        }
+      }
+    }
+  });
+  return map;
+}
+
+function pickMap(map,...keys){
+  for(const k of keys){if(map[k]?.num!=null)return map[k].num;}
+  for(const [k,v] of Object.entries(map||{})){
+    if(keys.some(q=>k.includes(q))&&v?.num!=null)return v.num;
+  }
+  return null;
+}
+
+function parseInscritosSheet(rows){
+  let headerIdx=-1,pagos=0;
+  rows.forEach((row,idx)=>{
+    if(row.some(c=>normLabel(c).includes('cliente')))headerIdx=idx;
+  });
+  const start=headerIdx>=0?headerIdx+1:1;
+  for(let i=start;i<rows.length;i++){
+    const row=rows[i];
+    const cliente=(row[1]||'').trim();
+    const hasMoney=row.some(c=>parseMoneyCell(c)!=null);
+    if(cliente&&!normLabel(cliente).includes('cliente')&&(parseFloat(row[0])>0||hasMoney))pagos++;
+  }
+  return{inscritos_pagos:pagos||null};
+}
+
+function parseMarketingSheet(rows){
+  const camps=[];
+  let current=null;
+  rows.forEach(row=>{
+    const t0=row[0]||'',t1=row[1]||'',t2=row[2]||'';
+    const head=(t0+t1).toUpperCase();
+    if(head.includes('CAMPAÑA')||head.includes('CAMPANA')){
+      if(current)camps.push(current);
+      current={
+        nombre:(t1||t0).trim(),
+        descripcion_breve:'',
+        color_tema:['naranja','verde','morado'][camps.length]||'morado',
+        inversion:0,
+        embudo:[],
+        metricas_clave:[]
+      };
+      return;
+    }
+    if(!current)return;
+    const label=(t1||t0).trim();
+    const nl=normLabel(label);
+    const n=parseMoneyCell(t2)??parseMoneyCell(t1);
+    if(!label||n==null||nl.includes('campa'))return;
+    if(nl.includes('inversion')){
+      current.inversion=n;
+      current.embudo.push({paso:'Inversión',valor:n});
+    }else{
+      current.embudo.push({paso:label,valor:n});
+    }
+  });
+  if(current)camps.push(current);
+  camps.forEach(cp=>{
+    const ventas=cp.embudo.find(e=>{const p=normLabel(e.paso);return p.includes('venta')||p.includes('conversion');});
+    const leads=cp.embudo.find(e=>normLabel(e.paso).includes('leads meta'));
+    cp.metricas_clave=[];
+    if(leads)cp.metricas_clave.push({label:'Leads Meta',val:String(leads.valor)});
+    if(ventas)cp.metricas_clave.push({label:'Ventas / Conv.',val:String(ventas.valor)});
+  });
+  return camps;
+}
+
+function buildFinanciero(presMap,resMap){
+  const defs=[
+    ['ventas brutas','ingreso'],['ventas netas','ingreso'],
+    ['comisiones cierre venta','gasto'],['gasto en ads','gasto'],
+    ['utilidad operativa','ingreso'],['utilidad final curso','ingreso'],
+    ['utilidad final ulpik','ingreso'],['25% pao','gasto']
+  ];
+  const proyectado={lineas:[],ventas_brutas:null,utilidad:null};
+  const real={lineas:[],ventas_brutas:null,utilidad:null};
+  defs.forEach(([key,tipo])=>{
+    if(presMap[key]?.num!=null){
+      proyectado.lineas.push({label:key.replace(/\b\w/g,c=>c.toUpperCase()),val:presMap[key].num,tipo});
+      if(key.includes('ventas brutas'))proyectado.ventas_brutas=presMap[key].num;
+      if(key.includes('utilidad final ulpik'))proyectado.utilidad=presMap[key].num;
+    }
+    if(resMap[key]?.num!=null){
+      real.lineas.push({label:key.replace(/\b\w/g,c=>c.toUpperCase()),val:resMap[key].num,tipo});
+      if(key.includes('ventas brutas'))real.ventas_brutas=resMap[key].num;
+      if(key.includes('utilidad final ulpik'))real.utilidad=resMap[key].num;
+    }
+  });
+  const brecha=[];
+  ['ventas brutas','gasto en ads','utilidad final ulpik'].forEach(concepto=>{
+    const p=presMap[concepto]?.num,re=resMap[concepto]?.num;
+    if(p!=null||re!=null){
+      brecha.push({
+        concepto:concepto.replace(/\b\w/g,c=>c.toUpperCase()),
+        proyectado:p??0,
+        real:re??0,
+        ejecucion_pct:p?((re??0)/p)*100:null
+      });
+    }
+  });
+  return{proyectado,real,brecha};
+}
+
+function extractCourseName(excelData){
+  for(const csv of Object.values(excelData||{})){
+    const m=csv.match(/Curso\s+([^,\n]+)|M[eé]todo\s+([^\n,]+)/i);
+    if(m)return(m[1]||m[2]).trim();
+  }
+  return null;
+}
+
+function extractLaunchExcel(excelData){
+  const pres=findSheet(excelData,['presupuesto']);
+  const ins=findSheet(excelData,['inscritos']);
+  const mkt=findSheet(excelData,['marketing']);
+  const res=findSheet(excelData,['resumen']);
+  const presMap=pres?scanLabelValue(pres.rows):{};
+  const resMap=res?scanLabelValue(res.rows):{};
+  const insData=ins?parseInscritosSheet(ins.rows):{};
+  const campanas=mkt?parseMarketingSheet(mkt.rows):[];
+
+  const inscritosTotal=pickMap(resMap,'inscritos');
+  const hotmart=pickMap(resMap,'hotmart');
+  const inscritosPagos=insData.inscritos_pagos||hotmart;
+  const ventasBrutasReal=pickMap(resMap,'ventas brutas');
+  const gastoAdsReal=pickMap(resMap,'gasto en ads');
+  const utilidadReal=pickMap(resMap,'utilidad final ulpik','ut ulpik');
+  const ventasBrutasProy=pickMap(presMap,'ventas brutas');
+  const inversionTotal=campanas.reduce((a,c)=>a+(c.inversion||0),0)||gastoAdsReal;
+  const ventasAtrib=ventasBrutasReal;
+  const roas=inversionTotal&&ventasBrutasReal?ventasBrutasReal/inversionTotal:null;
+  const leadsMeta=campanas.flatMap(c=>c.embudo).find(e=>normLabel(e.paso).includes('leads meta'));
+  const cpa=inscritosPagos&&gastoAdsReal?gastoAdsReal/inscritosPagos:null;
+  const conv=leadsMeta&&inscritosPagos?(inscritosPagos/leadsMeta.valor)*100:null;
+  const becas=(inscritosTotal!=null&&inscritosPagos!=null)?Math.max(0,inscritosTotal-inscritosPagos):null;
+  const financiero=buildFinanciero(presMap,resMap);
+
+  return{
+    meta:{curso:extractCourseName(excelData),periodo:null,instructor:null,fecha_analisis:new Date().toISOString().slice(0,10)},
+    kpis_principales:{
+      inscritos_total:inscritosTotal,
+      inscritos_pagos:inscritosPagos,
+      becas,
+      ingresos_brutos:ventasBrutasReal,
+      nps:null,
+      satisfaccion_general:null,
+      rating_instructor:null,
+      respuestas_encuesta:null
+    },
+    marketing:{
+      inversion_total:inversionTotal,
+      ventas_atribuidas:ventasAtrib,
+      roas,
+      cpa_principal:cpa,
+      conversion_lead_venta_pct:conv,
+      'campañas':campanas
+    },
+    financiero
+  };
+}
+
+function mergeExcelIntoResult(ai,ex){
+  if(!ex)return ai||{};
+  const r={...(ai||{})};
+  r.meta={...(ex.meta||{}),...(r.meta||{})};
+  if(!r.meta.curso&&ex.meta?.curso)r.meta.curso=ex.meta.curso;
+  r.kpis_principales={...(ex.kpis_principales||{}),...(r.kpis_principales||{})};
+  Object.keys(ex.kpis_principales||{}).forEach(k=>{
+    const ev=ex.kpis_principales[k],av=r.kpis_principales[k];
+    if(ev!=null&&(av==null||av===''||(typeof ev==='number'&&ev!==0&&(av===0||av==null))))r.kpis_principales[k]=ev;
+  });
+  if(r.kpis_principales.inscritos_total!=null&&r.kpis_principales.inscritos_pagos!=null&&!r.kpis_principales.becas){
+    r.kpis_principales.becas=Math.max(0,r.kpis_principales.inscritos_total-r.kpis_principales.inscritos_pagos);
+  }
+  r.marketing={...(ex.marketing||{}),...(r.marketing||{})};
+  ['inversion_total','ventas_atribuidas','roas','cpa_principal','conversion_lead_venta_pct'].forEach(f=>{
+    const ev=ex.marketing?.[f],av=r.marketing[f];
+    if(ev!=null&&(av==null||av===''||(typeof ev==='number'&&ev!==0&&(av===0||av==null))))r.marketing[f]=ev;
+  });
+  if(!(r.marketing.campañas||[]).length&&(ex.marketing?.campañas||[]).length)r.marketing.campañas=ex.marketing.campañas;
+  r.financiero=r.financiero||{};
+  const ef=ex.financiero||{};
+  r.financiero.proyectado={...(ef.proyectado||{}),...(r.financiero.proyectado||{})};
+  r.financiero.real={...(ef.real||{}),...(r.financiero.real||{})};
+  if(!(r.financiero.proyectado?.lineas||[]).length&&ef.proyectado?.lineas?.length)r.financiero.proyectado=ef.proyectado;
+  if(!(r.financiero.real?.lineas||[]).length&&ef.real?.lineas?.length)r.financiero.real=ef.real;
+  if(!(r.financiero.brecha||[]).length&&ef.brecha?.length)r.financiero.brecha=ef.brecha;
+  ['ventas_brutas','utilidad'].forEach(f=>{
+    if(r.financiero.proyectado?.[f]==null&&ef.proyectado?.[f]!=null)r.financiero.proyectado[f]=ef.proyectado[f];
+    if(r.financiero.real?.[f]==null&&ef.real?.[f]!=null)r.financiero.real[f]=ef.real[f];
+  });
+  return r;
+}
+
+function fileToB64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result.split(',')[1]);
+    r.onerror=()=>rej(new Error('No se pudo leer'));
+    r.readAsDataURL(file);
+  });
+}
+
+function resetAll(){
+  excelFile=null;surveyFile=null;excelData=null;surveyText=null;surveyPdfBase64=null;surveyType=null;
+  document.querySelectorAll('.dz').forEach(z=>{
+    z.classList.remove('loaded');
+    z.querySelector('.dzf').style.display='none';
+    z.querySelector('.dzs').style.display='block';
+    z.querySelector('.dzi').textContent=z.id==='dzExcel'?'📊':'📋';
+  });
+  document.getElementById('fileExcel').value='';
+  document.getElementById('fileSurvey').value='';
+  document.getElementById('extraNotes').value='';
+  document.getElementById('errorBox').classList.remove('active');
+  document.getElementById('analyzeBtn').disabled=true;
+}
+
+function newAnalysis(){
+  document.getElementById('results').classList.remove('active');
+  document.getElementById('inputSection').classList.remove('hidden');
+  resetAll();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// OpenAI vía Apps Script de Pulso del Equipo (misma key que Pulso / Apoyo Comercial)
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwwgFQNvQznsj09xGCyh2qJdb19NFyDShx7-Vu5Couq6DIQH8lFLlS23gGi7pcLTT5r7Q/exec';
+
+function balanceJSON(str){let inS=false,esc=false,o=0,b=0;for(let i=0;i<str.length;i++){const c=str[i];if(esc){esc=false;continue;}if(c==="\\"){esc=true;continue;}if(c==='"'){inS=!inS;continue;}if(inS)continue;if(c==="{")o++;else if(c==="}")o--;else if(c==="[")b++;else if(c==="]")b--;}let s=str;if(inS)s+='"';s=s.replace(/\s+$/,"").replace(/[,:]$/,"").replace(/,\s*"[^"]*"$/,"");if(b>0)s+="]".repeat(b);if(o>0)s+="}".repeat(o);return s;}
+function parseJSON(txt){let c=(txt||"").replace(/```json/gi,"").replace(/```/g,"").trim();const s=c.indexOf("{");if(s===-1)throw new Error("Sin JSON en la respuesta");c=c.slice(s);const clean=c.replace(/[\u0000-\u001F]+/g," ");const e=clean.lastIndexOf("}");const cands=[];if(e!==-1)cands.push(clean.slice(0,e+1));cands.push(clean);cands.push(clean.replace(/,\s*([}\]])/g,"$1"));cands.push(balanceJSON(clean));cands.push(balanceJSON(clean).replace(/,\s*([}\]])/g,"$1"));for(const x of cands){try{return JSON.parse(x);}catch(_){}}throw new Error("JSON inválido tras intentar reparar");}
+function friendlyApiError(msg){const m=String(msg||'');if(/UrlFetchApp\.fetch|script\.external_request/i.test(m))return'Falta autorizar OpenAI en Apps Script. Ejecuta testOpenAIAuth() en el editor de Pulso y acepta los permisos.';return m;}
+
+function fetchJsonp(url){
+  return new Promise((resolve,reject)=>{
+    const cb='_launchJsonp_'+Date.now();
+    const timer=setTimeout(()=>{cleanup();reject(new Error('Timeout esperando respuesta de IA'));},180000);
+    const script=document.createElement('script');
+    function cleanup(){clearTimeout(timer);delete window[cb];if(script.parentNode)script.parentNode.removeChild(script);}
+    window[cb]=(data)=>{cleanup();resolve(data);};
+    script.onerror=()=>{cleanup();reject(new Error('No se pudo conectar con Apps Script'));};
+    const sep=url.includes('?')?'&':'?';
+    script.src=url+sep+'callback='+encodeURIComponent(cb);
+    document.head.appendChild(script);
+  });
+}
+
+async function callLaunchAPI(userMsg){
+  if(!APPS_SCRIPT_URL)throw new Error('Apps Script no configurado.');
+  const payload={profile:'launch',userMsg,maxTokens:10000};
+  const jsonPayload=JSON.stringify(payload);
+  const getUrl=APPS_SCRIPT_URL+'?action=chat&payload='+encodeURIComponent(jsonPayload);
+  let data;
+  if(getUrl.length<=7500){
+    data=await fetchJsonp(getUrl);
+  }else{
+    const res=await fetch(APPS_SCRIPT_URL,{method:'POST',redirect:'follow',body:new URLSearchParams({action:'chat',payload:jsonPayload})});
+    const raw=await res.text();
+    try{data=JSON.parse(raw);}catch(e){throw new Error('Respuesta inválida del servidor.');}
+  }
+  if(data.status==='error')throw new Error(data.message||'Error de API');
+  if(data.message&&!data.text)throw new Error('Apps Script sin action=chat. Actualiza pulso-equipo-sheets.gs y redespliega.');
+  const t=data.text||'';
+  if(!t.trim())throw new Error('Respuesta vacía del modelo');
+  return parseJSON(t);
+}
+
+const LMS=[
+  {t:"Procesando Excel y encuesta...",s:"Extrayendo datos crudos"},
+  {t:"El comité está deliberando...",s:"Cruzando datos financieros"},
+  {t:"Identificando red flags ocultos...",s:"Sesgos y métricas vanity"},
+  {t:"Calculando NPS real vs reportado...",s:"Voz de las alumnas"},
+  {t:"Evaluando contra benchmarks...",s:"ROAS, conversión, satisfacción"},
+  {t:"Diseñando mejoras tácticas...",s:"Qué + cómo"},
+  {t:"Redactando dictamen ejecutivo...",s:"Directo a la vena"}
+];
+
+async function analyze(){
+  const eb=document.getElementById('errorBox');
+  eb.classList.remove('active');
+  if(!excelFile||!surveyFile){eb.textContent="⚠ Faltan archivos.";eb.classList.add('active');return;}
+  if(surveyType==='pdf'){eb.textContent="⚠ Exporta la encuesta como CSV o Excel desde Google Forms (OpenAI no procesa PDF en este modo).";eb.classList.add('active');return;}
+  const btn=document.getElementById('analyzeBtn');
+  btn.disabled=true;
+  document.getElementById('loadingState').classList.add('active');
+  let mi=0;
+  const li=setInterval(()=>{
+    mi=(mi+1)%LMS.length;
+    document.getElementById('loadingText').textContent=LMS[mi].t;
+    document.getElementById('loadingSub').textContent=LMS[mi].s;
+  },2400);
+  try{
+    const notes=document.getElementById('extraNotes').value;
+    const excelText=Object.entries(excelData).map(([n,csv])=>`=== HOJA: ${n} ===\n${csv}`).join('\n\n');
+    const excelParsed=extractLaunchExcel(excelData);
+    let userMsg=`Analiza este lanzamiento. Devuelve EXCLUSIVAMENTE el JSON.\n\n═══ EXCEL DEL LANZAMIENTO ═══\n${excelText}\n\n`;
+    if(surveyType==='csv'||surveyType==='xlsx'){userMsg+=`═══ ENCUESTA ═══\n${surveyText}\n\n`;}
+    if(notes&&notes.trim()){userMsg+=`═══ NOTAS DEL EQUIPO ═══\n${notes}\n\n`;}
+    userMsg+=`═══ NÚMEROS CLAVE YA EXTRAÍDOS DEL EXCEL (úsalo para kpis_principales, marketing y financiero) ═══\n${JSON.stringify(excelParsed)}\n\n`;
+    userMsg+=`Responde con el JSON completo ahora. Primer carácter { último }.
+OBLIGATORIO: usa los números pre-extraídos del Excel en kpis_principales, marketing y financiero.
+alertas, red_flags y oportunidades deben ser arrays de strings (texto plano), no objetos.`;
+    const result=normalizeLaunchResult(mergeExcelIntoResult(await callLaunchAPI(userMsg),excelParsed));
+    clearInterval(li);
+    document.getElementById('loadingState').classList.remove('active');
+    renderResults(result);
+  }catch(e){
+    clearInterval(li);
+    document.getElementById('loadingState').classList.remove('active');
+    eb.textContent="⚠ "+friendlyApiError(e.message||e);
+    eb.classList.add('active');
+    console.error(e);
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+function renderResults(r){
+  lastResult=r;
+  document.getElementById('inputSection').classList.add('hidden');
+  document.getElementById('results').classList.add('active');
+  renderHero(r);
+  renderResumen(r);
+  renderMarketing(r);
+  renderSatisfaccion(r);
+  renderFinanciero(r);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderHero(r){
+  document.getElementById('rhLabel').textContent=`DSAC · ${r.meta?.periodo||'Lanzamiento'}`;
+  document.getElementById('rhName').innerHTML=hlw(r.meta?.curso||'—');
+  const sub=[r.meta?.instructor&&`Instructor: ${r.meta.instructor}`,r.meta?.fecha_analisis&&`Análisis: ${r.meta.fecha_analisis}`].filter(Boolean).join(' · ');
+  document.getElementById('rhSub').textContent=sub||'';
+  const c=r.verdict?.semaforo||'amarillo';
+  document.getElementById('verdictWrap').className='vw '+c;
+  const dot=document.getElementById('verdictDot');
+  dot.className='vd '+c;
+  dot.textContent=c==='verde'?'✓':c==='rojo'?'✕':'!';
+  const lbl=document.getElementById('verdictLabel');
+  lbl.className='vl '+c;
+  lbl.textContent=c==='verde'?'EXITOSO':c==='amarillo'?'RESULTADO MIXTO':'LANZAMIENTO EN ROJO';
+  document.getElementById('verdictHeadline').textContent=r.verdict?.titular||'—';
+  document.getElementById('topBadge').textContent=r.meta?.periodo||'Análisis';
+}
+
+function hlw(s){
+  const p=s.trim().split(' ');
+  if(p.length===1)return `<span>${eh(p[0])}</span>`;
+  const last=p.pop();
+  return `${eh(p.join(' '))} <span>${eh(last)}</span>`;
+}
+
+function eh(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function listItemText(x){
+  if(x==null)return'';
+  if(typeof x==='string')return x.trim();
+  if(typeof x==='object'){
+    const t=x.text||x.alerta||x.flag||x.red_flag||x.oportunidad||x.descripcion||x.mensaje||x.titulo||x.hallazgo;
+    if(t)return String(t).trim();
+    const vals=Object.values(x).filter(v=>typeof v==='string'&&v.trim());
+    if(vals.length)return vals[0].trim();
+  }
+  return String(x);
+}
+function toNum(v){
+  if(v==null||v==='')return null;
+  if(typeof v==='number'&&!isNaN(v))return v;
+  let s=String(v).replace(/[$%\s]/g,'').trim();
+  if(!s)return null;
+  if(s.includes(',')&&s.includes('.')){
+    if(s.lastIndexOf(',')>s.lastIndexOf('.'))s=s.replace(/\./g,'').replace(',','.');
+    else s=s.replace(/,/g,'');
+  }else if(s.includes(','))s=s.replace(',','.');
+  const n=Number(s);
+  return isNaN(n)?null:n;
+}
+function normalizeLaunchResult(r){
+  if(!r||typeof r!=='object')return r;
+  r.verdict=r.verdict||{};
+  ['alertas','red_flags','oportunidades'].forEach(k=>{
+    const arr=r.verdict[k];
+    if(Array.isArray(arr))r.verdict[k]=arr.map(listItemText).filter(Boolean);
+    else if(arr&&typeof arr==='object')r.verdict[k]=Object.values(arr).map(listItemText).filter(Boolean);
+  });
+  if(Array.isArray(r.verdict.mejoras_concretas)){
+    r.verdict.mejoras_concretas=r.verdict.mejoras_concretas.map(m=>typeof m==='object'?{que:String(m.que||m.que_hacer||''),como:String(m.como||m.como_aplicar||'')}:{que:'',como:''});
+  }
+  const k=r.kpis_principales=r.kpis_principales||{};
+  ['inscritos_total','inscritos_pagos','becas','ingresos_brutos','nps','satisfaccion_general','rating_instructor','respuestas_encuesta'].forEach(f=>{
+    if(k[f]!=null&&k[f]!==''){const n=toNum(k[f]);if(n!=null)k[f]=n;}
+  });
+  const m=r.marketing=r.marketing||{};
+  ['inversion_total','ventas_atribuidas','roas','cpa_principal','conversion_lead_venta_pct'].forEach(f=>{
+    if(m[f]!=null&&m[f]!==''){const n=toNum(m[f]);if(n!=null)m[f]=n;}
+  });
+  if(Array.isArray(m.campañas)){
+    m.campañas.forEach(cp=>{
+      if(cp.inversion!=null){const n=toNum(cp.inversion);if(n!=null)cp.inversion=n;}
+      if(Array.isArray(cp.embudo))cp.embudo.forEach(s=>{if(s.valor!=null){const n=toNum(s.valor);if(n!=null)s.valor=n;}});
+    });
+  }
+  const f=r.financiero=r.financiero||{};
+  f.proyectado=f.proyectado||{};
+  f.real=f.real||{};
+  ['ventas_brutas','utilidad'].forEach(field=>{
+    [f.proyectado,f.real].forEach(sec=>{
+      if(sec[field]!=null&&sec[field]!==''){const n=toNum(sec[field]);if(n!=null)sec[field]=n;}
+    });
+  });
+  if(Array.isArray(f.brecha))f.brecha.forEach(b=>{
+    ['proyectado','real','ejecucion_pct'].forEach(field=>{
+      if(b[field]!=null&&b[field]!==''){const n=toNum(b[field]);if(n!=null)b[field]=n;}
+    });
+  });
+  const s=r.satisfaccion=r.satisfaccion||{};
+  if(s.respuestas_totales!=null){const n=toNum(s.respuestas_totales);if(n!=null)s.respuestas_totales=n;}
+  if(s.nps_breakdown){
+    ['promotores','pasivos','detractores'].forEach(field=>{
+      if(s.nps_breakdown[field]!=null){const n=toNum(s.nps_breakdown[field]);if(n!=null)s.nps_breakdown[field]=n;}
+    });
+  }
+  return r;
+}
+function fmtU(n){if(n==null||isNaN(n))return '—';return '$'+Number(n).toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtN(n){if(n==null||isNaN(n))return '—';return Number(n).toLocaleString('es-EC')}
+
+function renderResumen(r){
+  const conc=(r.verdict?.conclusion_ejecutiva||'').split(/\n\n+/).map(p=>`<p>${eh(p)}</p>`).join('');
+  document.getElementById('conclusionText').innerHTML=conc||'<p>Sin conclusión.</p>';
+  const k=r.kpis_principales||{};
+  const npsC=k.nps==null?'amarillo':k.nps>=55?'verde':k.nps>=30?'amarillo':'rojo';
+  document.getElementById('kpiGridMain').innerHTML=`
+    <div class="kc"><div class="ka"></div><div class="kl">Inscritos totales</div><div class="kv naranja">${k.inscritos_total??'—'}</div><div class="ksub">${k.inscritos_pagos??0} pagos · ${k.becas??0} becas</div></div>
+    <div class="kc"><div class="ka verde"></div><div class="kl">Ingresos brutos</div><div class="kv verde">${fmtU(k.ingresos_brutos)}</div><div class="ksub">${k.inscritos_pagos??0} ventas reales</div></div>
+    <div class="kc"><div class="ka ${npsC}"></div><div class="kl">NPS</div><div class="kv ${npsC}">${k.nps??'—'}</div><div class="ksub">Benchmark sector: 45–55</div></div>
+    <div class="kc"><div class="ka"></div><div class="kl">Satisfacción general</div><div class="kv naranja">${k.satisfaccion_general??'—'}</div><div class="ksub">${k.respuestas_encuesta??0} encuestadas</div></div>`;
+  const m=r.marketing||{};
+  const roC=m.roas==null?'amarillo':m.roas>=2.5?'verde':m.roas>=1?'amarillo':'rojo';
+  document.getElementById('kpiGridAds').innerHTML=`
+    <div class="kc"><div class="ka"></div><div class="kl">Inversión total ads</div><div class="kv naranja">${fmtU(m.inversion_total)}</div><div class="ksub">${(m.campañas||[]).length} campaña${(m.campañas||[]).length===1?'':'s'}</div></div>
+    <div class="kc"><div class="ka verde"></div><div class="kl">Ventas atribuidas</div><div class="kv verde">${fmtU(m.ventas_atribuidas)}</div><div class="ksub">Por ads</div></div>
+    <div class="kc"><div class="ka ${roC}"></div><div class="kl">ROAS</div><div class="kv ${roC}">${m.roas!=null?m.roas.toFixed(2)+'x':'—'}</div><div class="ksub">Meta: ≥ 2.5x</div></div>
+    <div class="kc"><div class="ka"></div><div class="kl">CPA principal</div><div class="kv naranja">${fmtU(m.cpa_principal)}</div><div class="ksub">Costo por venta</div></div>`;
+  const f=r.financiero||{},py=f.proyectado||{},rl=f.real||{};
+  document.getElementById('kpiGridFin').innerHTML=`
+    <div class="kc"><div class="ka"></div><div class="kl">Ventas brutas</div><div class="kv naranja">${fmtU(rl.ventas_brutas)}</div><div class="ksub">vs. ${fmtU(py.ventas_brutas)} proyectado</div></div>
+    <div class="kc"><div class="ka verde"></div><div class="kl">Utilidad real</div><div class="kv verde">${fmtU(rl.utilidad)}</div><div class="ksub">vs. ${fmtU(py.utilidad)} proyectada</div></div>
+    <div class="kc"><div class="ka morado"></div><div class="kl">Cumplimiento</div><div class="kv morado">${(py.ventas_brutas&&rl.ventas_brutas)?((rl.ventas_brutas/py.ventas_brutas)*100).toFixed(1)+'%':'—'}</div><div class="ksub">Real vs. proyectado</div></div>`;
+  document.getElementById('alertsList').innerHTML=(r.verdict?.alertas||[]).map((a,i)=>`<div class="ir"><div class="ii rojo">${i+1}</div><div class="ix">${eh(listItemText(a))}</div></div>`).join('')||'<div class="ix" style="color:var(--t3);">Sin alertas.</div>';
+  document.getElementById('redFlagsList').innerHTML=(r.verdict?.red_flags||[]).map((f,i)=>`<div class="ir"><div class="ii amarillo">${i+1}</div><div class="ix">${eh(listItemText(f))}</div></div>`).join('')||'<div class="ix" style="color:var(--t3);">Sin red flags.</div>';
+  document.getElementById('oppList').innerHTML=(r.verdict?.oportunidades||[]).map((o,i)=>`<div class="ir"><div class="ii verde">${i+1}</div><div class="ix">${eh(listItemText(o))}</div></div>`).join('')||'<div class="ix" style="color:var(--t3);">Sin oportunidades.</div>';
+  const mj=r.verdict?.mejoras_concretas||[];
+  document.getElementById('mejorasList').innerHTML=mj.length?mj.map((m,i)=>`<div class="mi"><div class="mn">${i+1}</div><div class="mc"><div class="mq">${eh(m.que||'')}</div><div class="mh"><span class="ml">Cómo →</span>${eh(m.como||'')}</div></div></div>`).join(''):'<div style="color:var(--t3);font-size:13px;padding:14px;">Sin mejoras concretas.</div>';
+  document.getElementById('nextActionText').textContent=r.verdict?.siguiente_accion||'—';
+}
+
+function renderMarketing(r){
+  const m=r.marketing||{},c=document.getElementById('marketingContent'),camps=m.campañas||[];
+  let h=`<p class="st">Resumen de adquisición</p><div class="kg" style="grid-template-columns:repeat(4,1fr);margin-bottom:2rem;">
+    <div class="kc"><div class="ka"></div><div class="kl">Inversión</div><div class="kv naranja">${fmtU(m.inversion_total)}</div></div>
+    <div class="kc"><div class="ka verde"></div><div class="kl">Ventas atribuidas</div><div class="kv verde">${fmtU(m.ventas_atribuidas)}</div></div>
+    <div class="kc"><div class="ka morado"></div><div class="kl">ROAS</div><div class="kv morado">${m.roas!=null?m.roas.toFixed(2)+'x':'—'}</div></div>
+    <div class="kc"><div class="ka"></div><div class="kl">Conv. lead → venta</div><div class="kv naranja">${m.conversion_lead_venta_pct!=null?m.conversion_lead_venta_pct.toFixed(2)+'%':'—'}</div></div>
+  </div>`;
+  if(!camps.length){h+='<div class="card"><div style="color:var(--t3);font-size:13px;">Sin desglose de campañas.</div></div>';}
+  else{
+    h+='<div class="tc">';
+    camps.forEach(cp=>{
+      const col=cp.color_tema||'naranja';
+      const rgba=col==='naranja'?'255,37,0':col==='verde'?'0,173,176':'130,59,218';
+      const cv=col==='naranja'?'n':col==='verde'?'v':'m';
+      h+=`<div style="background:rgba(${rgba},.06);border:1px solid rgba(${rgba},.15);border-radius:14px;padding:1.25rem 1.5rem;"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--${cv});margin-bottom:8px;">${eh(cp.nombre)}</div><div style="font-size:13px;color:var(--t2);line-height:1.6;">${eh(cp.descripcion_breve||'')}</div></div>`;
+    });
+    h+='</div>';
+    camps.forEach((cp,idx)=>{
+      const col=cp.color_tema||'naranja';
+      h+=`<p class="st ${col}">Embudo · ${eh(cp.nombre)}</p><div class="card" style="margin-bottom:2rem;"><div style="font-size:11px;color:var(--t3);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--b);">Cada barra muestra el % de conversión respecto al paso anterior</div><div class="fw" id="fnl-${idx}"></div>`;
+      if(cp.metricas_clave&&cp.metricas_clave.length){
+        const cv=col==='naranja'?'n':col==='verde'?'v':'m';
+        h+=`<div style="margin-top:20px;display:flex;gap:28px;padding-top:16px;border-top:1px solid var(--b);flex-wrap:wrap;">`;
+        cp.metricas_clave.forEach(kk=>{h+=`<div><div class="kl">${eh(kk.label)}</div><div style="font-family:var(--mo);font-size:1.4rem;color:var(--${cv});margin-top:4px;font-weight:500;">${eh(kk.val)}</div></div>`});
+        h+=`</div>`;
+      }
+      h+=`</div>`;
+    });
+  }
+  c.innerHTML=h;
+  camps.forEach((cp,idx)=>buildFunnel(`fnl-${idx}`,cp.embudo||[],cp.color_tema||'naranja'));
+}
+
+function buildFunnel(cId,steps,cn){
+  const c=document.getElementById(cId);
+  if(!c)return;
+  const rgba=cn==='naranja'?'255,37,0':cn==='verde'?'0,173,176':'130,59,218';
+  steps.forEach((s,i)=>{
+    const prev=i===0?s.valor:steps[i-1].valor;
+    const pct=i===0?100:(prev?Math.round((s.valor/prev)*100):0);
+    const bw=Math.max(pct,2);
+    const ct=i===0?'':pct+'%';
+    const il=pct<30&&i>0;
+    const a=(.20+(i/steps.length)*.65).toFixed(2);
+    const row=document.createElement('div');
+    row.className='fs';
+    row.innerHTML=`<div class="flt">${eh(s.paso)}</div><div class="fbo"><div class="fbi" style="width:${bw}%;background:rgba(${rgba},${a});">${fmtN(s.valor)}</div></div><div class="fc ${il?'drop':''}">${ct}</div>`;
+    c.appendChild(row);
+  });
+}
+
+function renderSatisfaccion(r){
+  const s=r.satisfaccion||{},c=document.getElementById('satisfactionContent');
+  let h='';
+  if(s.distribucion_principal){
+    const dp=s.distribucion_principal;
+    const tv=Object.values(dp.votos_por_nota||{}).reduce((a,b)=>a+b,0);
+    const avg=tv?(Object.entries(dp.votos_por_nota).reduce((ac,[n,c])=>ac+Number(n)*c,0)/tv):null;
+    const dist=Object.entries(dp.votos_por_nota||{}).sort((a,b)=>Number(b[0])-Number(a[0])).map(([n,c])=>`<span>${c} dieron <strong style="color:var(--n);">${n}</strong></span>`).join(' · ');
+    h+=`<div style="background:rgba(255,37,0,.06);border:1px solid rgba(255,37,0,.2);border-radius:14px;padding:1.5rem 2rem;margin-bottom:2rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;"><div style="flex:1;min-width:280px;"><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--n);margin-bottom:6px;">KPI Principal · ${eh(dp.pregunta)}</div><div style="margin-top:8px;font-size:12px;color:var(--t3);">${dist}</div></div><div style="text-align:center;min-width:110px;"><div style="font-family:var(--mo);font-size:3.6rem;font-weight:500;letter-spacing:-.04em;color:var(--n);line-height:1;">${avg!=null?avg.toFixed(2):'—'}</div><div style="font-size:11px;color:var(--t3);margin-top:4px;font-weight:500;">sobre 10</div></div></div>`;
+  }
+  if(s.promedios_por_pregunta&&s.promedios_por_pregunta.length){
+    h+=`<p class="st">Promedios por pregunta</p><div class="card" style="margin-bottom:2rem;"><div class="cw" style="height:${Math.max(220,s.promedios_por_pregunta.length*50)}px;"><canvas id="promChart"></canvas></div></div>`;
+  }
+  if(s.nps_breakdown||(s.ciudades&&s.ciudades.length)){
+    h+=`<div class="tc">`;
+    if(s.nps_breakdown){
+      const nb=s.nps_breakdown;
+      const t=(nb.promotores||0)+(nb.pasivos||0)+(nb.detractores||0);
+      const nv=t?(((nb.promotores-nb.detractores)/t)*100).toFixed(1):'—';
+      const nc=nv==='—'?'verde':Number(nv)>=55?'verde':Number(nv)>=30?'amarillo':'rojo';
+      const ncv=nc==='verde'?'v':nc==='amarillo'?'a':'r';
+      h+=`<div class="card"><div class="ct">Net Promoter Score</div><div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;"><div style="font-family:var(--mo);font-size:4rem;font-weight:500;letter-spacing:-.05em;color:var(--${ncv});line-height:1;">${nv}</div><div style="flex:1;min-width:160px;"><div style="display:flex;gap:10px;align-items:center;margin-bottom:6px;font-size:13px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--v);"></span><span style="color:var(--t2);">Promotoras (9–10)</span><span style="margin-left:auto;font-family:var(--mo);color:var(--v);font-weight:500;">${nb.promotores??0}</span></div><div style="display:flex;gap:10px;align-items:center;margin-bottom:6px;font-size:13px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--a);"></span><span style="color:var(--t2);">Pasivas (7–8)</span><span style="margin-left:auto;font-family:var(--mo);color:var(--a);font-weight:500;">${nb.pasivos??0}</span></div><div style="display:flex;gap:10px;align-items:center;font-size:13px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--r);"></span><span style="color:var(--t2);">Detractoras (0–6)</span><span style="margin-left:auto;font-family:var(--mo);color:var(--r);font-weight:500;">${nb.detractores??0}</span></div><div class="co" style="margin-top:12px;">Benchmark sector educación online: 45–55</div></div></div></div>`;
+    }
+    if(s.ciudades&&s.ciudades.length){
+      const t=s.ciudades.reduce((a,b)=>a+(b.n||0),0);
+      h+=`<div class="card"><div class="ct">Origen geográfico</div>`;
+      s.ciudades.slice(0,8).forEach(cc=>{const pct=t?Math.round((cc.n/t)*100):0;h+=`<div class="mr"><div class="mname">${eh(cc.nombre)}</div><div><span class="mct" style="color:var(--n);">${cc.n}</span><span class="mp">${pct}%</span></div></div><div class="bt"><div class="bf" style="width:${pct}%;background:var(--n);"></div></div>`});
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+  }
+  if(s.si_dejara_existir||(s.modulo_favorito&&s.modulo_favorito.length)){
+    h+=`<div class="tc">`;
+    if(s.si_dejara_existir){
+      const d=s.si_dejara_existir;
+      const t=(d.muy_decepcionado||0)+(d.poco_decepcionado||0)+(d.me_daria_igual||0);
+      h+=`<div class="card"><div class="ct">¿Qué pasaría si el curso dejara de existir?</div>`;
+      [{lb:'Muy decepcionada',n:d.muy_decepcionado||0,c:'v'},{lb:'Poco decepcionada',n:d.poco_decepcionado||0,c:'a'},{lb:'Me daría igual',n:d.me_daria_igual||0,c:'r'}].forEach(row=>{const pct=t?Math.round((row.n/t)*100):0;h+=`<div class="mr"><div class="mname">${row.lb}</div><div><span class="mct" style="color:var(--${row.c});">${row.n}</span><span class="mp">${pct}%</span></div></div><div class="bt"><div class="bf" style="width:${pct}%;background:var(--${row.c});"></div></div>`});
+      h+=`</div>`;
+    }
+    if(s.modulo_favorito&&s.modulo_favorito.length){
+      const t=s.modulo_favorito.reduce((a,b)=>a+(b.votos||0),0);
+      h+=`<div class="card"><div class="ct">Módulo favorito</div>`;
+      s.modulo_favorito.forEach((mm,i)=>{const pct=t?Math.round((mm.votos/t)*100):0;const cv=i===0?'n':i===1?'m':'v';h+=`<div class="mr"><div class="mname">${eh(mm.nombre)}</div><div><span class="mct" style="color:var(--${cv});">${mm.votos}</span><span class="mp">${pct}%</span></div></div><div class="bt"><div class="bf" style="width:${pct}%;background:var(--${cv});"></div></div>`});
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+  }
+  if((s.ritmo_duracion&&s.ritmo_duracion.length)||(s.soporte_equipo&&s.soporte_equipo.length)){
+    h+=`<div class="tc">`;
+    if(s.ritmo_duracion&&s.ritmo_duracion.length){
+      const t=s.ritmo_duracion.reduce((a,b)=>a+(b.n||0),0);
+      h+=`<div class="card"><div class="ct">Ritmo y duración</div>`;
+      s.ritmo_duracion.forEach((row,i)=>{const pct=t?Math.round((row.n/t)*100):0;const cv=i===0?'v':'n';h+=`<div class="mr"><div class="mname">${eh(row.respuesta)}</div><div><span class="mct" style="color:var(--${cv});">${row.n}</span><span class="mp">${pct}%</span></div></div><div class="bt"><div class="bf" style="width:${pct}%;background:var(--${cv});"></div></div>`});
+      h+=`</div>`;
+    }
+    if(s.soporte_equipo&&s.soporte_equipo.length){
+      const t=s.soporte_equipo.reduce((a,b)=>a+(b.n||0),0);
+      h+=`<div class="card"><div class="ct">Soporte del equipo</div>`;
+      s.soporte_equipo.forEach((row,i)=>{const pct=t?Math.round((row.n/t)*100):0;const cv=i===0?'v':'a';h+=`<div class="mr"><div class="mname">${eh(row.respuesta)}</div><div><span class="mct" style="color:var(--${cv});">${row.n}</span><span class="mp">${pct}%</span></div></div><div class="bt"><div class="bf" style="width:${pct}%;background:var(--${cv});"></div></div>`});
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+  }
+  if((s.quotes_aprendizaje&&s.quotes_aprendizaje.length)||(s.quotes_mejora&&s.quotes_mejora.length)){
+    h+=`<p class="st">Voz directa de las encuestadas</p><div class="tc">`;
+    if(s.quotes_aprendizaje&&s.quotes_aprendizaje.length){
+      h+=`<div class="card"><div class="ct">Lo que más aprendieron</div>`;
+      const lt=['A','B','C','D','E'];
+      s.quotes_aprendizaje.slice(0,5).forEach((q,i)=>{h+=`<div class="oi"><div class="oa">${lt[i]||'+'}</div><div class="ox">"${eh(q)}"</div></div>`});
+      h+=`</div>`;
+    }
+    if(s.quotes_mejora&&s.quotes_mejora.length){
+      h+=`<div class="card"><div class="ct">Oportunidades de mejora señaladas</div>`;
+      s.quotes_mejora.slice(0,5).forEach((q,i)=>{h+=`<div class="oi"><div class="oa morado">${i+1}</div><div class="ox">"${eh(q)}"</div></div>`});
+      h+=`</div>`;
+    }
+    h+=`</div>`;
+  }
+  c.innerHTML=h;
+  if(s.promedios_por_pregunta&&s.promedios_por_pregunta.length){
+    const ctx=document.getElementById('promChart')?.getContext('2d');
+    if(ctx){
+      const lbs=s.promedios_por_pregunta.map(p=>p.pregunta);
+      const dt=s.promedios_por_pregunta.map(p=>p.promedio);
+      const cs=dt.map(v=>v>=9?'#ff2500':v>=8?'#00adb0':v>=7?'#e8a040':'#ff4444');
+      new Chart(ctx,{type:'bar',data:{labels:lbs,datasets:[{data:dt,backgroundColor:cs,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1a1a',borderColor:'rgba(255,255,255,.1)',borderWidth:1,titleColor:'#f0ede8',bodyColor:'#a09a93'}},scales:{x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#6a6460'},min:0,max:10},y:{grid:{display:false},ticks:{color:'#a09a93',font:{size:12}}}}}});
+    }
+  }
+}
+
+function renderFinanciero(r){
+  const f=r.financiero||{},py=f.proyectado||{},rl=f.real||{},c=document.getElementById('financialContent');
+  let h=`<p class="st">Presupuesto vs. Real</p><div class="tc"><div class="card"><div class="ct">Proyección inicial</div>`;
+  (py.lineas||[]).forEach(l=>{const vt=l.tipo==='gasto'?'–'+fmtU(l.val):fmtU(l.val);const cls=l.tipo==='gasto'?'rd':'w';h+=`<div class="fr"><div class="fl">${eh(l.label)}</div><div class="fv ${cls}">${vt}</div></div>`});
+  if(py.utilidad!=null)h+=`<div class="fr" style="border-top:1px solid var(--b2);padding-top:12px;margin-top:4px;"><div class="fl" style="font-weight:600;color:var(--t1);">Utilidad proyectada</div><div class="fv g">${fmtU(py.utilidad)}</div></div>`;
+  h+=`</div><div class="card"><div class="ct">Resultado real</div>`;
+  (rl.lineas||[]).forEach(l=>{const vt=l.tipo==='gasto'?'–'+fmtU(l.val):fmtU(l.val);const cls=l.tipo==='gasto'?'rd':'w';h+=`<div class="fr"><div class="fl">${eh(l.label)}</div><div class="fv ${cls}">${vt}</div></div>`});
+  if(rl.utilidad!=null)h+=`<div class="fr" style="border-top:1px solid var(--b2);padding-top:12px;margin-top:4px;"><div class="fl" style="font-weight:600;color:var(--t1);">Utilidad real</div><div class="fv g">${fmtU(rl.utilidad)}</div></div>`;
+  h+=`</div></div>`;
+  if(f.brecha&&f.brecha.length){
+    h+=`<p class="st verde">Brecha Proyección vs. Real</p><div class="card" style="margin-bottom:2rem;"><table><thead><tr><th>Concepto</th><th class="tr-r">Proyectado</th><th class="tr-r">Real</th><th class="tr-r">Diferencia</th><th class="tr-r">Ejecución</th></tr></thead><tbody>`;
+    f.brecha.forEach(b=>{const diff=(b.real||0)-(b.proyectado||0);const dc=diff>=0?'v':'r';const ec=b.ejecucion_pct>=80?'v':b.ejecucion_pct>=50?'a':'r';h+=`<tr><td>${eh(b.concepto)}</td><td class="tm tr-r">${fmtU(b.proyectado)}</td><td class="tm tr-r">${fmtU(b.real)}</td><td class="tm tr-r" style="color:var(--${dc});">${diff>=0?'+':'–'}${fmtU(Math.abs(diff))}</td><td class="tr-r"><span style="font-family:var(--mo);font-size:13px;color:var(--${ec});font-weight:500;">${b.ejecucion_pct!=null?b.ejecucion_pct.toFixed(1)+'%':'—'}</span></td></tr>`});
+    h+=`</tbody></table></div>`;
+  }
+  c.innerHTML=h;
+}
+
+function showTab(name,btn){
+  document.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  window.scrollTo({top:document.querySelector('.tabs').offsetTop-70,behavior:'smooth'});
+}
+
+function copyExecSummary(){
+  if(!lastResult)return;
+  const r=lastResult,v=r.verdict||{};
+  const mj=(v.mejoras_concretas||[]).map((m,i)=>`${i+1}. ${m.que}\n   Cómo → ${m.como}`).join('\n\n');
+  const txt=`═══════════════════════════════════════
+LAUNCH INTELLIGENCE · ${r.meta?.curso||'—'} · ${r.meta?.periodo||'—'}
+═══════════════════════════════════════
+
+🚦 VEREDICTO: ${(v.semaforo||'—').toUpperCase()}
+
+📌 ${v.titular||'—'}
+
+📊 CONCLUSIÓN EJECUTIVA
+${v.conclusion_ejecutiva||'—'}
+
+🚨 ALERTAS CRÍTICAS
+${(v.alertas||[]).map((a,i)=>`${i+1}. ${listItemText(a)}`).join('\n')}
+
+⚠ RED FLAGS DE DATOS
+${(v.red_flags||[]).map((f,i)=>`${i+1}. ${listItemText(f)}`).join('\n')}
+
+💡 OPORTUNIDADES
+${(v.oportunidades||[]).map((o,i)=>`${i+1}. ${listItemText(o)}`).join('\n')}
+
+🛠 MEJORAS TÁCTICAS
+${mj}
+
+➡ SIGUIENTE ACCIÓN (7 días)
+${v.siguiente_accion||'—'}
+
+═══════════════════════════════════════`;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const t=document.getElementById('toast');
+    document.getElementById('toastText').textContent='Resumen ejecutivo copiado';
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2400);
+  });
+}
+
+function downloadHTML(){
+  if(!lastResult)return;
+  const rh=document.getElementById('results').outerHTML;
+  const sh=document.querySelector('style').outerHTML;
+  const dj=JSON.stringify(lastResult).replace(/</g,'\\u003c');
+  const ppp=JSON.stringify((lastResult.satisfaccion&&lastResult.satisfaccion.promedios_por_pregunta)||[]).replace(/</g,'\\u003c');
+  const curso=(lastResult.meta&&lastResult.meta.curso)||'Análisis';
+  const per=(lastResult.meta&&lastResult.meta.periodo)||'';
+  const fn='Launch_Intelligence_'+curso.replace(/[^\w]/g,'_')+'_'+per.replace(/[^\w]/g,'_')+'.html';
+  const js=
+    'const lastResult='+dj+';'+
+    'const ppp='+ppp+';'+
+    'let chartInstance=null;'+
+    'function buildChart(){'+
+      'if(!ppp.length)return;'+
+      'const ctx=document.getElementById("promChart");'+
+      'if(!ctx)return;'+
+      'if(chartInstance)chartInstance.destroy();'+
+      'const labels=ppp.map(p=>p.pregunta);'+
+      'const data=ppp.map(p=>p.promedio);'+
+      'const colors=data.map(v=>v>=9?"#ff2500":v>=8?"#00adb0":v>=7?"#e8a040":"#ff4444");'+
+      'chartInstance=new Chart(ctx.getContext("2d"),{type:"bar",data:{labels:labels,datasets:[{data:data,backgroundColor:colors,borderRadius:4}]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:"#1a1a1a",borderColor:"rgba(255,255,255,.1)",borderWidth:1,titleColor:"#f0ede8",bodyColor:"#a09a93"}},scales:{x:{grid:{color:"rgba(255,255,255,.04)"},ticks:{color:"#6a6460"},min:0,max:10},y:{grid:{display:false},ticks:{color:"#a09a93",font:{size:12}}}}}});'+
+    '}'+
+    'function showTab(name,btn){'+
+      'document.querySelectorAll(".tp").forEach(p=>p.classList.remove("active"));'+
+      'document.querySelectorAll(".tb").forEach(b=>b.classList.remove("active"));'+
+      'document.getElementById("tab-"+name).classList.add("active");'+
+      'if(btn)btn.classList.add("active");'+
+      'if(name==="satisfaccion")setTimeout(buildChart,80);'+
+      'window.scrollTo({top:0,behavior:"smooth"});'+
+    '}'+
+    'function copyExecSummary(){'+
+      'const v=lastResult.verdict||{};'+
+      'const mj=(v.mejoras_concretas||[]).map(function(m,i){return (i+1)+". "+m.que+"\\n   Cómo → "+m.como;}).join("\\n\\n");'+
+      'const txt="═══════════════════════════════════════\\nLAUNCH INTELLIGENCE · "+((lastResult.meta&&lastResult.meta.curso)||"")+" · "+((lastResult.meta&&lastResult.meta.periodo)||"")+"\\n═══════════════════════════════════════\\n\\n🚦 VEREDICTO: "+((v.semaforo||"").toUpperCase())+"\\n\\n📌 "+(v.titular||"")+"\\n\\n📊 CONCLUSIÓN EJECUTIVA\\n"+(v.conclusion_ejecutiva||"")+"\\n\\n🚨 ALERTAS CRÍTICAS\\n"+(v.alertas||[]).map(function(a,i){return (i+1)+". "+a;}).join("\\n")+"\\n\\n⚠ RED FLAGS DE DATOS\\n"+(v.red_flags||[]).map(function(f,i){return (i+1)+". "+f;}).join("\\n")+"\\n\\n💡 OPORTUNIDADES\\n"+(v.oportunidades||[]).map(function(o,i){return (i+1)+". "+o;}).join("\\n")+"\\n\\n🛠 MEJORAS TÁCTICAS\\n"+mj+"\\n\\n➡ SIGUIENTE ACCIÓN (7 días)\\n"+(v.siguiente_accion||"")+"\\n═══════════════════════════════════════";'+
+      'navigator.clipboard.writeText(txt).then(function(){alert("Resumen ejecutivo copiado al portapapeles.");});'+
+    '}'+
+    'function newAnalysis(){alert("Para hacer un nuevo análisis, abre la aplicación principal de Launch Intelligence.");}'+
+    'function downloadHTML(){alert("Ya estás viendo el archivo HTML descargado.");}'+
+    'Chart.defaults.color="#6a6460";'+
+    'Chart.defaults.font.family="\'DM Sans\', sans-serif";'+
+    'Chart.defaults.font.size=12;'+
+    'document.addEventListener("DOMContentLoaded",function(){buildChart();});';
+  const html='<!DOCTYPE html><html lang="es"><head>'+
+    '<meta charset="UTF-8">'+
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">'+
+    '<title>Launch Intelligence · '+curso+' · '+per+'</title>'+
+    '<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">'+
+    '<'+'script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"><'+'/script>'+
+    sh+
+    '<style>.res{display:block !important;}.is,.tst{display:none !important;}</style>'+
+    '</head><body>'+
+    rh+
+    '<'+'script>'+js+'<'+'/script>'+
+    '</body></html>';
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=fn;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  const t=document.getElementById('toast');
+  document.getElementById('toastText').textContent='HTML descargado';
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2400);
+}
+
+Chart.defaults.color='#6a6460';
+Chart.defaults.font.family="'DM Sans', sans-serif";
+Chart.defaults.font.size=12;
+</script>
+</body>
+</html>
