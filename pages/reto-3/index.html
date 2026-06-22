@@ -109,6 +109,8 @@
       text-decoration: none;
       color: inherit;
       overflow: hidden;
+      min-width: 0;
+      min-height: 100%;
       transition: border-color 0.28s cubic-bezier(0.32,0.72,0,1),
                   transform   0.28s cubic-bezier(0.32,0.72,0,1),
                   box-shadow  0.28s cubic-bezier(0.32,0.72,0,1);
@@ -142,7 +144,7 @@
     }
 
     .card-author {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 5px;
       font-size: 11px;
@@ -191,9 +193,16 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
     }
 
-    .card-tag { font-size: 11px; color: var(--text-tertiary); }
+    .card-tag {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      min-width: 0;
+      line-height: 1.4;
+    }
 
     .card-arrow {
       display: flex;
@@ -262,6 +271,7 @@
               <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
+          <p class="card-author">Esteban</p>
           <p class="card-name">Launch Intelligence</p>
           <p class="card-desc">Análisis de lanzamientos con deliberación del comité ejecutivo y diagnóstico DSAC.</p>
           <div class="card-pills">
@@ -285,6 +295,7 @@
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
+          <p class="card-author">Fabian</p>
           <p class="card-name">Marcas</p>
           <p class="card-desc">Control de metas semanales y seguimiento de indicadores de marcas.</p>
           <div class="card-pills">
@@ -308,6 +319,7 @@
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
+          <p class="card-author">Martin</p>
           <p class="card-name">Satisfacción de Clientes</p>
           <p class="card-desc">Encuestas NPS, seguimiento de satisfacción y panel de resultados por cliente.</p>
           <div class="card-pills">
@@ -317,7 +329,7 @@
           </div>
         </div>
         <div class="card-footer">
-          <span class="card-tag">NPS · Clientes</span>
+          <span class="card-tag">NPS</span>
           <span class="card-arrow">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
@@ -332,6 +344,7 @@
               <path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
+          <p class="card-author">Michael</p>
           <p class="card-name">Auditor de Seguridad Web</p>
           <p class="card-desc">Revisa cabeceras, SSL, exposición y riesgos de seguridad en sitios web.</p>
           <div class="card-pills">
@@ -355,26 +368,6 @@
     </footer>
 
   </div>
-
-  <script>
-    function authorFromFile(href) {
-      const base = href.split('/').pop().replace(/\.html$/i, '');
-      const segment = base.split('_')[0].split('-')[0];
-      return segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase();
-    }
-
-    document.querySelectorAll('.card[href]').forEach((card) => {
-      const href = card.getAttribute('href');
-      if (!href || href.startsWith('..') || card.querySelector('.card-author')) return;
-
-      const author = document.createElement('p');
-      author.className = 'card-author';
-      author.textContent = authorFromFile(href);
-
-      const name = card.querySelector('.card-name');
-      if (name) name.before(author);
-    });
-  </script>
 
 </body>
 </html>
