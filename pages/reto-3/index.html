@@ -141,6 +141,27 @@
       letter-spacing: -0.01em;
     }
 
+    .card-author {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: capitalize;
+      margin-bottom: 0.55rem;
+      letter-spacing: 0.01em;
+    }
+
+    .card-author::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #1D9E75;
+      flex-shrink: 0;
+    }
+
     .card-desc {
       font-size: 12.5px;
       color: var(--text-secondary);
@@ -226,7 +247,7 @@
         Reto 3
       </div>
       <h1>Dashboards reto 3</h1>
-      <p>Herramientas de inteligencia y seguimiento del reto estratégico.</p>
+      <p>Herramientas de inteligencia y seguimiento del reto estratégico. El autor de cada artefacto se indica en la tarjeta.</p>
     </header>
 
     <main class="grid">
@@ -296,14 +317,7 @@
           </div>
         </div>
         <div class="card-footer">
-          <span class="card-tag">Martin × Ulpik</span>
-          <span class="card-arrow">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </span>
-        </div>
-      </a>
-
-      <a class="card" href="michael-ulpik_security_auditor.html">
+          <span class="card-tag">NPS · Clientes</span>
         <div class="card-body">
           <div class="card-icon icon-security">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -334,6 +348,26 @@
     </footer>
 
   </div>
+
+  <script>
+    function authorFromFile(href) {
+      const base = href.split('/').pop().replace(/\.html$/i, '');
+      const segment = base.split('_')[0].split('-')[0];
+      return segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase();
+    }
+
+    document.querySelectorAll('.card[href]').forEach((card) => {
+      const href = card.getAttribute('href');
+      if (!href || href.startsWith('..')) return;
+
+      const author = document.createElement('p');
+      author.className = 'card-author';
+      author.textContent = authorFromFile(href);
+
+      const name = card.querySelector('.card-name');
+      if (name) name.before(author);
+    });
+  </script>
 
 </body>
 </html>
