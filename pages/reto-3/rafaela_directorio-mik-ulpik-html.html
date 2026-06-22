@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorio MIK · ULPIK 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.376.0/lucide.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #fafafa; color: #171717; line-height: 1.5; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+  @media (min-width: 768px) { .container { padding: 0 2rem; } }
+
+  /* HEADER */
+  header.main {
+    background: #000;
+    color: #fff;
+  }
+  header.main .inner {
+    padding: 2.5rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  @media (min-width: 768px) {
+    header.main .inner { padding: 3.5rem 2rem; }
+  }
+  .brand-tag {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .brand-tag-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    background: #f97316;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .brand-tag-text {
+    color: #fb923c;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+  }
+  header.main h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+  @media (min-width: 768px) {
+    header.main h1 { font-size: 3rem; }
+  }
+  header.main p {
+    color: #d4d4d4;
+    font-size: 1rem;
+    max-width: 42rem;
+  }
+  @media (min-width: 768px) {
+    header.main p { font-size: 1.125rem; }
+  }
+
+  /* CONTROLS */
+  .controls {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    margin-bottom: 1.5rem;
+    margin-top: 2rem;
+  }
+  @media (min-width: 768px) { .controls { padding: 1.5rem; } }
+  .search-box { position: relative; margin-bottom: 1rem; }
+  .search-box svg.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #a3a3a3;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 0.75rem 3rem 0.75rem 3rem;
+    border-radius: 0.75rem;
+    background: #fafafa;
+    border: 1px solid #e5e5e5;
+    font-size: 1rem;
+    transition: all 0.2s;
+  }
+  .search-box input:focus {
+    outline: none;
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px #ffedd5;
+  }
+  .clear-btn {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.375rem;
+    color: #737373;
+    display: none;
+  }
+  .clear-btn:hover { background: #e5e5e5; }
+  .clear-btn.visible { display: block; }
+  .filter-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  @media (min-width: 768px) {
+    .filter-row { flex-direction: row; }
+  }
+  .filter-group { flex: 1; }
+  .filter-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #737373;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .chip {
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    background: #f5f5f5;
+    color: #404040;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .chip:hover { background: #e5e5e5; }
+  .chip.active { color: #000; transform: scale(1.05); box-shadow: 0 4px 6px rgba(0,0,0,0.07); }
+  .chip.active.disc-D { background: #f97316; }
+  .chip.active.disc-I { background: #facc15; }
+  .chip.active.disc-S { background: #22c55e; }
+  .chip.active.disc-C { background: #3b82f6; }
+  .chip.active.nivel { background: #f97316; }
+  .chip .letter { font-weight: 700; margin-right: 0.25rem; }
+  .chip .label { font-size: 0.75rem; }
+  .chip.small { font-size: 0.75rem; }
+  .results-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f5f5f5;
+  }
+  .results-count { font-size: 0.875rem; color: #525252; }
+  .results-count .num { font-weight: 700; color: #f97316; font-size: 1rem; }
+  .reset-btn {
+    background: none;
+    border: none;
+    color: #525252;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .reset-btn:hover { color: #f97316; }
+  .reset-btn.visible { display: flex; }
+
+  /* SECTIONS */
+  section.level-group { margin-bottom: 2rem; }
+  .level-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .level-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #171717;
+  }
+  @media (min-width: 768px) {
+    .level-header h2 { font-size: 1.5rem; }
+  }
+  .level-desc { font-size: 0.875rem; color: #737373; }
+  .level-count {
+    margin-left: auto;
+    background: #ffedd5;
+    color: #c2410c;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  /* GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1024px) { .grid { grid-template-columns: 1fr 1fr 1fr; } }
+
+  /* CARD */
+  .card {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    text-align: left;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: block;
+    width: 100%;
+    font-family: inherit;
+  }
+  .card:hover {
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+    transform: translateY(-4px);
+    border-color: #fed7aa;
+  }
+  .card-top { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .avatar {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #000;
+    font-size: 1.125rem;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  .card:hover .avatar { transform: scale(1.1); }
+  .avatar.disc-D { background: #f97316; }
+  .avatar.disc-I { background: #facc15; }
+  .avatar.disc-S { background: #22c55e; }
+  .avatar.disc-C { background: #3b82f6; }
+  .card-name {
+    font-weight: 700;
+    color: #171717;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s;
+  }
+  .card:hover .card-name { color: #ea580c; }
+  .card-role {
+    font-size: 0.75rem;
+    color: #737373;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-info { flex: 1; min-width: 0; }
+  .disc-badge {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #000;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+  }
+  .disc-badge.disc-D { background: #f97316; }
+  .disc-badge.disc-I { background: #facc15; }
+  .disc-badge.disc-S { background: #22c55e; }
+  .disc-badge.disc-C { background: #3b82f6; }
+  .card-perfil {
+    font-size: 0.75rem;
+    color: #525252;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f5f5f5;
+  }
+  .skills-count {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    color: #737373;
+  }
+  .skills-count svg { width: 0.75rem; height: 0.75rem; }
+  .disc-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .disc-name.disc-D { color: #ea580c; }
+  .disc-name.disc-I { color: #ca8a04; }
+  .disc-name.disc-S { color: #16a34a; }
+  .disc-name.disc-C { color: #2563eb; }
+
+  /* EMPTY */
+  .empty {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 3rem;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .empty-icon {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 9999px;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: #a3a3a3;
+  }
+  .empty h3 { font-weight: 700; color: #171717; margin-bottom: 0.25rem; }
+  .empty p { font-size: 0.875rem; color: #737373; margin-bottom: 1rem; }
+  .empty button {
+    padding: 0.5rem 1rem;
+    background: #f97316;
+    color: #000;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+  }
+  .empty button:hover { background: #fb923c; }
+
+  /* DETAIL VIEW */
+  .detail-view {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+  @media (min-width: 768px) { .detail-view { padding: 2rem; } }
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #404040;
+    font-weight: 500;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: color 0.2s;
+  }
+  .back-btn:hover { color: #f97316; }
+  .back-btn:hover svg { transform: translateX(-4px); }
+  .back-btn svg { transition: transform 0.2s; width: 1rem; height: 1rem; }
+
+  .detail-header {
+    position: relative;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  }
+  .detail-header-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #000 0%, #171717 50%, #f97316 100%);
+  }
+  .detail-header-content {
+    position: relative;
+    padding: 1.5rem;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    .detail-header-content { padding: 2.5rem; flex-direction: row; align-items: center; }
+  }
+  .big-avatar {
+    width: 6rem;
+    height: 6rem;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #000;
+    font-size: 2rem;
+    flex-shrink: 0;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+  }
+  @media (min-width: 768px) {
+    .big-avatar { width: 7rem; height: 7rem; font-size: 2.25rem; }
+  }
+  .big-avatar.disc-D { background: #f97316; }
+  .big-avatar.disc-I { background: #facc15; }
+  .big-avatar.disc-S { background: #22c55e; }
+  .big-avatar.disc-C { background: #3b82f6; }
+  .detail-info { flex: 1; }
+  .nivel-tag {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #fdba74;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .detail-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+  @media (min-width: 768px) { .detail-name { font-size: 2.25rem; } }
+  .detail-role {
+    font-size: 1.125rem;
+    color: #e5e5e5;
+    margin-bottom: 0.75rem;
+  }
+  @media (min-width: 768px) { .detail-role { font-size: 1.25rem; } }
+  .reports-to {
+    font-size: 0.875rem;
+    color: #d4d4d4;
+  }
+  .reports-to .name { color: #fff; font-weight: 500; }
+  .detail-disc-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: #000;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+    text-align: center;
+  }
+  .detail-disc-badge.disc-D { background: #f97316; }
+  .detail-disc-badge.disc-I { background: #facc15; }
+  .detail-disc-badge.disc-S { background: #22c55e; }
+  .detail-disc-badge.disc-C { background: #3b82f6; }
+  .detail-disc-letter { font-size: 1.5rem; line-height: 1; }
+  .detail-disc-name { font-size: 0.75rem; }
+
+  /* BLOCKS */
+  .block {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .block.perfil-block { border-left: 4px solid #f97316; }
+  .block.disc-block { border-left: 4px solid; }
+  .block.disc-block.disc-D { border-left-color: #f97316; }
+  .block.disc-block.disc-I { border-left-color: #facc15; }
+  .block.disc-block.disc-S { border-left-color: #22c55e; }
+  .block.disc-block.disc-C { border-left-color: #3b82f6; }
+  .block-perfil-text {
+    color: #404040;
+    line-height: 1.7;
+    font-size: 1rem;
+  }
+  @media (min-width: 768px) { .block-perfil-text { font-size: 1.125rem; } }
+  .block-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .block-header svg { width: 1.25rem; height: 1.25rem; color: #f97316; }
+  .block-header h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #171717;
+  }
+  .block-header .count {
+    margin-left: auto;
+    background: #f5f5f5;
+    color: #525252;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .skill-tag {
+    padding: 0.375rem 0.75rem;
+    background: #f5f5f5;
+    color: #262626;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .skill-tag:hover { background: #ffedd5; color: #c2410c; }
+  .disc-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  .disc-letter-box {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-weight: 700;
+  }
+  .disc-letter-box.disc-D { background: #f97316; }
+  .disc-letter-box.disc-I { background: #facc15; }
+  .disc-letter-box.disc-S { background: #22c55e; }
+  .disc-letter-box.disc-C { background: #3b82f6; }
+  .disc-block h2 { font-size: 1.125rem; font-weight: 700; color: #171717; }
+  .disc-block .subtitle {
+    font-size: 0.75rem;
+    color: #737373;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .disc-block p { color: #404040; line-height: 1.7; }
+
+  .funcs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .func-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .func-num {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    background: #000;
+    color: #fb923c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .func-item:hover .func-num { background: #f97316; color: #000; }
+  .func-text { color: #404040; padding-top: 0.25rem; }
+
+  .procesos-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  @media (min-width: 768px) { .procesos-grid { grid-template-columns: 1fr 1fr; } }
+  .proceso-item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.75rem;
+    background: #fafafa;
+    border-radius: 0.75rem;
+    border-left: 2px solid #f97316;
+    transition: background 0.2s;
+  }
+  .proceso-item:hover { background: #fff7ed; }
+  .proceso-item svg { width: 1rem; height: 1rem; color: #f97316; margin-top: 0.25rem; flex-shrink: 0; }
+  .proceso-item p { font-size: 0.875rem; color: #404040; }
+
+  .block.objetivos {
+    background: #000;
+    color: #fff;
+  }
+  .block.objetivos .block-header h2 { color: #fff; }
+  .block.objetivos .block-header svg { color: #fb923c; }
+  .objetivos-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .objetivo-item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+  .objetivo-item svg {
+    width: 1rem;
+    height: 1rem;
+    color: #fb923c;
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+  }
+  .objetivo-item p { color: #e5e5e5; }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  @media (min-width: 768px) { .team-grid { grid-template-columns: 1fr 1fr; } }
+  .team-card {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem;
+    background: #fafafa;
+    border-radius: 0.75rem;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+  }
+  .team-card:hover {
+    background: #fff7ed;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+    border-left: 2px solid #f97316;
+  }
+  .team-avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #000;
+    flex-shrink: 0;
+  }
+  .team-avatar.disc-D { background: #f97316; }
+  .team-avatar.disc-I { background: #facc15; }
+  .team-avatar.disc-S { background: #22c55e; }
+  .team-avatar.disc-C { background: #3b82f6; }
+  .team-info { flex: 1; min-width: 0; }
+  .team-name {
+    font-weight: 600;
+    color: #171717;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s;
+  }
+  .team-card:hover .team-name { color: #ea580c; }
+  .team-role {
+    font-size: 0.75rem;
+    color: #737373;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .team-disc {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #000;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+  }
+  .team-disc.disc-D { background: #f97316; }
+  .team-disc.disc-I { background: #facc15; }
+  .team-disc.disc-S { background: #22c55e; }
+  .team-disc.disc-C { background: #3b82f6; }
+
+  footer {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #a3a3a3;
+    margin-top: 3rem;
+    padding-bottom: 1.5rem;
+  }
+  footer .brand { font-weight: 600; color: #525252; }
+
+  .main-content { padding: 2rem 0; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- DIRECTORY VIEW -->
+<div id="directoryView">
+  <header class="main">
+    <div class="inner">
+      <div class="brand-tag">
+        <div class="brand-tag-icon"><i data-lucide="users" style="color:#000;width:1.25rem;height:1.25rem;"></i></div>
+        <span class="brand-tag-text">MIK · Corporativo</span>
+      </div>
+      <h1>Directorio de Talento</h1>
+      <p>Quién es quién en Ulpik y Marcas Que Impactan. Mira las funciones, perfil DISC, procesos y objetivos de cada persona del equipo.</p>
+    </div>
+  </header>
+
+  <main class="container main-content">
+    <div class="controls">
+      <div class="search-box">
+        <i data-lucide="search" class="search-icon"></i>
+        <input type="text" id="searchInput" placeholder="Busca por nombre o cargo...">
+        <button class="clear-btn" id="clearSearch"><i data-lucide="x" style="width:1rem;height:1rem;"></i></button>
+      </div>
+
+      <div class="filter-row">
+        <div class="filter-group">
+          <p class="filter-label">Filtrar por DISC</p>
+          <div class="chip-row" id="discChips"></div>
+        </div>
+        <div class="filter-group">
+          <p class="filter-label">Filtrar por nivel</p>
+          <div class="chip-row" id="nivelChips"></div>
+        </div>
+      </div>
+
+      <div class="results-bar">
+        <div class="results-count">
+          <span class="num" id="filteredCount">0</span> de <span id="totalCount">0</span> perfiles
+        </div>
+        <button class="reset-btn" id="resetBtn">
+          <i data-lucide="x" style="width:0.75rem;height:0.75rem;"></i>
+          Limpiar filtros
+        </button>
+      </div>
+    </div>
+
+    <div id="resultsContainer"></div>
+
+    <footer>
+      <p class="brand">MIK · ULPIK · 2026</p>
+      <p>Directorio interactivo de talento · Dirección de Procesos · Junio 2026</p>
+    </footer>
+  </main>
+</div>
+
+<!-- DETAIL VIEW -->
+<div id="detailView" class="hidden">
+  <div class="detail-view" id="detailContent"></div>
+</div>
+
+<script>
+const data = {
+  personas: [
+    {
+      id: "presidente",
+      role: "Presidente",
+      person: "Nicolás Muñoz",
+      initials: "PR",
+      perfil: "Es el dueño y máxima autoridad del grupo MIK. Toma las decisiones más importantes y representa a la empresa hacia afuera.",
+      habilidades: ["Pensamiento estratégico", "Liderazgo de alto nivel", "Networking", "Visión a largo plazo", "Comunicación pública"],
+      funciones: [
+        "Aprobar las decisiones más grandes de la empresa",
+        "Ser la cara visible de la marca en programas y podcasts",
+        "Definir el rumbo general del grupo MIK",
+        "Aprobar inversiones y alianzas estratégicas",
+        "Enseñar como profesor en los cursos"
+      ],
+      procesos: [
+        "Aprobación final de procesos y políticas",
+        "Comunicación de crisis y reputación",
+        "Solicitud de nuevas contrataciones a RRHH",
+        "Aprobación de presupuestos del área legal",
+        "Representación institucional"
+      ],
+      disc: "D",
+      disc_nombre: "Dominante",
+      disc_descripcion: "Es directo, decidido y rápido para tomar decisiones. Va al grano y siempre busca resultados claros.",
+      objetivos: [
+        "Llevar a MIK a nuevos mercados",
+        "Ser referente en medios y redes sociales",
+        "Mantener alineadas las 3 empresas del grupo",
+        "Crear una nueva generación de empresarios con triple impacto"
+      ],
+      nivel: 0,
+      parent_id: null
+    },
+    {
+      id: "ceo_ulpik",
+      role: "CEO Ulpik",
+      person: "Esteban Maldonado",
+      initials: "CE",
+      perfil: "Es el jefe operativo de Ulpik. Se asegura de que todos los departamentos avancen y se cumplan las metas comerciales y educativas.",
+      habilidades: ["Visión a largo plazo", "Proactividad", "Comunicación efectiva", "Resiliencia", "Liderazgo inspirador"],
+      funciones: [
+        "Aprobar inversiones, contrataciones y alianzas",
+        "Definir el plan estratégico de la empresa",
+        "Mantener al equipo alineado con los objetivos",
+        "Liderar la dirección de educación y los lanzamientos",
+        "Negociar con clientes y proveedores clave"
+      ],
+      procesos: [
+        "Lanzamiento de cursos De Shunsho a Crack",
+        "Solicitud de nuevas contrataciones a RRHH",
+        "Revisión estratégica con comité ejecutivo",
+        "Gestión de crisis organizacional",
+        "Expansión a nuevos mercados"
+      ],
+      disc: "I",
+      disc_nombre: "Influyente",
+      disc_descripcion: "Es muy bueno conectando con personas y motivando al equipo. Lidera con entusiasmo y mucha comunicación.",
+      objetivos: [
+        "Cumplir el presupuesto de ventas mensual",
+        "Lograr 9.5/10 en satisfacción de estudiantes",
+        "Alcanzar 50% de asistencia en cada masterclass",
+        "Mantener CPL menor o igual a $20"
+      ],
+      nivel: 1,
+      parent_id: "presidente"
+    },
+    {
+      id: "directora_juridica",
+      role: "Directora Jurídica y de Sostenibilidad",
+      person: "Sofía Becerra",
+      initials: "DJ",
+      perfil: "Lidera el área legal de Ulpik y también cuida el bienestar del equipo. Vigila que los trámites de marcas salgan con calidad y que los clientes queden contentos.",
+      habilidades: ["Autoconciencia", "Empatía y compasión", "Apreciación", "Gestión de personas", "Conocimiento legal"],
+      funciones: [
+        "Revisar tareas y dudas de los asistentes legales",
+        "Elaborar informes de Búsqueda de Fondo",
+        "Atender clientes en trámites sensibles",
+        "Organizar actividades de bienestar del equipo",
+        "Contratar nuevo personal y hacer inducciones"
+      ],
+      procesos: [
+        "Registro de marcas en SENADI",
+        "Proceso de contratación de personal",
+        "Atención a oposiciones de terceros",
+        "Encuesta de satisfacción mensual",
+        "Capacitación al equipo legal"
+      ],
+      disc: "I",
+      disc_nombre: "Influyente",
+      disc_descripcion: "Es cálida y muy buena con las personas. Lidera escuchando y conectando con cada miembro del equipo.",
+      objetivos: [
+        "Entregar informes de búsqueda fonética en menos de 48 horas",
+        "Bajar la tasa de rechazos del SENADI",
+        "Subir el índice de satisfacción de clientes",
+        "Liderar proyectos de sostenibilidad y triple impacto"
+      ],
+      nivel: 2,
+      parent_id: "ceo_ulpik"
+    },
+    {
+      id: "directora_finanzas",
+      role: "Directora de Administración y Finanzas",
+      person: "Beatriz Padrón",
+      initials: "DF",
+      perfil: "Es la encargada de los números de la empresa. Lleva la contabilidad, vigila los presupuestos y también enseña en cursos de impuestos.",
+      habilidades: ["Pensamiento sistémico", "Proactividad", "Resiliencia", "Contabilidad", "Liderazgo enfocado en metas"],
+      funciones: [
+        "Llevar la contabilidad principal de la empresa",
+        "Vigilar presupuestos y cumplimiento de KPIs",
+        "Gestionar compras e inventarios",
+        "Solicitar datos personales y bancarios a nuevos colaboradores",
+        "Apoyar en ventas de cursos y dar clases de impuestos"
+      ],
+      procesos: [
+        "Proceso de contratación: registro en IESS y Ministerio de Trabajo",
+        "Control de presupuesto comercial y de marketing",
+        "Lanzamiento de cursos como profesora",
+        "Revisión de KPIs financieros",
+        "Compras e inventarios"
+      ],
+      disc: "D",
+      disc_nombre: "Dominante",
+      disc_descripcion: "Es directa y enfocada en resultados. Toma decisiones rápido y empuja al equipo a cumplir las metas.",
+      objetivos: [
+        "Cumplir el presupuesto mensual de la empresa",
+        "Mantener controlado el CAC del proceso de ventas",
+        "Dar soporte financiero a cada lanzamiento de curso",
+        "Terminar el máster en Finanzas"
+      ],
+      nivel: 2,
+      parent_id: "ceo_ulpik"
+    },
+    {
+      id: "cmo",
+      role: "Director Comercial / CMO",
+      person: "David Martínez",
+      initials: "CM",
+      perfil: "Lidera el equipo comercial y de marketing. Se encarga de que entren leads, que se cierren ventas y de las campañas pagadas.",
+      habilidades: ["Comunicación", "Empatía y compasión", "Autoconciencia", "Movilización de equipos", "Marketing digital"],
+      funciones: [
+        "Planificar y lanzar campañas de publicidad pagada",
+        "Revisar el presupuesto mensual de ventas y ADS",
+        "Dirigir al equipo comercial y de marketing",
+        "Aprobar contenido y guiones antes de publicar",
+        "Enviar reportes semanales al comité ejecutivo"
+      ],
+      procesos: [
+        "Proceso de Marketing: planificación, contenido y ADS",
+        "Proceso de Ventas: revisión de presupuesto y metas",
+        "Lanzamiento de cursos: coordinación de grabaciones y pautas",
+        "Optimización de campañas según costo por lead",
+        "Aprobación de landings y artes de venta"
+      ],
+      disc: "D",
+      disc_nombre: "Dominante",
+      disc_descripcion: "Es directo y orientado a metas. Empuja al equipo, decide rápido y le encanta cerrar ventas.",
+      objetivos: [
+        "Cumplir el presupuesto mensual de ventas",
+        "Mantener el costo por lead bajo control",
+        "Subir la tasa de conversión de leads",
+        "Optimizar el CAC del equipo comercial"
+      ],
+      nivel: 2,
+      parent_id: "ceo_ulpik"
+    },
+    {
+      id: "cto",
+      role: "CTO · Director de Tecnología",
+      person: "Michael González",
+      initials: "CT",
+      perfil: "Es el encargado de que toda la tecnología funcione: webs, servidores y automatizaciones. También construye las landing pages que venden.",
+      habilidades: ["Conectividad", "Comunicación", "Apreciación", "Humildad", "Resolución de problemas técnicos"],
+      funciones: [
+        "Dar soporte a sitios web, servidores y bases de datos",
+        "Desarrollar y modificar landing pages",
+        "Programar secuencias de mensajes por WhatsApp y correo",
+        "Crear automatizaciones para legal y educación",
+        "Revisar la experiencia de usuario en las landings"
+      ],
+      procesos: [
+        "Lanzamiento de cursos: crear landings y cargar Hotmart",
+        "Proceso de marketing: optimización GEO para IA",
+        "A/B Testing mensual de páginas",
+        "Coordinación de grupo de WhatsApp de estudiantes",
+        "Revisión preventiva de servidores"
+      ],
+      disc: "C",
+      disc_nombre: "Concienzudo",
+      disc_descripcion: "Es analítico y muy detallista. Le gusta entender bien los problemas antes de actuar y trabajar con calma.",
+      objetivos: [
+        "Tener todas las landings cargando en menos de 3 segundos",
+        "Subir la visibilidad de Ulpik y MQI en motores de IA",
+        "Tener cero caídas críticas de servidores",
+        "Automatizar más procesos legales y educativos"
+      ],
+      nivel: 2,
+      parent_id: "ceo_ulpik"
+    },
+    {
+      id: "directora_procesos",
+      role: "Directora de Procesos",
+      person: "Rafaela Palacios",
+      initials: "DP",
+      perfil: "Documenta y mejora todos los procesos de la empresa. Es la que ordena cómo se hacen las cosas y vigila que se cumplan.",
+      habilidades: ["Empatía y compasión", "Apreciación", "Mentalidad inclusiva", "Movilización", "Documentación de procesos"],
+      funciones: [
+        "Levantar y estandarizar los procesos de todas las áreas",
+        "Identificar cuellos de botella y duplicidades",
+        "Definir KPIs y dar seguimiento en Looker Studio y Notion",
+        "Elaborar informes de desempeño de procesos",
+        "Actualizar manuales y diagramas de flujo"
+      ],
+      procesos: [
+        "Documentación del proceso de marketing",
+        "Documentación del proceso de ventas",
+        "Documentación del proceso de registro de marcas",
+        "Documentación del proceso de contratación",
+        "Documentación del lanzamiento de cursos"
+      ],
+      disc: "S",
+      disc_nombre: "Estable",
+      disc_descripcion: "Es paciente, ordenada y muy buena escuchando. Le gusta crear sistemas que duren y que ayuden a todos.",
+      objetivos: [
+        "Tener todos los procesos clave documentados en 2026",
+        "Subir el cumplimiento de KPIs en cada área",
+        "Implementar un tablero de control en Looker Studio",
+        "Llevar todos los manuales a estándar ISO 9001"
+      ],
+      nivel: 3,
+      parent_id: "ceo_ulpik"
+    },
+    {
+      id: "director_digital",
+      role: "Director Digital",
+      person: "Mateo Ochoa",
+      initials: "DD",
+      perfil: "Es el encargado de todo el contenido digital: graba, edita y publica. Hace las producciones de fotos y video del grupo.",
+      habilidades: ["Apreciación", "Pensamiento crítico", "Proactividad", "Movilización", "Producción audiovisual"],
+      funciones: [
+        "Grabar contenido para redes y masterclasses",
+        "Editar reels, podcasts y posts",
+        "Coordinar producciones de fotos y video",
+        "Publicar contenido en redes sociales",
+        "Editar videos para etapa de ventas en lanzamientos"
+      ],
+      procesos: [
+        "Proceso de marketing: producción audiovisual",
+        "Lanzamiento de cursos: edición de videos de venta",
+        "Publicación de reels e historias diarias",
+        "Grabaciones del podcast y YouTube",
+        "Producción de contenido para MQI"
+      ],
+      disc: "I",
+      disc_nombre: "Influyente",
+      disc_descripcion: "Es creativo, entusiasta y bueno con la gente. Tiene buena onda para grabar y conectar con la audiencia.",
+      objetivos: [
+        "Publicar contenido diario en todas las cuentas",
+        "Subir la calidad visual de cada lanzamiento",
+        "Mantener la línea gráfica consistente",
+        "Apoyar a producir el podcast de Nicolás"
+      ],
+      nivel: 3,
+      parent_id: "cmo"
+    },
+    {
+      id: "directora_sostenibilidad",
+      role: "Directora de Comunidad y Sostenibilidad",
+      person: "Marianela Espinoza",
+      initials: "DS",
+      perfil: "Lidera la comunidad de Ulpik y también cuida el bienestar del equipo. Diseña estrategias para que la empresa tenga triple impacto.",
+      habilidades: ["Movilización", "Comunicación", "Empatía", "Bienestar organizacional", "Facilitación de cultura"],
+      funciones: [
+        "Desarrollar programas de bienestar del equipo",
+        "Coordinar alianzas con comunidades y proyectos sociales",
+        "Monitorear y reportar indicadores ESG",
+        "Diseñar campañas internas de sostenibilidad",
+        "Asegurar la perspectiva de triple impacto"
+      ],
+      procesos: [
+        "Encuestas de bienestar al equipo",
+        "Alianzas con comunidades aliadas",
+        "Reportes ESG mensuales",
+        "Campañas internas de cultura",
+        "Día de la Felicidad y actividades del equipo"
+      ],
+      disc: "I",
+      disc_nombre: "Influyente",
+      disc_descripcion: "Es muy buena inspirando y motivando a otros. Conecta fácil con la gente y comunica con calidez.",
+      objetivos: [
+        "Subir la satisfacción del equipo en encuestas internas",
+        "Cumplir los objetivos ESG anuales",
+        "Mejorar el clima laboral medido por encuestas",
+        "Generar 3 alianzas de impacto nuevas"
+      ],
+      nivel: 3,
+      parent_id: "ceo_ulpik"
+    },
+    {
+      id: "asistente_legal",
+      role: "Asistente Legal",
+      person: "Martín Coello",
+      initials: "AL",
+      perfil: "Es parte del equipo legal y de educación. Atiende a clientes, vende servicios y produce trámites de marcas.",
+      habilidades: ["Apreciación", "Esperanza y optimismo", "Resiliencia", "Atención al cliente", "Conocimiento legal"],
+      funciones: [
+        "Responder leads aplicando la metodología de 6 pasos",
+        "Hacer al menos 5 seguimientos por lead",
+        "Solicitar registros de marca en SENADI",
+        "Atender consultas y dudas de clientes",
+        "Producir servicios legales: marcas, SAS, reglamentos"
+      ],
+      procesos: [
+        "Proceso de ventas: gestión de leads en CRM",
+        "Proceso de registro de marcas en SENADI",
+        "Seguimiento en gaceta oficial",
+        "Envío de encuestas de satisfacción",
+        "Atención de oposiciones"
+      ],
+      disc: "I",
+      disc_nombre: "Influyente",
+      disc_descripcion: "Es optimista, cálido y bueno cerrando ventas. Le gusta ayudar a los clientes y se enfoca en lograr metas.",
+      objetivos: [
+        "Cumplir la cuota mensual de ventas",
+        "Subir la tasa de conversión de leads",
+        "Entregar títulos de marca en menor tiempo",
+        "Mantener alta la satisfacción de los clientes"
+      ],
+      nivel: 3,
+      parent_id: "directora_juridica"
+    },
+    {
+      id: "delegado_guayaquil",
+      role: "Delegado Ulpik Guayaquil",
+      person: "Javier España",
+      initials: "DG",
+      perfil: "Representa a Ulpik en Guayaquil. Atiende clientes de la costa y vende servicios legales y educativos.",
+      habilidades: ["Empatía y compasión", "Proactividad", "Resiliencia", "Atención al cliente", "Ventas"],
+      funciones: [
+        "Vender servicios legales y educativos en Guayaquil",
+        "Producir trámites de marcas, SAS y reglamentos",
+        "Atender clientes de la zona costa",
+        "Hacer seguimiento de leads del CRM",
+        "Representar a Ulpik en eventos locales"
+      ],
+      procesos: [
+        "Proceso de ventas: cierre de oportunidades",
+        "Proceso de registro de marcas",
+        "Atención a clientes en Guayaquil",
+        "Seguimiento a leads en Bitrix",
+        "Cierre de carrito en lanzamientos de cursos"
+      ],
+      disc: "D",
+      disc_nombre: "Dominante",
+      disc_descripcion: "Es directo, decidido y muy enfocado en cerrar ventas. Va rápido y no tiene miedo de tomar decisiones.",
+      objetivos: [
+        "Cumplir su cuota de ventas mensual",
+        "Crecer la presencia de Ulpik en Guayaquil",
+        "Subir la conversión de leads de la costa",
+        "Mantener clientes satisfechos en su zona"
+      ],
+      nivel: 3,
+      parent_id: "directora_juridica"
+    },
+    {
+      id: "produccion_legal",
+      role: "Producción Legal",
+      person: "Sebastián López",
+      initials: "PL",
+      perfil: "Se encarga del trabajo legal después de la venta. Ingresa solicitudes de marca y hace seguimiento a los trámites.",
+      habilidades: ["Pensamiento sistémico", "Empatía y compasión", "Habilidades de perspectiva", "Apertura al aprendizaje", "Detalle técnico"],
+      funciones: [
+        "Comunicarse con clientes después de la compra",
+        "Ingresar solicitudes de marca en SENADI",
+        "Hacer seguimiento a funcionarios del SENADI",
+        "Mantener informado al cliente del avance",
+        "Archivar resoluciones y documentos"
+      ],
+      procesos: [
+        "Proceso de registro de marcas: ingreso de solicitudes",
+        "Seguimiento en gaceta oficial",
+        "Solicitud de examen de fondo",
+        "Comunicación post compra al cliente",
+        "Archivo digital de resoluciones"
+      ],
+      disc: "C",
+      disc_nombre: "Concienzudo",
+      disc_descripcion: "Es ordenado y muy detallista. Le gusta entender bien los procesos y trabajar con calma y precisión.",
+      objetivos: [
+        "Bajar el tiempo promedio de entrega del título",
+        "Cumplir el plazo de 48 horas en informes BF",
+        "Bajar la tasa de rechazos del SENADI",
+        "Mantener archivos digitales ordenados"
+      ],
+      nivel: 3,
+      parent_id: "directora_juridica"
+    },
+    {
+      id: "growth_hacker",
+      role: "Growth Hacker",
+      person: "Fabián Ochoa",
+      initials: "GH",
+      perfil: "Diseña experimentos para crecer en ventas y usuarios. Analiza datos y automatiza procesos de marketing.",
+      habilidades: ["Proactividad", "Conexión", "Brújula interior", "Análisis de datos", "Automatización"],
+      funciones: [
+        "Diseñar e implementar estrategias de crecimiento",
+        "Analizar el embudo de adquisición y conversión",
+        "Lanzar experimentos semanales de copys y landings",
+        "Automatizar emails, formularios y chatbots",
+        "Crear guiones de contenido con IA"
+      ],
+      procesos: [
+        "Proceso de marketing: creación de guiones",
+        "Lanzamiento de cursos: secuencias de mensajes",
+        "Lanzamiento de campañas de ADS",
+        "Optimización del embudo de ventas",
+        "Automatización de procesos digitales"
+      ],
+      disc: "I",
+      disc_nombre: "Influyente",
+      disc_descripcion: "Es entusiasta y le encantan los experimentos nuevos. Tiene mucha energía para probar cosas y conectar ideas.",
+      objetivos: [
+        "Bajar el costo por lead bajo $20",
+        "Subir la tasa de conversión del embudo",
+        "Lanzar 4 experimentos semanales",
+        "Automatizar 80% de los flujos de marketing"
+      ],
+      nivel: 3,
+      parent_id: "cmo"
+    },
+    {
+      id: "disenadora",
+      role: "Diseñadora Gráfica",
+      person: "Rosana Donoso",
+      initials: "DI",
+      perfil: "Diseña todas las piezas visuales de Ulpik. Cuida la marca y crea los artes para campañas y cursos.",
+      habilidades: ["Visión a largo plazo", "Brújula interior", "Habilidades de perspectiva", "Resiliencia", "Diseño visual"],
+      funciones: [
+        "Diseñar piezas visuales para todos los canales",
+        "Mantener y evolucionar el brand kit de Ulpik",
+        "Crear creativos estáticos y animados para campañas",
+        "Diseñar piezas para embudos de venta",
+        "Diseñar interfaces y materiales para cursos"
+      ],
+      procesos: [
+        "Proceso de marketing: edición de posts",
+        "Lanzamiento de cursos: artes y líneas gráficas",
+        "Proceso de contratación: arte de reclutamiento",
+        "Diseño de landings de inscripción y ventas",
+        "Publicación de posts en redes sociales"
+      ],
+      disc: "I",
+      disc_nombre: "Influyente",
+      disc_descripcion: "Es creativa y muy buena conectando ideas visuales. Le gusta trabajar en equipo y tener cosas bonitas.",
+      objetivos: [
+        "Mantener una línea gráfica fuerte y consistente",
+        "Entregar artes 3 días antes de cada uso público",
+        "Subir la tasa de conversión de las landings con diseño",
+        "Evolucionar el brand kit del grupo"
+      ],
+      nivel: 3,
+      parent_id: "cmo"
+    },
+    {
+      id: "directora_comercial_mqi",
+      role: "Directora Comercial MQI",
+      person: "Paola Moncayo",
+      initials: "DM",
+      perfil: "Lidera el área comercial de Marcas Que Impactan. Coordina campañas de publicidad y conferencias de Nicolás.",
+      habilidades: ["Visión a largo plazo", "Proactividad", "Integridad y autenticidad", "Autoconciencia", "Pensamiento estratégico"],
+      funciones: [
+        "Coordinar campañas comerciales de MQI",
+        "Vender publicidad en redes sociales",
+        "Gestionar agenda de conferencias de Nicolás",
+        "Cumplir presupuestos de venta de MQI",
+        "Hacer seguimiento a clientes corporativos"
+      ],
+      procesos: [
+        "Proceso de ventas MQI",
+        "Gestión de campañas de publicidad",
+        "Coordinación de conferencias",
+        "Seguimiento a clientes en CRM",
+        "Reportes semanales al comité"
+      ],
+      disc: "C",
+      disc_nombre: "Concienzudo",
+      disc_descripcion: "Es analítica, ordenada y enfocada en metas. Le gusta planear bien y tomar decisiones con datos.",
+      objetivos: [
+        "Cumplir el presupuesto comercial de MQI",
+        "Subir las ventas de publicidad",
+        "Llenar la agenda de conferencias de Nicolás",
+        "Crecer la cartera de clientes corporativos"
+      ],
+      nivel: 2,
+      parent_id: "presidente"
+    }
+  ]
+};
+
+const discConfig = {
+  D: { name: 'Dominante' },
+  I: { name: 'Influyente' },
+  S: { name: 'Estable' },
+  C: { name: 'Concienzudo' }
+};
+
+const nivelConfig = {
+  0: { name: 'Presidencia', desc: 'Máxima autoridad' },
+  1: { name: 'Dirección General', desc: 'CEOs de unidades de negocio' },
+  2: { name: 'Comité Ejecutivo', desc: 'Directores que reportan al CEO' },
+  3: { name: 'Equipo Operativo', desc: 'Mandos medios y colaboradores' }
+};
+
+// state
+let state = {
+  search: '',
+  discFilter: null,
+  nivelFilter: null,
+  selectedId: null
+};
+
+const personasMap = {};
+data.personas.forEach(p => { personasMap[p.id] = p; });
+
+// init chips
+function initChips() {
+  const discChips = document.getElementById('discChips');
+  Object.keys(discConfig).forEach(d => {
+    const btn = document.createElement('button');
+    btn.className = 'chip';
+    btn.dataset.disc = d;
+    btn.innerHTML = `<span class="letter">${d}</span><span class="label">${discConfig[d].name}</span>`;
+    btn.addEventListener('click', () => {
+      state.discFilter = state.discFilter === d ? null : d;
+      render();
+    });
+    discChips.appendChild(btn);
+  });
+
+  const nivelChips = document.getElementById('nivelChips');
+  Object.entries(nivelConfig).forEach(([n, info]) => {
+    const btn = document.createElement('button');
+    btn.className = 'chip small';
+    btn.dataset.nivel = n;
+    btn.textContent = info.name;
+    btn.addEventListener('click', () => {
+      const nv = parseInt(n);
+      state.nivelFilter = state.nivelFilter === nv ? null : nv;
+      render();
+    });
+    nivelChips.appendChild(btn);
+  });
+}
+
+function getFiltered() {
+  return data.personas.filter(p => {
+    const matchSearch = !state.search ||
+      p.person.toLowerCase().includes(state.search.toLowerCase()) ||
+      p.role.toLowerCase().includes(state.search.toLowerCase());
+    const matchDisc = !state.discFilter || p.disc === state.discFilter;
+    const matchNivel = state.nivelFilter === null || p.nivel === state.nivelFilter;
+    return matchSearch && matchDisc && matchNivel;
+  });
+}
+
+function render() {
+  // sync chips
+  document.querySelectorAll('#discChips .chip').forEach(c => {
+    c.classList.remove('active', 'disc-D', 'disc-I', 'disc-S', 'disc-C');
+    if (c.dataset.disc === state.discFilter) {
+      c.classList.add('active', `disc-${state.discFilter}`);
+    }
+  });
+  document.querySelectorAll('#nivelChips .chip').forEach(c => {
+    c.classList.remove('active', 'nivel');
+    if (parseInt(c.dataset.nivel) === state.nivelFilter) {
+      c.classList.add('active', 'nivel');
+    }
+  });
+
+  // clear/reset buttons
+  document.getElementById('clearSearch').classList.toggle('visible', !!state.search);
+  document.getElementById('resetBtn').classList.toggle('visible', state.search || state.discFilter || state.nivelFilter !== null);
+
+  const filtered = getFiltered();
+  document.getElementById('filteredCount').textContent = filtered.length;
+  document.getElementById('totalCount').textContent = data.personas.length;
+
+  const grouped = { 0: [], 1: [], 2: [], 3: [] };
+  filtered.forEach(p => { grouped[p.nivel].push(p); });
+
+  const container = document.getElementById('resultsContainer');
+  container.innerHTML = '';
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon"><i data-lucide="search" style="width:2rem;height:2rem;"></i></div>
+        <h3>No encontramos perfiles</h3>
+        <p>Prueba con otros filtros o limpia la búsqueda.</p>
+        <button onclick="resetFilters()">Limpiar filtros</button>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  [0,1,2,3].forEach(nivel => {
+    if (grouped[nivel].length === 0) return;
+    const section = document.createElement('section');
+    section.className = 'level-group';
+    section.innerHTML = `
+      <div class="level-header">
+        <h2>${nivelConfig[nivel].name}</h2>
+        <span class="level-desc">· ${nivelConfig[nivel].desc}</span>
+        <span class="level-count">${grouped[nivel].length}</span>
+      </div>
+      <div class="grid">
+        ${grouped[nivel].map(p => `
+          <button class="card" onclick="selectPerson('${p.id}')">
+            <div class="card-top">
+              <div class="avatar disc-${p.disc}">${p.initials}</div>
+              <div class="card-info">
+                <div class="card-name">${p.person || 'Vacante'}</div>
+                <div class="card-role">${p.role}</div>
+              </div>
+              <div class="disc-badge disc-${p.disc}">${p.disc}</div>
+            </div>
+            ${p.perfil ? `<p class="card-perfil">${p.perfil}</p>` : ''}
+            <div class="card-footer">
+              <div class="skills-count">
+                <i data-lucide="sparkles"></i>
+                <span>${p.habilidades.length} habilidades</span>
+              </div>
+              <span class="disc-name disc-${p.disc}">${p.disc_nombre}</span>
+            </div>
+          </button>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(section);
+  });
+
+  lucide.createIcons();
+}
+
+function selectPerson(id) {
+  state.selectedId = id;
+  renderDetail();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderDetail() {
+  const p = personasMap[state.selectedId];
+  if (!p) return;
+  const jefe = p.parent_id ? personasMap[p.parent_id] : null;
+  const reportes = data.personas.filter(r => r.parent_id === p.id);
+
+  document.getElementById('directoryView').classList.add('hidden');
+  document.getElementById('detailView').classList.remove('hidden');
+
+  const html = `
+    <button class="back-btn" onclick="goBack()">
+      <i data-lucide="arrow-left"></i>
+      <span>Volver al directorio</span>
+    </button>
+
+    <div class="detail-header">
+      <div class="detail-header-bg"></div>
+      <div class="detail-header-content">
+        <div class="big-avatar disc-${p.disc}">${p.initials}</div>
+        <div class="detail-info">
+          <div class="nivel-tag">${nivelConfig[p.nivel].name}</div>
+          <h1 class="detail-name">${p.person || 'Vacante'}</h1>
+          <p class="detail-role">${p.role}</p>
+          ${jefe ? `<p class="reports-to">Reporta a: <span class="name">${jefe.person || jefe.role}</span></p>` : ''}
+        </div>
+        <div class="detail-disc-badge disc-${p.disc}">
+          <div class="detail-disc-letter">${p.disc}</div>
+          <div class="detail-disc-name">${p.disc_nombre}</div>
+        </div>
+      </div>
+    </div>
+
+    ${p.perfil ? `
+      <div class="block perfil-block">
+        <p class="block-perfil-text">${p.perfil}</p>
+      </div>
+    ` : ''}
+
+    ${p.habilidades.length > 0 ? `
+      <div class="block">
+        <div class="block-header">
+          <i data-lucide="sparkles"></i>
+          <h2>Habilidades clave</h2>
+        </div>
+        <div class="skill-tags">
+          ${p.habilidades.map(h => `<span class="skill-tag">${h}</span>`).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    <div class="block disc-block disc-${p.disc}">
+      <div class="disc-header">
+        <div class="disc-letter-box disc-${p.disc}">${p.disc}</div>
+        <div>
+          <h2>Perfil ${p.disc_nombre}</h2>
+          <div class="subtitle">Comportamiento en el trabajo</div>
+        </div>
+      </div>
+      <p>${p.disc_descripcion}</p>
+    </div>
+
+    ${p.funciones.length > 0 ? `
+      <div class="block">
+        <div class="block-header">
+          <i data-lucide="briefcase"></i>
+          <h2>Funciones principales</h2>
+        </div>
+        <div class="funcs-list">
+          ${p.funciones.map((f, i) => `
+            <div class="func-item">
+              <div class="func-num">${i+1}</div>
+              <p class="func-text">${f}</p>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    ${p.procesos.length > 0 ? `
+      <div class="block">
+        <div class="block-header">
+          <i data-lucide="workflow"></i>
+          <h2>Procesos en los que participa</h2>
+        </div>
+        <div class="procesos-grid">
+          ${p.procesos.map(pr => `
+            <div class="proceso-item">
+              <i data-lucide="workflow"></i>
+              <p>${pr}</p>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    ${p.objetivos.length > 0 ? `
+      <div class="block objetivos">
+        <div class="block-header">
+          <i data-lucide="target"></i>
+          <h2>Objetivos estratégicos 2026</h2>
+        </div>
+        <div class="objetivos-list">
+          ${p.objetivos.map(o => `
+            <div class="objetivo-item">
+              <i data-lucide="trending-up"></i>
+              <p>${o}</p>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    ${reportes.length > 0 ? `
+      <div class="block">
+        <div class="block-header">
+          <i data-lucide="users"></i>
+          <h2>Equipo a cargo</h2>
+          <span class="count">${reportes.length}</span>
+        </div>
+        <div class="team-grid">
+          ${reportes.map(r => `
+            <button class="team-card" onclick="selectPerson('${r.id}')">
+              <div class="team-avatar disc-${r.disc}">${r.initials}</div>
+              <div class="team-info">
+                <div class="team-name">${r.person || 'Vacante'}</div>
+                <div class="team-role">${r.role}</div>
+              </div>
+              <div class="team-disc disc-${r.disc}">${r.disc}</div>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    <footer>
+      <p class="brand">MIK · ULPIK · 2026</p>
+      <p>Directorio interactivo de talento · Dirección de Procesos</p>
+    </footer>
+  `;
+
+  document.getElementById('detailContent').innerHTML = html;
+  lucide.createIcons();
+}
+
+function goBack() {
+  state.selectedId = null;
+  document.getElementById('detailView').classList.add('hidden');
+  document.getElementById('directoryView').classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetFilters() {
+  state.search = '';
+  state.discFilter = null;
+  state.nivelFilter = null;
+  document.getElementById('searchInput').value = '';
+  render();
+}
+
+// listeners
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  state.search = e.target.value;
+  render();
+});
+document.getElementById('clearSearch').addEventListener('click', () => {
+  state.search = '';
+  document.getElementById('searchInput').value = '';
+  render();
+});
+document.getElementById('resetBtn').addEventListener('click', resetFilters);
+
+// init
+initChips();
+render();
+lucide.createIcons();
+</script>
+
+</body>
+</html>
