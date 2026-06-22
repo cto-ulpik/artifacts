@@ -1,0 +1,573 @@
+<!-- CFO Virtual ULPIK · Dashboard Financiero & Tributario · HTML autónomo
+     Abrir directamente en cualquier navegador. La librería XLSX se carga por CDN.
+     Los datos del Excel se procesan localmente, no salen del navegador. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CFO Virtual ULPIK · Dashboard Financiero & Tributario</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --rojo:#ef4444; --rojo2:#dc2626; --negro:#171717; --negro2:#262626;
+    --gris50:#fafafa; --gris100:#f5f5f5; --gris200:#e5e5e5; --gris500:#737373; --gris600:#525252; --gris700:#404040;
+    --verde:#10b981; --verde50:#ecfdf5; --verde700:#047857;
+    --ambar:#f59e0b; --ambar50:#fffbeb; --ambar700:#b45309;
+    --rojo50:#fef2f2; --rojo700:#b91c1c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--gris100);color:var(--negro);font-size:14px;line-height:1.4}
+  .wrap{max-width:1152px;margin:0 auto;padding:12px}
+  @media(min-width:768px){.wrap{padding:24px}}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .card{background:#fff;border:2px solid var(--negro);border-radius:8px;overflow:hidden;margin-bottom:16px}
+  .sec-head{background:var(--negro);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:4px solid var(--rojo)}
+  .sec-num{background:var(--rojo);color:#fff;font-weight:700;font-size:12px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0}
+  .sec-head h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .sec-body{padding:16px;background:#fff}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  thead tr{background:var(--negro);color:#fff;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  th,td{padding:8px 12px}
+  tbody tr{border-top:1px solid #f0f0f0}
+  tbody tr:hover{background:rgba(239,68,68,.04)}
+  .tr{text-align:right}.tc{text-align:center}
+  .b{font-weight:700}.fw{font-weight:500}
+  .small{font-size:11px}.xs{font-size:12px}
+  .txt-rojo{color:var(--rojo2)}.txt-gris{color:var(--gris500)}.txt-gris6{color:var(--gris600)}
+  .grid{display:grid;gap:12px}
+  @media(min-width:768px){.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:9999px;color:#fff;font-size:11px;font-weight:500}
+  .badge .dot{width:6px;height:6px;border-radius:9999px;background:#fff}
+  .bg-green{background:var(--verde)}.bg-yellow{background:var(--ambar)}.bg-red{background:var(--rojo2)}.bg-gray{background:#a3a3a3}
+  .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px}
+  .tag-green{background:#d1fae5;color:var(--verde700)}.tag-yellow{background:#fef3c7;color:var(--ambar700)}.tag-red{background:#fee2e2;color:var(--rojo700)}
+  .tag-gray{background:var(--gris200);color:var(--gris700)}
+  .btn{border:none;border-radius:6px;font-size:12px;font-weight:600;padding:8px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s}
+  .btn-rojo{background:var(--rojo);color:#fff}.btn-rojo:hover{background:var(--rojo2)}
+  .btn-negro{background:var(--negro);color:#fff}.btn-negro:hover{background:var(--negro2)}
+  .btn-ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2)}.btn-ghost:hover{background:rgba(255,255,255,.2)}
+  header.main{background:var(--negro);color:#fff;border-radius:8px;overflow:hidden;margin-bottom:16px}
+  header.main .bar{height:8px;background:var(--rojo)}
+  header.main .inner{padding:20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;align-items:flex-start}
+  header.main .eyebrow{color:#f87171;font-size:11px;text-transform:uppercase;letter-spacing:.15em;font-weight:600;margin-bottom:8px}
+  header.main h1{font-size:28px;font-weight:700;line-height:1.1}
+  header.main h1 .acc{color:var(--rojo)}
+  header.main p{color:#a3a3a3;font-size:14px;margin-top:8px}
+  .kpi{border-radius:8px;padding:12px;border:2px solid var(--gris200);background:var(--gris50)}
+  .kpi.acc{background:var(--negro);border-color:var(--rojo)}
+  .kpi .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--gris500)}
+  .kpi.acc .lbl{color:#f87171}
+  .kpi .val{font-size:20px;font-weight:700;margin-top:4px}.kpi.acc .val{color:#fff}
+  .kpi .sub{font-size:11px;margin-top:2px;color:var(--gris600)}.kpi.acc .sub{color:#d4d4d4}
+  .box-dark{background:var(--negro);color:#fff;border-radius:8px;padding:16px;border:2px solid var(--rojo)}
+  .box-dark .h{font-size:11px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .row{display:flex;justify-content:space-between;padding:1px 0}
+  .row .k{color:#a3a3a3}
+  .bt{border-top:1px solid #404040;padding-top:4px;margin-top:2px}
+  .bt-r{border-top:1px solid var(--rojo);padding-top:8px;margin-top:4px}
+  .alert{border-radius:8px;border:2px solid;padding:12px;margin-bottom:8px}
+  .alert.alto{background:var(--rojo50);border-color:var(--rojo2)}
+  .alert.medio{background:var(--ambar50);border-color:var(--ambar)}
+  .alert.bajo{background:var(--gris50);border-color:#d4d4d4}
+  .alert .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+  .lvl{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;color:#fff}
+  .lvl.alto{background:var(--rojo2)}.lvl.medio{background:var(--ambar)}.lvl.bajo{background:#525252}
+  .imp{font-weight:700;color:var(--rojo2);font-size:18px}
+  .upload{background:#fff;border:2px solid var(--negro);border-radius:8px;padding:16px;margin-bottom:16px}
+  .lbl-file{background:var(--rojo);color:#fff;font-size:12px;padding:8px 16px;border-radius:6px;display:inline-flex;align-items:center;gap:6px;font-weight:600;cursor:pointer}
+  .lbl-file:hover{background:var(--rojo2)}
+  .note-amber{background:var(--ambar50);border-left:4px solid var(--ambar);color:#78350f;padding:8px 12px;border-radius:4px;font-size:12px;margin-top:12px}
+  .note-red{background:var(--rojo50);border:1px solid #fca5a5;color:#991b1b;font-size:12px;border-radius:4px;padding:8px 12px;margin-top:12px}
+  .map{border:2px solid var(--rojo);border-radius:8px;padding:12px;margin-top:16px}
+  .map .info{font-size:12px;color:var(--gris600);margin-bottom:12px;background:var(--gris50);border-radius:4px;padding:8px}
+  .map .cat{font-size:11px;font-weight:700;color:var(--rojo2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .map-row{display:flex;align-items:center;gap:8px;font-size:12px;border:1px solid var(--gris200);border-radius:4px;padding:6px 8px}
+  .map-row span.nm{color:var(--gris700);width:128px;flex-shrink:0}
+  .map-row select{flex:1;border:1px solid #d4d4d4;border-radius:4px;padding:4px;font-size:12px;min-width:0}
+  .map-row .v{width:80px;text-align:right;flex-shrink:0;font-weight:700}
+  .map-row .v.sd{color:var(--ambar700);font-style:italic;font-weight:400}
+  .config{background:#fff;border:2px solid var(--rojo);border-radius:8px;padding:16px;margin-bottom:16px}
+  .config h3{font-size:13px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .fld{display:flex;flex-direction:column;gap:4px}
+  .fld span{font-size:11px;color:var(--gris600)}
+  .fld input,.fld select{border:2px solid var(--gris200);border-radius:4px;padding:4px 8px}
+  .fld input:focus,.fld select:focus{outline:none;border-color:var(--rojo)}
+  textarea{width:100%;height:384px;font-family:ui-monospace,monospace;font-size:12px;padding:12px;background:var(--gris50);border:2px solid var(--gris200);border-radius:4px;resize:none}
+  textarea:focus{outline:none;border-color:var(--rojo)}
+  .bl{border-left:4px solid var(--rojo);padding-left:12px}
+  .bl h4{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px}
+  .bl ul,.bl ol{margin-left:18px;color:var(--gris700);display:flex;flex-direction:column;gap:4px}
+  .delta{display:inline-flex;align-items:center;gap:2px;font-size:11px;font-weight:500}
+  .delta.up{color:var(--verde700)}.delta.down{color:var(--rojo2)}
+  footer{text-align:center;font-size:12px;color:var(--gris500);margin-top:24px;padding-bottom:24px}
+  footer .ft{border-top:2px solid var(--rojo);padding-top:12px;max-width:512px;margin:0 auto}
+  .hidden{display:none}
+  @media print{body{background:#fff}.no-print{display:none!important}.card{box-shadow:none;break-inside:avoid}}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+// ============================================================
+// DATOS GENÉRICOS / ILUSTRATIVOS — legaltech tipo ULPIK SAS-BIC
+// Editá SOLO este objeto para usar datos reales. Todo se recalcula solo.
+// ============================================================
+const DATA_BASE = {
+  periodo: 'Enero - Mayo 2026',
+  mesesPeriodo: 5,
+  diaNovenoDigito: 18,
+  tarifaIR: 0.22,
+  regimenLabel: 'Tarifa reducida 22% (-3 pts, LRTI Art. 37.2)',
+  balance: { activos:48500, activoCorriente:32800, pasivos:18200, pasivoCorriente:14600, patrimonio:30300 },
+  pl: { ingresos:62400, reembolsos:8200, costos:9800, gastos:28600, utilidad:24000 },
+  gastosDetalle: [
+    { rubro:'Sueldos y salarios', monto:14200, deducible:'Sí', art:'LRTI Art. 10 num. 9', cond:'Con aportes IESS al día' },
+    { rubro:'Arriendo oficina', monto:4800, deducible:'Sí', art:'LRTI Art. 10 num. 1', cond:'Con comprobante electrónico' },
+    { rubro:'Software / licencias (SaaS, Odoo)', monto:3200, deducible:'Sí', art:'LRTI Art. 10 num. 7', cond:'Vinculado a la actividad' },
+    { rubro:'Servicios profesionales', monto:2600, deducible:'Sí', art:'LRTI Art. 10 num. 1', cond:'Con retención aplicada' },
+    { rubro:'Atenciones / agasajos', monto:1400, deducible:'Parcial', art:'LRTI Art. 10 num. 7', cond:'Tope: 2% gastos generales' },
+    { rubro:'Multas e intereses SRI', monto:600, deducible:'No', art:'LRTI Art. 10 (no deducible)', cond:'Gasto no deducible' },
+    { rubro:'Gastos personales socio', monto:800, deducible:'No', art:'LRTI Art. 10 (no relacionado)', cond:'Ajustar en conciliación' },
+    { rubro:'Otros operacionales', monto:1000, deducible:'Sí', art:'LRTI Art. 10', cond:'Con sustento' }
+  ],
+  iva: { ivaCompras:4320, ivaVentas:9360, baseCompras:28800, baseVentas:62400 },
+  retenciones: { soportadas:1248, generadas:624 },
+  anterior: { ingresos:54800, utilidad:19500, liquidez:2.05 }
+};
+
+// ---------- helpers ----------
+const fmt = n => (n==null||isNaN(n)) ? '—' : new Intl.NumberFormat('es-EC',{style:'currency',currency:'USD',minimumFractionDigits:2}).format(n);
+const pct = n => (n==null||isNaN(n)) ? '—' : (n*100).toFixed(1)+'%';
+const delta = (act,ant)=> !ant ? null : (act-ant)/ant;
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+
+// ---------- lectura Excel ----------
+const findValue=(rows,kws)=>{ if(!rows)return null; for(const row of rows){const cells=Object.values(row);const label=cells.find(c=>typeof c==='string');if(!label)continue;const n=norm(label);if(kws.some(k=>n.includes(k))){const num=cells.find(c=>typeof c==='number');if(num!=null)return num;}} return null; };
+const sumColumn=(rows,kws)=>{ if(!rows||!rows.length)return null; const headers=Object.keys(rows[0]);const t=headers.find(h=>kws.some(k=>norm(h).includes(k)));if(!t)return null;let s=0,f=false;for(const r of rows){if(typeof r[t]==='number'){s+=r[t];f=true;}}return f?s:null; };
+const findSheet=(names,kws)=>names.find(n=>kws.some(k=>norm(n).includes(k)));
+const extractRows=rows=>{ if(!rows)return[]; const out=[]; rows.forEach((row,i)=>{const cells=Object.values(row);const label=cells.find(c=>typeof c==='string');const num=cells.find(c=>typeof c==='number');if(label&&num!=null)out.push({label:String(label).trim(),value:num,key:''+i});}); return out; };
+const numericColumns=rows=>{ if(!rows||!rows.length)return[]; const headers=Object.keys(rows[0]);return headers.filter(h=>rows.some(r=>typeof r[h]==='number')); };
+const sumNamedColumn=(rows,col)=>{ if(!rows||!col)return null; let s=0,f=false;for(const r of rows){if(typeof r[col]==='number'){s+=r[col];f=true;}}return f?s:null; };
+
+function parseWorkbook(wb){
+  const names=wb.SheetNames;
+  const sheet=n=>n?XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:null}):[];
+  const balN=findSheet(names,['balance','esf','situacion','estado de situacion']);
+  const plN=findSheet(names,['perdid','pyg','resultado','eri','p&l','p l','ganancia']);
+  const compN=findSheet(names,['compra','proveedor','libro c','adquisicion']);
+  const ventN=findSheet(names,['venta','cliente','libro v','factura','ingreso']);
+  const bal=sheet(balN),pl=sheet(plN),comp=sheet(compN),vent=sheet(ventN);
+  const detected={
+    activos:findValue(bal,['total activo','activos total','activo total']),
+    activoCorriente:findValue(bal,['activo corriente','activos corrientes']),
+    pasivos:findValue(bal,['total pasivo','pasivos total','pasivo total']),
+    pasivoCorriente:findValue(bal,['pasivo corriente','pasivos corrientes']),
+    patrimonio:findValue(bal,['total patrimonio','patrimonio total','patrimonio neto','total patrimonio neto']),
+    ingresos:findValue(pl,['total ingreso','ingresos total','ventas total','ingresos operacional','total de ingreso']),
+    costos:findValue(pl,['costo de venta','total costo','costos']),
+    gastos:findValue(pl,['total gasto','gastos total','gastos operacional']),
+    utilidad:findValue(pl,['utilidad neta','resultado del ejerc','utilidad del ejerc','utilidad antes','resultado neto','ganancia neta','resultado del periodo']),
+    ivaCompras:sumColumn(comp,['valor iva','iva 15','iva']),
+    baseCompras:sumColumn(comp,['base imponible','subtotal','base 15','base grav']),
+    ivaVentas:sumColumn(vent,['valor iva','iva 15','iva']),
+    baseVentas:sumColumn(vent,['base imponible','subtotal','base 15','base grav']),
+    retSoportadas:sumColumn(comp,['retencion','ret renta','ret iva']),
+    retGeneradas:sumColumn(vent,['retencion','ret renta','ret iva'])
+  };
+  const raw={ balanceRows:extractRows(bal), plRows:extractRows(pl), compCols:numericColumns(comp), ventCols:numericColumns(vent), compData:comp, ventData:vent };
+  return { detected, raw, sheets:{ balN,plN,compN,ventN, all:names } };
+}
+
+// ---------- estado ----------
+const S = {
+  view:'exec', D:JSON.parse(JSON.stringify(DATA_BASE)),
+  showConfig:false, upload:null, mapping:{}, uploadError:null, isReal:false
+};
+
+const camposFila=[
+  {id:'activos',label:'Total Activos',fuente:'balanceRows'},
+  {id:'activoCorriente',label:'Activo corriente',fuente:'balanceRows'},
+  {id:'pasivos',label:'Total Pasivos',fuente:'balanceRows'},
+  {id:'pasivoCorriente',label:'Pasivo corriente',fuente:'balanceRows'},
+  {id:'patrimonio',label:'Patrimonio',fuente:'balanceRows'},
+  {id:'ingresos',label:'Ingresos',fuente:'plRows'},
+  {id:'costos',label:'Costos',fuente:'plRows'},
+  {id:'gastos',label:'Gastos',fuente:'plRows'},
+  {id:'utilidad',label:'Utilidad / Resultado',fuente:'plRows'}
+];
+const camposColumna=[
+  {id:'baseCompras',label:'Base imponible Compras',fuente:'compCols',data:'compData'},
+  {id:'ivaCompras',label:'IVA Compras',fuente:'compCols',data:'compData'},
+  {id:'retSoportadas',label:'Retención soportada',fuente:'compCols',data:'compData'},
+  {id:'baseVentas',label:'Base imponible Ventas',fuente:'ventCols',data:'ventData'},
+  {id:'ivaVentas',label:'IVA Ventas',fuente:'ventCols',data:'ventData'},
+  {id:'retGeneradas',label:'Retención generada',fuente:'ventCols',data:'ventData'}
+];
+
+function valorCampo(id){
+  if(!S.upload)return null;
+  const m=S.mapping[id];
+  if(m!==undefined&&m!==''){
+    const fc=camposFila.find(c=>c.id===id);
+    if(fc){const fila=S.upload.raw[fc.fuente].find(r=>r.key===m);return fila?fila.value:null;}
+    const cc=camposColumna.find(c=>c.id===id);
+    if(cc)return sumNamedColumn(S.upload.raw[cc.data],m);
+  }
+  return S.upload.detected[id];
+}
+
+// ---------- cálculos ----------
+function analytics(D){
+  const balanceDiff=D.balance.activos-(D.balance.pasivos+D.balance.patrimonio);
+  const balanceCierra=Math.abs(balanceDiff)<1;
+  const ivaResultado=D.iva.ivaVentas-D.iva.ivaCompras;
+  const noDeducible=D.gastosDetalle.filter(g=>g.deducible==='No').reduce((s,g)=>s+g.monto,0);
+  const baseImponibleIR=D.pl.utilidad+noDeducible;
+  const irEstimado=baseImponibleIR>0?baseImponibleIR*D.tarifaIR:0;
+  const margenNeto=D.pl.utilidad/D.pl.ingresos;
+  const liquidez=D.balance.activoCorriente/D.balance.pasivoCorriente;
+  const endeudamiento=D.balance.pasivos/D.balance.activos;
+  const roa=D.pl.utilidad/D.balance.activos;
+  const ratioReembolsos=D.pl.reembolsos/D.pl.ingresos;
+  const ratioRet=D.retenciones.generadas>0?D.retenciones.soportadas/D.retenciones.generadas:null;
+  return {balanceCierra,balanceDiff,ivaResultado,noDeducible,baseImponibleIR,irEstimado,margenNeto,liquidez,endeudamiento,roa,ratioReembolsos,ratioRet};
+}
+function kpiStatus(v,t){
+  if(v==null||isNaN(v))return 'gray';
+  if(t==='margen')return v>0.20?'green':v>0.10?'yellow':'red';
+  if(t==='liquidez')return v>1.5?'green':v>1.0?'yellow':'red';
+  if(t==='endeud')return v<0.40?'green':v<0.60?'yellow':'red';
+  if(t==='roa')return v>0.10?'green':v>0.03?'yellow':'red';
+  return 'gray';
+}
+function buildAlertas(a,D){
+  const out=[];
+  if(!a.balanceCierra)out.push({riesgo:'ALTO',titulo:'Balance descuadrado: A ≠ P + Patrimonio',articulo:'NIIF / Ley Compañías Art. 289',impacto:Math.abs(a.balanceDiff),accion:'Conciliar partidas antes de presentar EEFF; no declarar con descuadre'});
+  if(a.noDeducible>0)out.push({riesgo:'ALTO',titulo:`Gastos no deducibles detectados: ${fmt(a.noDeducible)}`,articulo:'LRTI Art. 10 / RALRTI Art. 28',impacto:a.noDeducible*D.tarifaIR,accion:'Sumar a base imponible en conciliación tributaria (form. 101 casillero 802+)'});
+  if(a.liquidez<1)out.push({riesgo:'ALTO',titulo:`Liquidez corriente crítica: ${a.liquidez.toFixed(2)} (< 1.0)`,articulo:'Código Tributario Art. 21 (mora)',impacto:D.pl.gastos*0.015,accion:'Plan de cobranza acelerada; riesgo de no cubrir obligaciones SRI/IESS del mes'});
+  else if(a.liquidez<1.5)out.push({riesgo:'MEDIO',titulo:`Liquidez ajustada: ${a.liquidez.toFixed(2)} (benchmark > 1.5)`,articulo:'Gestión de tesorería',impacto:D.balance.pasivoCorriente*0.05,accion:'Vigilar calce de cobros y pagos próximos 30 días'});
+  if(a.endeudamiento>0.6)out.push({riesgo:'MEDIO',titulo:`Endeudamiento elevado: ${pct(a.endeudamiento)}`,articulo:'LRTI Art. 10 num. 2 (subcapitalización 3:1)',impacto:D.balance.pasivos*0.03,accion:'Validar relación deuda/patrimonio ≤ 3:1 para deducir intereses de partes relacionadas'});
+  if(a.irEstimado>0)out.push({riesgo:'MEDIO',titulo:`Provisión IR no constituida: ${fmt(a.irEstimado)}`,articulo:`LRTI Art. 37 (tarifa ${pct(D.tarifaIR)})`,impacto:a.irEstimado*0.20,accion:`Constituir provisión IR de ${fmt(a.irEstimado)}; vence 10-28 abril 2027 (form. 101)`});
+  if(a.ratioRet&&a.ratioRet>1.8)out.push({riesgo:'MEDIO',titulo:`Retenciones soportadas ${a.ratioRet.toFixed(1)}x las generadas`,articulo:'LRTI Art. 50 / RALRTI Art. 92',impacto:D.retenciones.soportadas*0.25,accion:'Cargar comprobantes de retención de clientes en SRI en línea para crédito tributario'});
+  if(a.margenNeto<0.10)out.push({riesgo:'MEDIO',titulo:`Margen neto bajo: ${pct(a.margenNeto)}`,articulo:'Análisis de rentabilidad',impacto:D.pl.ingresos*0.02,accion:'Revisar estructura de costos y precios de servicios'});
+  if(a.ratioReembolsos>0.15)out.push({riesgo:'BAJO',titulo:`Reembolsos SENADI altos: ${pct(a.ratioReembolsos)} de ingresos`,articulo:'RALRTI Art. 36 (reembolso de gastos)',impacto:D.pl.reembolsos*0.03,accion:'Documentar reembolsos con liquidación de compras o nota de crédito; no son ingreso gravado si están bien soportados'});
+  return out.sort((x,y)=>y.impacto-x.impacto).slice(0,5);
+}
+function buildCashflow(a,D){
+  const ingM=D.pl.ingresos/D.mesesPeriodo, gtoM=(D.pl.costos+D.pl.gastos)/D.mesesPeriodo, ivaM=Math.max(0,a.ivaResultado)/D.mesesPeriodo, dig=D.diaNovenoDigito;
+  return [
+    {p:'30 días',detalle:`IVA + Retenciones (form. 104/103, vence día ${dig})`,ing:ingM,egr:gtoM,impuestos:ivaM,saldo:ingM-gtoM-ivaM},
+    {p:'60 días',detalle:'IVA mensual + provisión IR acumulada',ing:ingM*2,egr:gtoM*2,impuestos:ivaM*2+a.irEstimado*0.10,saldo:(ingM-gtoM)*2-ivaM*2-a.irEstimado*0.10},
+    {p:'90 días',detalle:'IVA + anticipo IR (1ª cuota) + 15% utilidades trab.',ing:ingM*3,egr:gtoM*3,impuestos:ivaM*3+a.irEstimado*0.25,saldo:(ingM-gtoM)*3-ivaM*3-a.irEstimado*0.25}
+  ];
+}
+const calendario=()=>[
+  {obl:'IVA mensual (form. 104)',frec:'Mensual',fecha:`10-28 del mes siguiente (día ${S.D.diaNovenoDigito} s/ 9° dígito)`,estado:'Recurrente'},
+  {obl:'Retenciones IR (form. 103)',frec:'Mensual',fecha:'10-28 del mes siguiente',estado:'Recurrente'},
+  {obl:'ATS (Anexo Transaccional)',frec:'Mensual',fecha:'10-28 del mes siguiente',estado:'Recurrente'},
+  {obl:'REBEFICS (beneficiarios finales)',frec:'Anual',fecha:'10-28 febrero',estado:'Sociedades'},
+  {obl:'IR Sociedades (form. 101)',frec:'Anual',fecha:'10-28 abril (ejercicio anterior)',estado:'Crítico'},
+  {obl:'15% Utilidades trabajadores',frec:'Anual',fecha:'Pago hasta abril; legalización MRL mayo-jun',estado:'Laboral'},
+  {obl:'Anticipo IR (2 cuotas)',frec:'Semestral',fecha:'Julio y septiembre',estado:'Cuotas'}
+];
+function buildCorreo(alertas,a,D){
+  const altas=alertas.filter(x=>x.riesgo==='ALTO'), medias=alertas.filter(x=>x.riesgo==='MEDIO');
+  const impactoTotal=alertas.reduce((s,x)=>s+x.impacto,0);
+  const compliance=altas.length===0?`sin alertas críticas (${medias.length} de riesgo MEDIO, exposición agregada ${fmt(impactoTotal)})`:`con ${altas.length} alerta(s) de riesgo ALTO que requieren acción inmediata`;
+  return `Asunto: Reporte Financiero ULPIK · ${D.periodo} · Compliance SRI
+
+Estimada Gerencia,
+
+Remito el reporte financiero ejecutivo de ULPIK correspondiente a ${D.periodo}.
+
+ESTADO FINANCIERO
+- Ingresos totales: ${fmt(D.pl.ingresos)}
+- Utilidad del ejercicio: ${fmt(D.pl.utilidad)}
+- Margen neto: ${pct(a.margenNeto)}
+- Liquidez corriente: ${a.liquidez.toFixed(2)}
+- Endeudamiento: ${pct(a.endeudamiento)}
+- Balance contable: ${a.balanceCierra?'Cuadrado (A = P + Pat verificado)':'DESCUADRADO - requiere conciliacion'}
+
+ANALISIS TRIBUTARIO (SRI)
+- Regimen IR: ${D.regimenLabel}, tarifa ${pct(D.tarifaIR)}
+- Base imponible IR: ${fmt(a.baseImponibleIR)} (incluye ${fmt(a.noDeducible)} de gastos no deducibles)
+- IR proyectado: ${fmt(a.irEstimado)}
+- IVA del periodo: ${a.ivaResultado>=0?fmt(a.ivaResultado)+' a pagar':fmt(Math.abs(a.ivaResultado))+' credito tributario'}
+- Compliance: Auditoria automatica finalizada ${compliance}.
+
+RECOMENDACION PRIORITARIA
+${alertas[0]?alertas[0].accion:'Mantener provisiones tributarias al dia y continuar plan operativo.'}
+
+Quedo a disposicion para revisar el detalle del dashboard adjunto y definir el plan de accion para los proximos 30 dias.
+
+Cordialmente,
+CFO Virtual ULPIK
+Fecha: ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})}`;
+}
+
+// ---------- componentes HTML ----------
+const semText={green:'OK',yellow:'Vigilar',red:'Acción',gray:'N/D'};
+const sem = st => `<span class="badge bg-${st||'gray'}"><span class="dot"></span>${semText[st]||'N/D'}</span>`;
+const deltaHtml = v => v==null?'':`<span class="delta ${v>=0?'up':'down'}">${v>=0?'▲':'▼'} ${pct(Math.abs(v))}</span>`;
+const section = (num,title,body)=>`<section class="card"><div class="sec-head">${num?`<span class="sec-num">${num}</span>`:''}<span style="color:#f87171">◆</span><h2>${title}</h2></div><div class="sec-body">${body}</div></section>`;
+const kpi = (label,value,opt={})=>{
+  const acc=opt.accent?' acc':'';
+  return `<div class="kpi${acc}"><div class="lbl">${label}</div><div style="display:flex;align-items:baseline;gap:8px"><div class="val">${value}</div>${opt.deltaVal!==undefined?deltaHtml(opt.deltaVal):''}</div>${opt.sub?`<div class="sub">${opt.sub}</div>`:''}${opt.status?`<div style="margin-top:6px">${sem(opt.status)}</div>`:''}</div>`;
+};
+
+function render(){
+  const D=S.D, a=analytics(D), alertas=buildAlertas(a,D), cashflow=buildCashflow(a,D);
+  const correo=buildCorreo(alertas,a,D);
+  const totalDeducible=D.gastosDetalle.filter(g=>g.deducible==='Sí').reduce((s,g)=>s+g.monto,0);
+  const totalParcial=D.gastosDetalle.filter(g=>g.deducible==='Parcial').reduce((s,g)=>s+g.monto,0);
+  const totalGastos=D.gastosDetalle.reduce((s,g)=>s+g.monto,0);
+
+  // --- cargador / mapeo ---
+  let mapHtml='';
+  if(S.upload){
+    const filaRows=camposFila.map(c=>{
+      const filas=S.upload.raw[c.fuente]||[]; const val=valorCampo(c.id); const det=S.upload.detected[c.id];
+      const opts=`<option value="">${det!=null?`Auto: ${fmt(det)}`:'— elegir fila —'}</option>`+filas.map(f=>`<option value="${esc(f.key)}" ${S.mapping[c.id]===f.key?'selected':''}>${esc(f.label)} (${fmt(f.value)})</option>`).join('');
+      return `<div class="map-row"><span class="nm">${c.label}</span><select data-map="${c.id}">${opts}</select><span class="v ${val!=null?'':'sd'} mono">${val!=null?fmt(val):'s/d'}</span></div>`;
+    }).join('');
+    const colRows=camposColumna.map(c=>{
+      const cols=S.upload.raw[c.fuente]||[]; const val=valorCampo(c.id); const det=S.upload.detected[c.id];
+      const opts=`<option value="">${det!=null?`Auto: ${fmt(det)}`:'— elegir columna —'}</option>`+cols.map(col=>`<option value="${esc(col)}" ${S.mapping[c.id]===col?'selected':''}>${esc(col)}</option>`).join('');
+      return `<div class="map-row"><span class="nm">${c.label}</span><select data-map="${c.id}">${opts}</select><span class="v ${val!=null?'':'sd'} mono">${val!=null?fmt(val):'s/d'}</span></div>`;
+    }).join('');
+    mapHtml=`<div class="map"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h4 class="b" style="font-size:13px">Mapeo de datos · ${esc(S.upload.fileName)}</h4><button class="btn" style="background:none;color:#a3a3a3;padding:0" data-act="cancelMap">✕</button></div>
+      <div class="info">Hojas detectadas: ${esc(S.upload.sheets.all.join(', '))}.<br><strong>Si algo está mal o dice "s/d", elegí la fila/columna correcta en el menú</strong> — funciona con cualquier denominación.</div>
+      <div style="margin-bottom:12px"><div class="cat">Balance y Estado de Resultados</div><div class="grid g2">${filaRows}</div></div>
+      <div style="margin-bottom:12px"><div class="cat">Libros de Compras y Ventas (se suma la columna)</div><div class="grid g2">${colRows}</div></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn btn-negro" data-act="applyUpload">✓ Aplicar al dashboard</button><span class="xs txt-gris">Los campos en "s/d" conservarán el valor actual.</span></div></div>`;
+  }
+  const uploader=`<div class="upload no-print">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;align-items:center">
+      <div style="display:flex;gap:8px;align-items:center"><span style="color:var(--rojo)">▦</span><div>
+        <div class="b" style="font-size:13px">${S.isReal?'Datos reales cargados':'Cargar datos reales de ULPIK'}</div>
+        <div class="xs txt-gris">${S.isReal?'El dashboard se recalculó con tu archivo. Verificá las cifras.':'Subí el Excel (Balance, P&L, Libros). Se procesa localmente, no sale del navegador.'}</div>
+      </div></div>
+      <label class="lbl-file">↑ ${S.isReal?'Cargar otro archivo':'Subir Excel'}<input type="file" accept=".xlsx,.xls" id="fileInput" class="hidden"></label>
+    </div>
+    ${S.uploadError?`<div class="note-red">${esc(S.uploadError)}</div>`:''}
+    ${(!S.isReal&&!S.upload)?`<div class="note-amber">Actualmente se muestran <strong>datos genéricos ilustrativos</strong>. Subí tu archivo para reemplazarlos.</div>`:''}
+    ${mapHtml}
+  </div>`;
+
+  const header=`<header class="main"><div class="bar"></div><div class="inner">
+    <div><div class="eyebrow">▣ CFO Virtual · ULPIK SAS-BIC</div>
+      <h1>Dashboard Ejecutivo<br><span class="acc">Financiero &amp; Tributario</span></h1>
+      <p>Análisis contable, tributario y compliance SRI Ecuador · ${esc(D.periodo)}</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap" class="no-print">
+      <button class="btn btn-ghost" data-act="toggleConfig">⚙ Configurar</button>
+      <button class="btn btn-ghost" data-act="toggleView">▤ ${S.view==='exec'?'Ver datos base':'Ver dashboard'}</button>
+      <button class="btn btn-rojo" data-act="print">⎙ Imprimir/PDF</button>
+    </div></div></header>`;
+
+  const config=S.showConfig?`<div class="config no-print"><h3>⚙ Configuración rápida</h3>
+    <div class="grid g3">
+      <label class="fld"><span>Período</span><input data-field="periodo" value="${esc(D.periodo)}"></label>
+      <label class="fld"><span>Régimen / Tarifa IR</span><select data-field="tarifaIR">
+        <option value="0.25" ${D.tarifaIR===0.25?'selected':''}>General (25%)</option>
+        <option value="0.22" ${D.tarifaIR===0.22?'selected':''}>Tarifa reducida -3pts (22%)</option>
+        <option value="0.28" ${D.tarifaIR===0.28?'selected':''}>+3 pts paraíso fiscal (28%)</option>
+        <option value="0.20" ${D.tarifaIR===0.20?'selected':''}>Reinversión utilidades (20%)</option>
+      </select></label>
+      <label class="fld"><span>Día venc. SRI (9° dígito RUC)</span><input type="number" min="10" max="28" data-field="diaNovenoDigito" value="${D.diaNovenoDigito}"></label>
+    </div>
+    <p class="xs txt-gris" style="margin-top:12px">La tarifa IR depende del régimen real de ULPIK ante SRI. El 22% solo aplica para sociedades nuevas (post-dic 2021) con reducción de 3 puntos por 15 años. Verificá el régimen en el RUC antes de presentar.</p></div>`:'';
+
+  let main='';
+  if(S.view==='data'){
+    main=section('0','Datos Base del Análisis',`<div class="grid g2" style="font-size:14px">
+      <div><h3 class="cat" style="margin-bottom:8px">Balance General</h3><table class="xs"><tbody>
+        <tr><td>Total Activos</td><td class="tr mono b">${fmt(D.balance.activos)}</td></tr>
+        <tr><td style="padding-left:12px" class="txt-gris">Activo corriente</td><td class="tr mono">${fmt(D.balance.activoCorriente)}</td></tr>
+        <tr><td>Total Pasivos</td><td class="tr mono b">${fmt(D.balance.pasivos)}</td></tr>
+        <tr><td style="padding-left:12px" class="txt-gris">Pasivo corriente</td><td class="tr mono">${fmt(D.balance.pasivoCorriente)}</td></tr>
+        <tr><td>Total Patrimonio</td><td class="tr mono b">${fmt(D.balance.patrimonio)}</td></tr></tbody></table></div>
+      <div><h3 class="cat" style="margin-bottom:8px">Estado de Resultados</h3><table class="xs"><tbody>
+        <tr><td>Ingresos operacionales</td><td class="tr mono b">${fmt(D.pl.ingresos)}</td></tr>
+        <tr><td style="padding-left:12px" class="txt-gris">Reembolsos SENADI</td><td class="tr mono">${fmt(D.pl.reembolsos)}</td></tr>
+        <tr><td>Costo de servicios</td><td class="tr mono">${fmt(D.pl.costos)}</td></tr>
+        <tr><td>Gastos operacionales</td><td class="tr mono">${fmt(D.pl.gastos)}</td></tr>
+        <tr><td class="b">Utilidad del ejercicio</td><td class="tr mono b txt-rojo">${fmt(D.pl.utilidad)}</td></tr></tbody></table></div>
+      <div><h3 class="cat" style="margin-bottom:8px">Libro IVA</h3><table class="xs"><tbody>
+        <tr><td>Base compras</td><td class="tr mono">${fmt(D.iva.baseCompras)}</td></tr>
+        <tr><td>IVA pagado (15%)</td><td class="tr mono">${fmt(D.iva.ivaCompras)}</td></tr>
+        <tr><td>Base ventas</td><td class="tr mono">${fmt(D.iva.baseVentas)}</td></tr>
+        <tr><td>IVA cobrado (15%)</td><td class="tr mono">${fmt(D.iva.ivaVentas)}</td></tr></tbody></table></div>
+      <div><h3 class="cat" style="margin-bottom:8px">Retenciones</h3><table class="xs"><tbody>
+        <tr><td>Soportadas (clientes)</td><td class="tr mono">${fmt(D.retenciones.soportadas)}</td></tr>
+        <tr><td>Generadas (proveedores)</td><td class="tr mono">${fmt(D.retenciones.generadas)}</td></tr></tbody></table></div>
+    </div>`);
+  }else{
+    // 1. Validación
+    const valid=section('1','Validación Contable',`<table><thead><tr><th>Validación</th><th>Estado</th><th>Observación</th></tr></thead><tbody>
+      <tr><td class="fw">Balance cierra (A = P + Pat)</td><td>${a.balanceCierra?sem('green'):sem('red')}</td><td class="xs txt-gris6">${a.balanceCierra?'Cuadrado: diferencia $0.00':'Diferencia: '+fmt(a.balanceDiff)}</td></tr>
+      <tr><td class="fw">P&amp;L con utilidad reconocida</td><td>${sem('green')}</td><td class="xs txt-gris6">Utilidad ${fmt(D.pl.utilidad)} (${pct(a.margenNeto)} margen)</td></tr>
+      <tr><td class="fw">Conciliación tributaria (no deducibles)</td><td>${a.noDeducible>0?sem('yellow'):sem('green')}</td><td class="xs txt-gris6">${a.noDeducible>0?fmt(a.noDeducible)+' a sumar a base imponible':'Sin ajustes pendientes'}</td></tr>
+      <tr><td class="fw">Libros Compras/Ventas vs IVA</td><td>${sem('green')}</td><td class="xs txt-gris6">IVA Compras ${fmt(D.iva.ivaCompras)} · Ventas ${fmt(D.iva.ivaVentas)}</td></tr>
+    </tbody></table>`);
+
+    // 2. Tres impuestos
+    const tres=section('2','Análisis de 3 Impuestos: IR · IVA · Retenciones',`<div class="grid g3">
+      <div class="box-dark"><div class="h">▣ Impuesto a la Renta</div>
+        <div class="row"><span class="k">Utilidad contable:</span><strong>${fmt(D.pl.utilidad)}</strong></div>
+        <div class="row"><span class="k">(+) No deducibles:</span><strong>${fmt(a.noDeducible)}</strong></div>
+        <div class="row bt"><span class="k">Base imponible:</span><strong>${fmt(a.baseImponibleIR)}</strong></div>
+        <div class="row"><span class="k">Tarifa:</span><strong>${pct(D.tarifaIR)}</strong></div>
+        <div class="row bt-r" style="font-size:15px"><span style="color:#d4d4d4">IR proyectado:</span><strong style="color:#f87171">${fmt(a.irEstimado)}</strong></div>
+        <div class="xs bt" style="color:#a3a3a3;margin-top:8px">${esc(D.regimenLabel)}</div></div>
+      <div class="box-dark"><div class="h">▣ IVA</div>
+        <div class="row"><span class="k">IVA Ventas (débito):</span><strong>${fmt(D.iva.ivaVentas)}</strong></div>
+        <div class="row"><span class="k">IVA Compras (crédito):</span><strong>${fmt(D.iva.ivaCompras)}</strong></div>
+        <div class="row bt-r" style="font-size:15px"><span style="color:#d4d4d4">${a.ivaResultado>=0?'IVA a pagar:':'Crédito tributario:'}</span><strong style="color:#f87171">${fmt(Math.abs(a.ivaResultado))}</strong></div>
+        <div class="xs bt" style="color:#a3a3a3;margin-top:8px">LRTI Art. 66 · IVA 15% · Form. 104 mensual</div></div>
+      <div class="box-dark"><div class="h">▣ Retenciones</div>
+        <div class="row"><span class="k">Soportadas:</span><strong>${fmt(D.retenciones.soportadas)}</strong></div>
+        <div class="row"><span class="k">Generadas:</span><strong>${fmt(D.retenciones.generadas)}</strong></div>
+        <div class="row bt-r" style="font-size:15px"><span style="color:#d4d4d4">Crédito por aplicar:</span><strong style="color:#f87171">${fmt(D.retenciones.soportadas)}</strong></div>
+        <div class="xs bt" style="color:#a3a3a3;margin-top:8px">LRTI Art. 50 · Ratio ${a.ratioRet?a.ratioRet.toFixed(1):'—'}:1</div></div>
+    </div>`);
+
+    // 2b. Deducibilidad
+    const dedRows=D.gastosDetalle.map(g=>`<tr><td class="fw">${esc(g.rubro)}</td><td class="tr mono">${fmt(g.monto)}</td><td class="tc"><span class="tag ${g.deducible==='Sí'?'tag-green':g.deducible==='Parcial'?'tag-yellow':'tag-red'}">${g.deducible}</span></td><td class="xs mono txt-gris">${esc(g.art)}</td><td class="xs txt-gris6">${esc(g.cond)}</td></tr>`).join('');
+    const ded=section('2b','Análisis de Deducibilidad por Rubro (LRTI Art. 10)',`<table><thead><tr><th>Rubro</th><th class="tr">Monto</th><th class="tc">Deducible</th><th>Artículo</th><th>Condición</th></tr></thead><tbody>${dedRows}</tbody>
+      <tfoot><tr style="background:var(--gris100);font-weight:700;font-size:12px"><td>Totales</td><td class="tr mono">${fmt(totalGastos)}</td><td colspan="3" class="txt-gris6">Deducible: ${fmt(totalDeducible)} · Parcial: ${fmt(totalParcial)} · No deducible: ${fmt(a.noDeducible)}</td></tr></tfoot></table>`);
+
+    // 3. Indicadores
+    const ind=section('3','Indicadores Financieros Clave',`<table><thead><tr><th>Indicador</th><th class="tr">Valor</th><th class="tc">Benchmark</th><th>Semáforo</th><th class="tc">vs Anterior</th></tr></thead><tbody>
+      <tr><td class="fw">Margen neto</td><td class="tr mono b txt-rojo">${pct(a.margenNeto)}</td><td class="tc xs txt-gris">15–20%</td><td>${sem(kpiStatus(a.margenNeto,'margen'))}</td><td class="tc">${deltaHtml(delta(a.margenNeto,D.anterior.utilidad/D.anterior.ingresos))}</td></tr>
+      <tr><td class="fw">Liquidez corriente</td><td class="tr mono b txt-rojo">${a.liquidez.toFixed(2)}</td><td class="tc xs txt-gris">&gt; 1.5</td><td>${sem(kpiStatus(a.liquidez,'liquidez'))}</td><td class="tc">${deltaHtml(delta(a.liquidez,D.anterior.liquidez))}</td></tr>
+      <tr><td class="fw">Endeudamiento</td><td class="tr mono b txt-rojo">${pct(a.endeudamiento)}</td><td class="tc xs txt-gris">&lt; 50%</td><td>${sem(kpiStatus(a.endeudamiento,'endeud'))}</td><td class="tc xs txt-gris">—</td></tr>
+      <tr><td class="fw">ROA</td><td class="tr mono b txt-rojo">${pct(a.roa)}</td><td class="tc xs txt-gris">&gt; 10%</td><td>${sem(kpiStatus(a.roa,'roa'))}</td><td class="tc xs txt-gris">—</td></tr>
+      <tr><td class="fw">Ratio reembolsos SENADI</td><td class="tr mono b txt-rojo">${pct(a.ratioReembolsos)}</td><td class="tc xs txt-gris">&lt; 15%</td><td>${sem(a.ratioReembolsos<0.15?'green':'yellow')}</td><td class="tc xs txt-gris">específico</td></tr>
+    </tbody></table>`);
+
+    // 4. Alertas
+    const alertHtml = alertas.length===0
+      ? `<div style="background:var(--verde50);border:2px solid #a7f3d0;border-radius:8px;padding:16px;color:#065f46;display:flex;gap:8px;align-items:center">✓ Sin alertas SRI con los datos actuales.</div>`
+      : alertas.map((al,i)=>`<div class="alert ${al.riesgo.toLowerCase()}"><div class="top"><div style="flex:1">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><span class="lvl ${al.riesgo.toLowerCase()}">#${i+1} · ${al.riesgo}</span><span class="xs mono txt-gris">${esc(al.articulo)}</span></div>
+          <div class="b" style="font-size:14px">${esc(al.titulo)}</div>
+          <div class="xs txt-gris6" style="margin-top:6px"><strong class="txt-rojo">Acción:</strong> ${esc(al.accion)}</div></div>
+        <div style="text-align:right;flex-shrink:0"><div class="xs txt-gris" style="text-transform:uppercase">Impacto</div><div class="imp">${fmt(al.impacto)}</div></div></div></div>`).join('');
+    const alert=section('4','Alertas SRI Priorizadas (dinámicas, top 5 por impacto $)',alertHtml);
+
+    // 5. Cash flow
+    const cfRows=cashflow.map(c=>`<tr><td><div class="b">${c.p}</div><div class="xs txt-gris">${esc(c.detalle)}</div></td><td class="tr mono" style="color:var(--verde700)">${fmt(c.ing)}</td><td class="tr mono txt-rojo">(${fmt(c.egr)})</td><td class="tr mono" style="color:var(--ambar700)">(${fmt(c.impuestos)})</td><td class="tr mono b" style="color:${c.saldo>0?'var(--negro)':'var(--rojo700)'}">${fmt(c.saldo)}</td><td class="tc">${sem(c.saldo>0?'green':c.saldo>-1000?'yellow':'red')}</td></tr>`).join('');
+    const cf=section('5','Proyección Flujo de Caja 30/60/90 días (calendario SRI 2026)',`<table><thead><tr><th>Horizonte</th><th class="tr">Ingresos</th><th class="tr">Egresos</th><th class="tr">Impuestos</th><th class="tr">Saldo</th><th class="tc">Sem.</th></tr></thead><tbody>${cfRows}</tbody></table>
+      <div class="xs txt-gris" style="margin-top:8px;font-style:italic">Proyección con vencimientos SRI reales: IVA/retenciones mensuales (form. 104/103, días 10-28), anticipo IR (jul/sep) y 15% utilidades. Recalibrar con cobranza real.</div>`);
+
+    // 5b. Calendario
+    const calRows=calendario().map(c=>`<tr><td class="fw">${esc(c.obl)}</td><td class="xs txt-gris6">${esc(c.frec)}</td><td class="xs txt-gris6">${esc(c.fecha)}</td><td class="tc"><span class="tag ${c.estado==='Crítico'?'tag-red':c.estado==='Recurrente'?'tag-gray':'tag-yellow'}">${esc(c.estado)}</span></td></tr>`).join('');
+    const cal=section('5b','Calendario de Obligaciones SRI 2026',`<table><thead><tr><th>Obligación</th><th>Frecuencia</th><th>Vencimiento 2026</th><th class="tc">Tipo</th></tr></thead><tbody>${calRows}</tbody></table>`);
+
+    // 6. Informe ejecutivo
+    const altasN=alertas.filter(x=>x.riesgo==='ALTO').length, mediasN=alertas.filter(x=>x.riesgo==='MEDIO').length;
+    const riesgoBox = altasN>0
+      ? `<div style="background:var(--rojo50);border-left:4px solid var(--rojo);padding:12px"><h4 class="b" style="color:#7f1d1d;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">⚠ Riesgos inmediatos</h4><ul style="list-style:disc;margin-left:18px;color:#991b1b" class="xs">${alertas.filter(x=>x.riesgo==='ALTO').map(al=>`<li>${esc(al.titulo)}</li>`).join('')}</ul></div>`
+      : `<div style="background:var(--negro);color:#fff;padding:12px;border-radius:6px"><h4 class="b" style="color:#f87171;font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">⚠ Riesgos inmediatos</h4><p style="color:#d4d4d4" class="xs">Sin riesgos críticos. Exposición agregada de alertas MEDIO: ${fmt(alertas.filter(x=>x.riesgo==='MEDIO').reduce((s,al)=>s+al.impacto,0))}; ejecutar acciones recomendadas la elimina.</p></div>`;
+    const recos = alertas.length===0?'<li>Mantener provisiones al día y continuar plan operativo.</li>':alertas.slice(0,3).map(al=>`<li>${esc(al.accion)}</li>`).join('');
+    const inf=section('6','Informe Ejecutivo para Gerencia',`<div class="grid g3" style="margin-bottom:16px">
+      ${kpi('Ingresos totales',fmt(D.pl.ingresos),{sub:D.periodo,accent:true,deltaVal:delta(D.pl.ingresos,D.anterior.ingresos)})}
+      ${kpi('Margen neto',pct(a.margenNeto),{status:kpiStatus(a.margenNeto,'margen')})}
+      ${kpi('IR proyectado',fmt(a.irEstimado),{sub:'Tarifa '+pct(D.tarifaIR)})}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="bl"><h4>Situación actual</h4><ul style="list-style:disc">
+        <li>Ingresos ${fmt(D.pl.ingresos)} (crecimiento ${pct(delta(D.pl.ingresos,D.anterior.ingresos))} vs período anterior), utilidad ${fmt(D.pl.utilidad)} con margen ${pct(a.margenNeto)}</li>
+        <li>Balance ${a.balanceCierra?'cuadrado':'descuadrado'}; endeudamiento ${pct(a.endeudamiento)}, liquidez ${a.liquidez.toFixed(2)}; estructura ${a.endeudamiento<0.5?'conservadora':'a vigilar'}</li>
+        <li>Compliance SRI: ${altasN} alerta(s) ALTA(s), ${mediasN} MEDIA(s); IR proyectado ${fmt(a.irEstimado)} bajo régimen ${pct(D.tarifaIR)}</li>
+      </ul></div>
+      <div class="bl"><h4>Recomendaciones (próximos 7 días)</h4><ol style="list-style:decimal">${recos}</ol></div>
+      ${riesgoBox}
+    </div>`);
+
+    // 7. Correo
+    const mail=section('7','Correo Genérico para Gerencia',`<textarea id="correo" readonly>${esc(correo)}</textarea>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap" class="no-print">
+        <button class="btn btn-rojo" data-act="copyMail">↓ Copiar</button>
+        <button class="btn btn-negro" data-act="openMail">✉ Abrir en correo</button>
+      </div>`);
+
+    main=valid+tres+ded+ind+alert+cf+cal+inf+mail;
+  }
+
+  const footer=`<footer><div class="ft"><strong style="color:var(--gris700)">CFO Virtual ULPIK</strong> · Marco PAPA · Calendario SRI 2026 · LRTI/RALRTI vigente<br><span style="color:#a3a3a3">Generado el ${new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'long',year:'numeric'})} · Tarifa IR e indicadores configurables</span></div></footer>`;
+
+  document.getElementById('app').innerHTML = uploader + header + config + main + footer;
+  bind(correo,D);
+}
+
+// ---------- eventos ----------
+function bind(correo,D){
+  document.querySelectorAll('[data-act]').forEach(el=>{
+    el.onclick=()=>{
+      const act=el.dataset.act;
+      if(act==='toggleConfig')S.showConfig=!S.showConfig;
+      else if(act==='toggleView')S.view=S.view==='exec'?'data':'exec';
+      else if(act==='print'){window.print();return;}
+      else if(act==='cancelMap'){S.upload=null;S.mapping={};}
+      else if(act==='applyUpload'){applyUpload();return;}
+      else if(act==='copyMail'){navigator.clipboard&&navigator.clipboard.writeText(correo);return;}
+      else if(act==='openMail'){const a=document.createElement('a');a.href=`mailto:?subject=${encodeURIComponent('Reporte Financiero ULPIK · '+D.periodo)}&body=${encodeURIComponent(correo)}`;a.click();return;}
+      render();
+    };
+  });
+  const fi=document.getElementById('fileInput');
+  if(fi)fi.onchange=handleFile;
+  document.querySelectorAll('[data-field]').forEach(el=>{
+    el.onchange=()=>{
+      const f=el.dataset.field;
+      if(f==='tarifaIR'){S.D.tarifaIR=parseFloat(el.value);S.D.regimenLabel=el.options[el.selectedIndex].text;}
+      else if(f==='diaNovenoDigito')S.D.diaNovenoDigito=parseInt(el.value)||18;
+      else S.D[f]=el.value;
+      render();
+    };
+  });
+  document.querySelectorAll('[data-map]').forEach(el=>{
+    el.onchange=()=>{ S.mapping[el.dataset.map]=el.value; render(); };
+  });
+}
+
+async function handleFile(e){
+  const file=e.target.files&&e.target.files[0];
+  if(!file)return;
+  S.uploadError=null;
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array',cellDates:true});
+    const {detected,raw,sheets}=parseWorkbook(wb);
+    S.upload={fileName:file.name,detected,raw,sheets};
+    S.mapping={};
+  }catch(err){ S.uploadError='No se pudo leer el archivo: '+err.message; S.upload=null; }
+  render();
+}
+
+function applyUpload(){
+  if(!S.upload)return;
+  const v=id=>valorCampo(id);
+  const D=S.D;
+  if(v('activos')!=null)D.balance.activos=v('activos');
+  if(v('activoCorriente')!=null)D.balance.activoCorriente=v('activoCorriente');
+  if(v('pasivos')!=null)D.balance.pasivos=v('pasivos');
+  if(v('pasivoCorriente')!=null)D.balance.pasivoCorriente=v('pasivoCorriente');
+  if(v('patrimonio')!=null)D.balance.patrimonio=v('patrimonio');
+  if(v('ingresos')!=null)D.pl.ingresos=v('ingresos');
+  if(v('costos')!=null)D.pl.costos=v('costos');
+  if(v('gastos')!=null)D.pl.gastos=v('gastos');
+  if(v('utilidad')!=null)D.pl.utilidad=v('utilidad');
+  else if(v('ingresos')!=null)D.pl.utilidad=v('ingresos')-(v('costos')||0)-(v('gastos')||0);
+  if(v('ivaCompras')!=null)D.iva.ivaCompras=v('ivaCompras');
+  if(v('baseCompras')!=null)D.iva.baseCompras=v('baseCompras');
+  if(v('ivaVentas')!=null)D.iva.ivaVentas=v('ivaVentas');
+  if(v('baseVentas')!=null)D.iva.baseVentas=v('baseVentas');
+  if(v('retSoportadas')!=null)D.retenciones.soportadas=v('retSoportadas');
+  if(v('retGeneradas')!=null)D.retenciones.generadas=v('retGeneradas');
+  S.isReal=true; S.upload=null; S.mapping={};
+  render();
+}
+
+render();
+</script>

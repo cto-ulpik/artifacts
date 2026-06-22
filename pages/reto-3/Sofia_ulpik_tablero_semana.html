@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tablero ULPIK · Producción 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--naranja:#ff2500;--verde:#00adb0;--morado:#823bda;--negro:#222;--crema:#f8ede2;--gris:#f5f5f5}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--crema);font-family:'DM Sans',sans-serif;color:var(--negro);min-height:100vh}
+.topbar{background:var(--negro);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 32px}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--naranja)}
+.topbar-logo{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;letter-spacing:2px}
+.topbar-sub{font-size:11px;font-weight:300;opacity:.6;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.topbar-right{font-size:11px;opacity:.45;font-weight:300}
+.tabs-bar{background:var(--negro);padding:0 32px;display:flex;gap:0;border-top:1px solid rgba(255,255,255,.08);overflow-x:auto}
+.tab{padding:11px 22px;font-size:12px;font-weight:500;color:rgba(255,255,255,.45);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;letter-spacing:.3px}
+.tab:hover{color:rgba(255,255,255,.8)}
+.tab.active{color:#fff;border-bottom-color:var(--morado)}
+.tab.mes{color:rgba(255,255,255,.45)}
+.tab.mes.active{border-bottom-color:var(--verde)}
+.main{max-width:1080px;margin:0 auto;padding:36px 24px 80px}
+.panel{display:none}.panel.active{display:block}
+.week-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;flex-wrap:wrap;gap:10px}
+.week-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;line-height:1.1}
+.week-title span{display:block;font-size:13px;font-weight:400;color:#888;margin-bottom:4px;font-family:'DM Sans',sans-serif;letter-spacing:.5px;text-transform:uppercase}
+.badge{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:5px 14px;border-radius:20px;background:var(--morado);color:#fff}
+.badge.cerrado{background:var(--verde)}
+.badge.activo{background:var(--naranja)}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:28px}
+.mc{background:#fff;border-radius:12px;padding:18px 16px 14px;box-shadow:0 1px 8px rgba(0,0,0,.05);border-left:3px solid var(--morado)}
+.mc.v{border-left-color:var(--verde)}.mc.n{border-left-color:var(--naranja)}.mc.a{border-left-color:#e8a000}.mc.k{border-left-color:var(--negro)}
+.mc-label{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#aaa;margin-bottom:8px}
+.mc-val{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;line-height:1;margin-bottom:5px}
+.delta{font-size:11px;font-weight:600}
+.delta.up{color:var(--verde)}.delta.down{color:var(--naranja)}.delta.eq{color:#bbb}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px}
+@media(max-width:620px){.g2{grid-template-columns:1fr}}
+.card{background:#fff;border-radius:12px;padding:22px;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.card-full{background:#fff;border-radius:12px;padding:22px;box-shadow:0 1px 8px rgba(0,0,0,.05);margin-bottom:24px}
+.card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:16px;color:var(--negro)}
+.chart-h{position:relative;height:200px}
+.chart-hl{position:relative;height:260px}
+.res-g{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.res-b{border-radius:10px;padding:16px;text-align:center}
+.res-b.p{background:rgba(0,173,176,.08);border:1.5px solid var(--verde)}
+.res-b.ng{background:rgba(255,37,0,.06);border:1.5px solid var(--naranja)}
+.rn{font-family:'Playfair Display',serif;font-size:40px;font-weight:700}
+.res-b.p .rn{color:var(--verde)}.res-b.ng .rn{color:var(--naranja)}
+.rl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:#999;margin-top:3px}
+.bf-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.bf-c{border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
+.bf-c .d{width:8px;height:8px;border-radius:50%}
+.bf-c.r{background:rgba(255,37,0,.07);color:var(--naranja)}.bf-c.r .d{background:var(--naranja)}
+.bf-c.v{background:rgba(0,173,176,.07);color:var(--verde)}.bf-c.v .d{background:var(--verde)}
+.bf-c.a{background:rgba(232,160,0,.09);color:#b07800}.bf-c.a .d{background:#e8a000}
+.bf-c.s{background:#f5f5f5;color:#999}.bf-c.s .d{background:#ccc}
+.bf-bar{display:flex;height:8px;border-radius:6px;overflow:hidden;margin-top:10px;gap:1px}
+.nota{border-radius:0 10px 10px 0;padding:13px 16px;font-size:13px;line-height:1.65;margin-top:16px;border-left:3px solid var(--morado);background:var(--crema)}
+.nota.alerta{border-left-color:var(--naranja)}
+.nota.ok{border-left-color:var(--verde)}
+.obs-z{display:flex;align-items:center;gap:10px;padding:14px;background:rgba(0,173,176,.05);border-radius:10px;border:1px solid rgba(0,173,176,.18);margin-top:8px}
+.obs-z p{font-size:13px;color:#666}
+.caso{background:var(--crema);border-radius:10px;padding:16px;margin-bottom:12px;border-left:3px solid var(--naranja)}
+.caso h4{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--naranja);margin-bottom:4px}
+.caso p{font-size:13px;line-height:1.6;color:#555}
+.obs-badge{display:inline-block;background:var(--negro);color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;margin-bottom:12px}
+.evol{background:#fff;border-radius:12px;padding:22px;box-shadow:0 1px 8px rgba(0,0,0,.05);margin-bottom:24px}
+.tasa-pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px;margin-left:8px}
+.tasa-pill.alta{background:rgba(0,173,176,.12);color:var(--verde)}
+.tasa-pill.baja{background:rgba(255,37,0,.1);color:var(--naranja)}
+.footer{text-align:center;padding:28px;font-size:11px;color:#bbb;border-top:1px solid rgba(0,0,0,.05);margin-top:48px;letter-spacing:.5px}
+.sep{height:1px;background:rgba(0,0,0,.06);margin:20px 0}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="dot"></div>
+    <div>
+      <div class="topbar-logo">ULPIK</div>
+      <div class="topbar-sub">Tablero interno · Propiedad Intelectual · 2026</div>
+    </div>
+  </div>
+  <div class="topbar-right">Actualizado 18 Jun 2026</div>
+</div>
+
+<div class="tabs-bar">
+  <div class="tab mes" onclick="sw(0)">Mar 2026</div>
+  <div class="tab mes" onclick="sw(1)">Abr 2026</div>
+  <div class="tab mes" onclick="sw(2)">May 2026</div>
+  <div class="tab" onclick="sw(3)">1–5 Jun</div>
+  <div class="tab active" onclick="sw(4)">8–12 Jun</div>
+  <div class="tab" onclick="sw(5)">Evolución 2026</div>
+</div>
+
+<div class="main">
+
+<!-- MARZO -->
+<div class="panel" id="p0">
+  <div class="week-header">
+    <div class="week-title"><span>Resumen mensual</span>Marzo 2026</div>
+    <div class="badge cerrado">Mes cerrado</div>
+  </div>
+  <div class="metrics">
+    <div class="mc"><div class="mc-label">Títulos</div><div class="mc-val">6</div><div class="delta eq">1 semana registrada</div></div>
+    <div class="mc v"><div class="mc-label">Res. positivas</div><div class="mc-val" style="color:var(--verde)">3</div></div>
+    <div class="mc n"><div class="mc-label">Res. negativas</div><div class="mc-val" style="color:var(--naranja)">1</div></div>
+    <div class="mc a"><div class="mc-label">BFs totales</div><div class="mc-val" style="color:#e8a000">16</div></div>
+    <div class="mc k"><div class="mc-label">Obs.</div><div class="mc-val">0</div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="card-title">Resoluciones</div><div class="chart-h"><canvas id="cr0"></canvas></div><div class="res-g"><div class="res-b p"><div class="rn">3</div><div class="rl">Positivas</div></div><div class="res-b ng"><div class="rn">1</div><div class="rl">Negativas</div></div></div></div>
+    <div class="card"><div class="card-title">BFs</div><div class="chart-h"><canvas id="cb0"></canvas></div><div class="bf-chips"><div class="bf-c r"><span class="d"></span>Rojas: 2</div><div class="bf-c a"><span class="d"></span>Amarillas: 5</div><div class="bf-c v"><span class="d"></span>Verdes: 3</div><div class="bf-c s"><span class="d"></span>Sin rep: 6</div></div></div>
+  </div>
+  <div class="nota alerta"><strong>Resolución negativa sem 31 Mar:</strong> Probabilidad asignada 45% — estimación de éxito en apelación 60%.</div>
+</div>
+
+<!-- ABRIL -->
+<div class="panel" id="p1">
+  <div class="week-header">
+    <div class="week-title"><span>Resumen mensual</span>Abril 2026</div>
+    <div class="badge cerrado">Mes cerrado</div>
+  </div>
+  <div class="metrics">
+    <div class="mc"><div class="mc-label">Títulos</div><div class="mc-val">12</div><div class="delta eq">3 semanas</div></div>
+    <div class="mc v"><div class="mc-label">Res. positivas</div><div class="mc-val" style="color:var(--verde)">18</div></div>
+    <div class="mc n"><div class="mc-label">Res. negativas</div><div class="mc-val" style="color:var(--naranja)">1</div></div>
+    <div class="mc a"><div class="mc-label">BFs totales</div><div class="mc-val" style="color:#e8a000">55</div></div>
+    <div class="mc k"><div class="mc-label">Obs.</div><div class="mc-val">7</div></div>
+    <div class="mc v"><div class="mc-label">Tasa éxito</div><div class="mc-val" style="color:var(--verde);font-size:28px">94.7%</div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="card-title">Resoluciones</div><div class="chart-h"><canvas id="cr1"></canvas></div><div class="res-g"><div class="res-b p"><div class="rn">18</div><div class="rl">Positivas</div></div><div class="res-b ng"><div class="rn">1</div><div class="rl">Negativas</div></div></div></div>
+    <div class="card"><div class="card-title">BFs</div><div class="chart-h"><canvas id="cb1"></canvas></div><div class="bf-chips"><div class="bf-c r"><span class="d"></span>Rojas: 9</div><div class="bf-c a"><span class="d"></span>Amarillas: 18</div><div class="bf-c v"><span class="d"></span>Verdes: 21</div><div class="bf-c s"><span class="d"></span>Sin rep: 7</div></div></div>
+  </div>
+  <div class="evol"><div class="card-title">Evolución semanal</div><div class="chart-hl"><canvas id="ct1"></canvas></div></div>
+  <div class="nota alerta"><strong>Correctivos:</strong> Titular extranjero sin POA → incorporado al manual. Logo con ® → incorporado al manual.</div>
+</div>
+
+<!-- MAYO -->
+<div class="panel" id="p2">
+  <div class="week-header">
+    <div class="week-title"><span>Resumen mensual</span>Mayo 2026</div>
+    <div class="badge cerrado">Mes cerrado</div>
+  </div>
+  <div class="metrics">
+    <div class="mc"><div class="mc-label">Títulos</div><div class="mc-val">23</div><div class="delta eq">5 semanas</div></div>
+    <div class="mc v"><div class="mc-label">Res. positivas</div><div class="mc-val" style="color:var(--verde)">14</div></div>
+    <div class="mc n"><div class="mc-label">Res. negativas</div><div class="mc-val" style="color:var(--naranja)">5</div></div>
+    <div class="mc a"><div class="mc-label">BFs totales</div><div class="mc-val" style="color:#e8a000">56</div></div>
+    <div class="mc k"><div class="mc-label">Obs.</div><div class="mc-val">2</div></div>
+    <div class="mc n"><div class="mc-label">Tasa éxito</div><div class="mc-val" style="color:var(--naranja);font-size:28px">73.7%</div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="card-title">Resoluciones</div><div class="chart-h"><canvas id="cr2"></canvas></div><div class="res-g"><div class="res-b p"><div class="rn">14</div><div class="rl">Positivas</div></div><div class="res-b ng"><div class="rn">5</div><div class="rl">Negativas</div></div></div></div>
+    <div class="card"><div class="card-title">BFs</div><div class="chart-h"><canvas id="cb2"></canvas></div><div class="bf-chips"><div class="bf-c r"><span class="d"></span>Rojas: 11</div><div class="bf-c a"><span class="d"></span>Amarillas: 21</div><div class="bf-c v"><span class="d"></span>Verdes: 24</div></div></div>
+  </div>
+  <div class="evol"><div class="card-title">Evolución semanal</div><div class="chart-hl"><canvas id="ct2"></canvas></div></div>
+  <div class="nota alerta"><strong>5 negativas:</strong> SIMA, VJ Vera Jiménez, Piñas Canta a Piñas, Gio Joyería, MYR Boutique. Correctivos en BF por clases relacionadas, denominaciones geográficas y cobertura fonética.</div>
+</div>
+
+<!-- SEM 1-5 JUN -->
+<div class="panel" id="p3">
+  <div class="week-header">
+    <div class="week-title"><span>Semana registrada</span>1–5 Jun 2026</div>
+    <div class="badge">Junio · Sem 1</div>
+  </div>
+  <div class="metrics">
+    <div class="mc"><div class="mc-label">Títulos</div><div class="mc-val">4</div></div>
+    <div class="mc v"><div class="mc-label">Res. positivas</div><div class="mc-val" style="color:var(--verde)">0</div></div>
+    <div class="mc k"><div class="mc-label">Res. negativas</div><div class="mc-val">0</div></div>
+    <div class="mc a"><div class="mc-label">BFs totales</div><div class="mc-val" style="color:#e8a000">8</div></div>
+    <div class="mc k"><div class="mc-label">Obs.</div><div class="mc-val">1</div></div>
+  </div>
+  <div class="card-full"><div class="obs-z"><p>Sin resoluciones esta semana. Expedientes en trámite ante SENADI.</p></div></div>
+  <div class="g2">
+    <div class="card"><div class="card-title">BFs</div><div class="chart-h"><canvas id="cb3"></canvas></div><div class="bf-chips"><div class="bf-c r"><span class="d"></span>Rojas: 1</div><div class="bf-c a"><span class="d"></span>Amarillas: 3</div><div class="bf-c v"><span class="d"></span>Verdes: 4</div></div><div class="bf-bar"><div style="width:12.5%;background:var(--naranja)"></div><div style="width:37.5%;background:#e8a000"></div><div style="width:50%;background:var(--verde)"></div></div></div>
+    <div class="card"><div class="card-title">Marcas observadas</div><span class="obs-badge">1 caso</span><div class="caso"><h4>Clase 35 — Descripción incompleta</h4><p>"Gestión estratégica" sin alcance comercial. SENADI exige "gestión estratégica comercial". Socializado con cliente. <strong>Correctivo:</strong> Documentar en proceso que Clase 35 requiere especificar alcance comercial.</p></div></div>
+  </div>
+</div>
+
+<!-- SEM 8-12 JUN -->
+<div class="panel active" id="p4">
+  <div class="week-header">
+    <div class="week-title"><span>Semana activa</span>8–12 Jun 2026</div>
+    <div class="badge activo">Junio · Sem 2</div>
+  </div>
+  <div class="metrics">
+    <div class="mc"><div class="mc-label">Títulos</div><div class="mc-val">4</div><div class="delta eq">= vs ant.</div></div>
+    <div class="mc v"><div class="mc-label">Res. positivas</div><div class="mc-val" style="color:var(--verde)">3</div><div class="delta up">▲ +3 vs ant.</div></div>
+    <div class="mc k"><div class="mc-label">Res. negativas</div><div class="mc-val">0</div><div class="delta eq">= vs ant.</div></div>
+    <div class="mc a"><div class="mc-label">BFs totales</div><div class="mc-val" style="color:#e8a000">7</div><div class="delta down">▼ −1 vs ant.</div></div>
+    <div class="mc k"><div class="mc-label">Obs.</div><div class="mc-val">0</div><div class="delta up" style="color:var(--verde)">▲ mejor</div></div>
+    <div class="mc v"><div class="mc-label">Tasa éxito</div><div class="mc-val" style="color:var(--verde);font-size:28px">100%</div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="card-title">Resoluciones <span class="tasa-pill alta">100% éxito</span></div><div class="chart-h"><canvas id="cr4"></canvas></div><div class="res-g"><div class="res-b p"><div class="rn">3</div><div class="rl">Positivas</div></div><div class="res-b ng"><div class="rn">0</div><div class="rl">Negativas</div></div></div></div>
+    <div class="card"><div class="card-title">BFs</div><div class="chart-h"><canvas id="cb4"></canvas></div><div class="bf-chips"><div class="bf-c r"><span class="d"></span>Rojas: 1</div><div class="bf-c a"><span class="d"></span>Amarillas: 2</div><div class="bf-c v"><span class="d"></span>Verdes: 4</div></div><div class="bf-bar"><div style="width:14.3%;background:var(--naranja)"></div><div style="width:28.6%;background:#e8a000"></div><div style="width:57.1%;background:var(--verde)"></div></div></div>
+  </div>
+  <div class="card-full"><div class="card-title">Marcas observadas</div><div class="obs-z"><p>Sin marcas observadas esta semana. ✓</p></div></div>
+  <div class="nota ok"><strong>Semana positiva:</strong> 3 resoluciones positivas, 0 negativas, 0 observadas. La semana demuestra mejora respecto al cierre de mayo (73.7% tasa éxito). BFs con mayoría verde (57%) — tendencia saludable.</div>
+</div>
+
+<!-- EVOLUCIÓN 2026 -->
+<div class="panel" id="p5">
+  <div class="week-header">
+    <div class="week-title"><span>Vista consolidada</span>Evolución 2026</div>
+    <div class="badge cerrado">Histórico</div>
+  </div>
+  <div class="metrics">
+    <div class="mc"><div class="mc-label">Total títulos</div><div class="mc-val">49</div><div class="delta eq">Mar–Jun</div></div>
+    <div class="mc v"><div class="mc-label">Total Res+</div><div class="mc-val" style="color:var(--verde)">38</div></div>
+    <div class="mc n"><div class="mc-label">Total Res−</div><div class="mc-val" style="color:var(--naranja)">8</div></div>
+    <div class="mc a"><div class="mc-label">Total BFs</div><div class="mc-val" style="color:#e8a000">135</div></div>
+    <div class="mc v"><div class="mc-label">Tasa global</div><div class="mc-val" style="color:var(--verde);font-size:28px">82.6%</div></div>
+  </div>
+  <div class="evol"><div class="card-title">Títulos emitidos por semana</div><div class="chart-hl"><canvas id="ct5a"></canvas></div></div>
+  <div class="evol"><div class="card-title">Resoluciones positivas vs negativas</div><div class="chart-hl"><canvas id="ct5b"></canvas></div></div>
+  <div class="evol"><div class="card-title">BFs totales por semana</div><div class="chart-hl"><canvas id="ct5c"></canvas></div></div>
+</div>
+
+</div>
+<div class="footer">ULPIK · Tablero de Producción Interno · 2026 · Uso exclusivo del equipo</div>
+
+<script>
+const ci={};
+function dc(id){if(ci[id]){ci[id].destroy();delete ci[id];}}
+
+const LABELS_ALL=['31Mar','6–10Abr','13–17Abr','20–24Abr','4–8May','11–15May','18–22May','25–29May','1–5Jun','8–12Jun'];
+const T_ALL=[6,8,3,1,1,10,8,4,4,4];
+const RP_ALL=[3,6,2,10,9,3,0,2,0,3];
+const RN_ALL=[1,0,1,0,5,0,0,0,0,0];
+const BF_ALL=[16,20,18,17,16,14,14,12,8,7];
+const MO_ALL=[0,2,3,2,0,0,2,0,1,0];
+
+const donut=(labels,data,colors)=>({type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{font:{family:'DM Sans',size:11},padding:14,color:'#444'}}}}});
+const line=(labels,datasets)=>({type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{font:{family:'DM Sans',size:11},color:'#444',padding:16}}},scales:{x:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{family:'DM Sans',size:11},color:'#888'}},y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{family:'DM Sans',size:11},color:'#888'}}}}});
+const bar=(labels,datasets)=>({type:'bar',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{font:{family:'DM Sans',size:11},color:'#444',padding:16}}},scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10},color:'#888'}},y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{family:'DM Sans',size:11},color:'#888'}}}}});
+
+function sw(i){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('p'+i).classList.add('active');
+  document.querySelectorAll('.tab')[i].classList.add('active');
+  Object.keys(ci).forEach(k=>{ci[k].destroy();delete ci[k];});
+  build(i);
+}
+
+function build(i){
+  if(i===0){
+    ci['cr0']=new Chart(document.getElementById('cr0'),donut(['Positivas','Negativas'],[3,1],['#00adb0','#ff2500']));
+    ci['cb0']=new Chart(document.getElementById('cb0'),donut(['Rojas','Amarillas','Verdes','Sin rep'],[2,5,3,6],['#ff2500','#e8a000','#00adb0','#ccc']));
+  }
+  if(i===1){
+    ci['cr1']=new Chart(document.getElementById('cr1'),donut(['Positivas','Negativas'],[18,1],['#00adb0','#ff2500']));
+    ci['cb1']=new Chart(document.getElementById('cb1'),donut(['Rojas','Amarillas','Verdes','Sin rep'],[9,18,21,7],['#ff2500','#e8a000','#00adb0','#ccc']));
+    ci['ct1']=new Chart(document.getElementById('ct1'),line(['6–10 Abr','13–17 Abr','20–24 Abr'],[
+      {label:'Títulos',data:[8,3,1],borderColor:'#823bda',backgroundColor:'rgba(130,59,218,.08)',tension:.4,pointRadius:5,fill:true},
+      {label:'Res+',data:[6,2,10],borderColor:'#00adb0',backgroundColor:'rgba(0,173,176,.06)',tension:.4,pointRadius:5,fill:true},
+      {label:'Res−',data:[0,1,0],borderColor:'#ff2500',tension:.4,pointRadius:5,fill:false},
+      {label:'Obs',data:[2,3,2],borderColor:'#222',tension:.4,pointRadius:5,fill:false,borderDash:[4,3]}
+    ]));
+  }
+  if(i===2){
+    ci['cr2']=new Chart(document.getElementById('cr2'),donut(['Positivas','Negativas'],[14,5],['#00adb0','#ff2500']));
+    ci['cb2']=new Chart(document.getElementById('cb2'),donut(['Rojas','Amarillas','Verdes'],[11,21,24],['#ff2500','#e8a000','#00adb0']));
+    ci['ct2']=new Chart(document.getElementById('ct2'),line(['4–8 May','11–15 May','18–22 May','25–29 May'],[
+      {label:'Títulos',data:[1,10,8,4],borderColor:'#823bda',backgroundColor:'rgba(130,59,218,.08)',tension:.4,pointRadius:5,fill:true},
+      {label:'Res+',data:[9,3,0,2],borderColor:'#00adb0',backgroundColor:'rgba(0,173,176,.06)',tension:.4,pointRadius:5,fill:true},
+      {label:'Res−',data:[5,0,0,0],borderColor:'#ff2500',tension:.4,pointRadius:5,fill:false},
+      {label:'Obs',data:[0,0,2,0],borderColor:'#222',tension:.4,pointRadius:5,fill:false,borderDash:[4,3]}
+    ]));
+  }
+  if(i===3){
+    ci['cb3']=new Chart(document.getElementById('cb3'),donut(['Rojas','Amarillas','Verdes'],[1,3,4],['#ff2500','#e8a000','#00adb0']));
+  }
+  if(i===4){
+    ci['cr4']=new Chart(document.getElementById('cr4'),donut(['Positivas','Negativas'],[3,0],['#00adb0','#ff2500']));
+    ci['cb4']=new Chart(document.getElementById('cb4'),donut(['Rojas','Amarillas','Verdes'],[1,2,4],['#ff2500','#e8a000','#00adb0']));
+  }
+  if(i===5){
+    ci['ct5a']=new Chart(document.getElementById('ct5a'),bar(LABELS_ALL,[
+      {label:'Títulos',data:T_ALL,backgroundColor:'rgba(130,59,218,.7)',borderRadius:4}
+    ]));
+    ci['ct5b']=new Chart(document.getElementById('ct5b'),bar(LABELS_ALL,[
+      {label:'Resoluciones +',data:RP_ALL,backgroundColor:'rgba(0,173,176,.7)',borderRadius:4},
+      {label:'Resoluciones −',data:RN_ALL,backgroundColor:'rgba(255,37,0,.7)',borderRadius:4}
+    ]));
+    ci['ct5c']=new Chart(document.getElementById('ct5c'),line(LABELS_ALL,[
+      {label:'BFs totales',data:BF_ALL,borderColor:'#e8a000',backgroundColor:'rgba(232,160,0,.08)',tension:.4,pointRadius:5,fill:true},
+      {label:'Marcas obs.',data:MO_ALL,borderColor:'#ff2500',tension:.4,pointRadius:5,fill:false,borderDash:[4,3]}
+    ]));
+  }
+}
+build(4);
+</script>
+</body>
+</html>
