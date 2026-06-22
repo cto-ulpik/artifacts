@@ -1,0 +1,629 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);font-size:15px;color:var(--color-text-primary);line-height:1.6}
+.shell{padding:1.5rem 0;max-width:680px}
+.step-header{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem}
+.step-badge{width:28px;height:28px;border-radius:50%;background:var(--color-background-info);color:var(--color-text-info);font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-title{font-size:18px;font-weight:500}
+.step-sub{font-size:13px;color:var(--color-text-secondary);margin-top:2px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1rem}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.field-row.single{grid-template-columns:1fr}
+.field-row.three{grid-template-columns:1fr 1fr 1fr}
+.field-label{font-size:13px;color:var(--color-text-secondary);margin-bottom:4px;display:block}
+input[type=text],input[type=date],input[type=email],select,textarea{width:100%;padding:8px 10px;font-size:14px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--color-border-info)}
+textarea{resize:vertical;min-height:60px;line-height:1.5}
+.section-label{font-size:12px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .6rem;border-bottom:0.5px solid var(--color-border-tertiary);padding-bottom:.4rem}
+.pill-group{display:flex;gap:8px;flex-wrap:wrap}
+.pill{padding:6px 14px;border-radius:20px;border:0.5px solid var(--color-border-secondary);cursor:pointer;font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary);transition:all .15s;white-space:nowrap}
+.pill.active{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
+.btn{padding:9px 20px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);font-size:14px;font-weight:500;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);transition:all .15s}
+.btn:hover{background:var(--color-background-secondary)}
+.btn.primary{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info)}
+.btn.primary:hover{opacity:.88}
+.btn.success{background:var(--color-background-success);border-color:var(--color-border-success);color:var(--color-text-success)}
+.btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:1rem}
+.alert{padding:.75rem 1rem;border-radius:var(--border-radius-md);font-size:13px;margin-bottom:1rem}
+.alert.info{background:var(--color-background-info);color:var(--color-text-info);border:0.5px solid var(--color-border-info)}
+.alert.success{background:var(--color-background-success);color:var(--color-text-success);border:0.5px solid var(--color-border-success)}
+.upload-zone{border:1px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);padding:1.25rem;text-align:center;cursor:pointer;transition:all .15s;background:var(--color-background-secondary)}
+.upload-zone:hover{border-color:var(--color-border-info)}
+.upload-zone input{display:none}
+.upload-zone .uz-icon{font-size:24px;color:var(--color-text-secondary);margin-bottom:.5rem}
+.upload-zone .uz-label{font-size:13px;color:var(--color-text-secondary)}
+.upload-zone .uz-hint{font-size:12px;color:var(--color-text-tertiary);margin-top:4px}
+.file-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;background:var(--color-background-success);color:var(--color-text-success);font-size:12px;margin:4px;border:0.5px solid var(--color-border-success)}
+.nav-steps{display:flex;gap:0;margin-bottom:2rem;border-radius:var(--border-radius-lg);overflow:hidden;border:0.5px solid var(--color-border-tertiary)}
+.nav-step{flex:1;padding:10px 8px;text-align:center;font-size:12px;font-weight:500;color:var(--color-text-secondary);background:var(--color-background-secondary);border-right:0.5px solid var(--color-border-tertiary);cursor:pointer;transition:all .15s;line-height:1.3}
+.nav-step:last-child{border-right:none}
+.nav-step.active{background:var(--color-background-info);color:var(--color-text-info)}
+.nav-step.done{background:var(--color-background-success);color:var(--color-text-success)}
+.accionista-block{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:1rem;margin-bottom:.75rem;position:relative}
+.accionista-block .ac-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+.ac-badge{font-size:12px;padding:3px 10px;border-radius:12px;background:var(--color-background-info);color:var(--color-text-info)}
+.doc-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:.75rem}
+.doc-card .doc-title{font-size:15px;font-weight:500;margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
+.doc-card .doc-preview{font-size:12px;line-height:1.7;color:var(--color-text-secondary);white-space:pre-wrap;max-height:180px;overflow-y:auto;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:.75rem;background:var(--color-background-secondary);font-family:var(--font-mono)}
+.loading-bar{height:3px;background:var(--color-background-info);border-radius:2px;animation:grow 1.5s ease-in-out infinite alternate}
+@keyframes grow{from{width:20%}to{width:90%}}
+.hidden{display:none}
+.badge-cargo{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.badge-gg{background:var(--color-background-info);color:var(--color-text-info)}
+.badge-pre{background:var(--color-background-warning);color:var(--color-text-warning)}
+.badge-uni{background:var(--color-background-success);color:var(--color-text-success)}
+.tag-cloud{display:flex;flex-wrap:wrap;gap:6px;margin-top:.5rem}
+.tag-small{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--color-background-secondary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary)}
+.progress-dots{display:flex;gap:6px;align-items:center;margin-bottom:1rem}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--color-border-secondary)}
+.dot.active{background:var(--color-text-info)}
+.dot.done{background:var(--color-text-success)}
+</style>
+
+<div class="shell">
+<h2 class="sr-only">Dashboard de renovación de nombramientos para S.A.S. ecuatorianas</h2>
+
+<div id="app"></div>
+</div>
+
+<script>
+const S = {
+  step: 0,
+  tipo: '',
+  empresa: {nombre:'',ruc:'',domicilio:'',provincia:'',ciudad:'',constitucion:'',inscripcion:'',numInscripcion:'',artGerente:'',artPresidente:''},
+  accionistas: [],
+  fecha: '',
+  periodo: '2',
+  correos: 'clo@ulpik.com, legal3@ulpik.com',
+  archivosNombres: [],
+  docsGenerados: {},
+  generating: false
+};
+
+const steps = ['Tipo de S.A.S.','Datos de la compañía','Accionistas y cargos','Parámetros legales','Revisión y generación'];
+
+function render(){
+  document.getElementById('app').innerHTML = buildApp();
+  attachEvents();
+}
+
+function buildApp(){
+  let nav = `<div class="nav-steps">`;
+  steps.forEach((s,i)=>{
+    let cls = i<S.step?'done':i===S.step?'active':'';
+    nav+=`<div class="nav-step ${cls}" onclick="goStep(${i})">${i<S.step?'<i class="ti ti-check" aria-hidden="true"></i> ':''}<span>${s}</span></div>`;
+  });
+  nav+=`</div>`;
+
+  let body = '';
+  if(S.step===0) body=stepTipo();
+  else if(S.step===1) body=stepEmpresa();
+  else if(S.step===2) body=stepAccionistas();
+  else if(S.step===3) body=stepParams();
+  else if(S.step===4) body=stepRevision();
+
+  return nav+body;
+}
+
+function stepTipo(){
+  return `
+<div class="card">
+  <div class="step-header">
+    <div class="step-badge">1</div>
+    <div><div class="step-title">Tipo de S.A.S.</div><div class="step-sub">Define la estructura societaria para adaptar los documentos</div></div>
+  </div>
+  <div class="alert info"><i class="ti ti-info-circle" aria-hidden="true"></i> El tipo de S.A.S. determina si el acta se llama "Asamblea General" (2+ accionistas) o "Resoluciones del Accionista Único" (unipersonal).</div>
+  <p class="section-label">¿Cuántos accionistas tiene la compañía?</p>
+  <div class="pill-group">
+    <div class="pill ${S.tipo==='uni'?'active':''}" onclick="setTipo('uni')"><i class="ti ti-user" aria-hidden="true"></i> Accionista único (unipersonal)</div>
+    <div class="pill ${S.tipo==='multi'?'active':''}" onclick="setTipo('multi')"><i class="ti ti-users" aria-hidden="true"></i> Dos o más accionistas</div>
+  </div>
+  ${S.tipo?`
+  <div style="margin-top:1.25rem">
+  <p class="section-label">Documentos que se generarán</p>
+  <div class="tag-cloud">
+    <span class="tag-small"><i class="ti ti-file-text" aria-hidden="true"></i> ${S.tipo==='uni'?'Resoluciones del accionista único':'Acta de asamblea general extraordinaria'}</span>
+    <span class="tag-small"><i class="ti ti-file-text" aria-hidden="true"></i> Nombramiento de Gerente General</span>
+    ${S.tipo==='multi'?'<span class="tag-small"><i class="ti ti-file-text" aria-hidden="true"></i> Nombramiento de Presidente</span>':''}
+    <span class="tag-small"><i class="ti ti-file-text" aria-hidden="true"></i> Solicitud a la Superintendencia</span>
+  </div>
+  </div>
+  <div class="btn-row"><button class="btn primary" onclick="goStep(1)">Continuar <i class="ti ti-arrow-right" aria-hidden="true"></i></button></div>
+  `:''}
+</div>`;
+}
+
+function stepEmpresa(){
+  const e=S.empresa;
+  return `
+<div class="card">
+  <div class="step-header">
+    <div class="step-badge">2</div>
+    <div><div class="step-title">Datos de la compañía</div><div class="step-sub">Información registral y estatutaria</div></div>
+  </div>
+
+  <p class="section-label">Importar desde documentos (opcional)</p>
+  <div class="upload-zone" onclick="document.getElementById('fUpload').click()">
+    <input type="file" id="fUpload" multiple accept=".pdf,.jpg,.jpeg,.png" onchange="handleFiles(event)">
+    <div class="uz-icon"><i class="ti ti-upload" aria-hidden="true"></i></div>
+    <div class="uz-label">Adjuntar RUC, acto constitutivo, estatutos, razón de inscripción</div>
+    <div class="uz-hint">Los datos visibles en los documentos se usarán como referencia</div>
+  </div>
+  ${S.archivosNombres.length?`<div style="margin-top:.5rem">${S.archivosNombres.map(n=>`<span class="file-chip"><i class="ti ti-file" aria-hidden="true"></i> ${n}</span>`).join('')}</div>`:''}
+
+  <p class="section-label" style="margin-top:1rem">Información de la compañía</p>
+  <div class="field-row">
+    <div><label class="field-label">Nombre de la compañía *</label><input type="text" id="e_nombre" value="${e.nombre}" placeholder="TECH-PROJECT S.A.S." onchange="updE('nombre',this.value)"></div>
+    <div><label class="field-label">RUC *</label><input type="text" id="e_ruc" value="${e.ruc}" placeholder="1891811907001" onchange="updE('ruc',this.value)"></div>
+  </div>
+  <div class="field-row single">
+    <div><label class="field-label">Domicilio completo *</label><input type="text" id="e_dom" value="${e.domicilio}" placeholder="Tungurahua, Ambato, Calle de las Pasiones, Parroquia Huachi Grande" onchange="updE('domicilio',this.value)"></div>
+  </div>
+  <div class="field-row">
+    <div><label class="field-label">Provincia</label><input type="text" id="e_prov" value="${e.provincia}" placeholder="Tungurahua" onchange="updE('provincia',this.value)"></div>
+    <div><label class="field-label">Ciudad</label><input type="text" id="e_ciudad" value="${e.ciudad}" placeholder="Ambato" onchange="updE('ciudad',this.value)"></div>
+  </div>
+
+  <p class="section-label">Datos del acto constitutivo</p>
+  <div class="field-row three">
+    <div><label class="field-label">Fecha de constitución</label><input type="date" id="e_const" value="${e.constitucion}" onchange="updE('constitucion',this.value)"></div>
+    <div><label class="field-label">Fecha de inscripción</label><input type="date" id="e_insc" value="${e.inscripcion}" onchange="updE('inscripcion',this.value)"></div>
+    <div><label class="field-label">N.° de inscripción</label><input type="text" id="e_ninsc" value="${e.numInscripcion}" placeholder="160955" onchange="updE('numInscripcion',this.value)"></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="goStep(0)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Atrás</button>
+    <button class="btn primary" onclick="goStep(2)">Continuar <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+  </div>
+</div>`;
+}
+
+function stepAccionistas(){
+  let blocks='';
+  S.accionistas.forEach((ac,i)=>{
+    const cargoBadge = ac.cargo==='gg'?'<span class="badge-cargo badge-gg">Gerente General</span>':ac.cargo==='pre'?'<span class="badge-cargo badge-pre">Presidente</span>':'<span class="badge-cargo badge-uni">GG + Accionista único</span>';
+    blocks+=`
+    <div class="accionista-block">
+      <div class="ac-header"><span style="font-size:14px;font-weight:500">Accionista ${i+1}</span>${cargoBadge}</div>
+      <div class="field-row">
+        <div><label class="field-label">Apellidos y nombres completos *</label><input type="text" value="${ac.nombre}" placeholder="NAVAS JACOME RICHARD FERNANDO" onchange="updAc(${i},'nombre',this.value)"></div>
+        <div><label class="field-label">Cédula de ciudadanía *</label><input type="text" value="${ac.cedula}" placeholder="0550008106" onchange="updAc(${i},'cedula',this.value)"></div>
+      </div>
+      <div class="field-row three">
+        <div><label class="field-label">Código dactilar</label><input type="text" value="${ac.dactilar}" placeholder="V3333V4222" onchange="updAc(${i},'dactilar',this.value)"></div>
+        <div><label class="field-label">Nacionalidad</label><input type="text" value="${ac.nacionalidad}" placeholder="ecuatoriana" onchange="updAc(${i},'nacionalidad',this.value)"></div>
+        <div><label class="field-label">Domicilio</label><input type="text" value="${ac.domicilio}" placeholder="Ambato" onchange="updAc(${i},'domicilio',this.value)"></div>
+      </div>
+      ${S.tipo==='multi'?`
+      <div class="field-row">
+        <div><label class="field-label">% de acciones</label><input type="text" value="${ac.acciones}" placeholder="50%" onchange="updAc(${i},'acciones',this.value)"></div>
+        <div><label class="field-label">Cargo a renovar</label><select onchange="updAc(${i},'cargo',this.value)">
+          <option value="gg" ${ac.cargo==='gg'?'selected':''}>Gerente General</option>
+          <option value="pre" ${ac.cargo==='pre'?'selected':''}>Presidente</option>
+        </select></div>
+      </div>`:`<div class="field-row single"><div><label class="field-label">% de acciones</label><input type="text" value="${ac.acciones}" placeholder="100%" onchange="updAc(${i},'acciones',this.value)"></div></div>`}
+      ${S.accionistas.length>1?`<button class="btn" style="font-size:12px;padding:4px 10px;margin-top:.5rem" onclick="rmAc(${i})"><i class="ti ti-trash" aria-hidden="true"></i> Eliminar</button>`:''}
+    </div>`;
+  });
+
+  return `
+<div class="card">
+  <div class="step-header">
+    <div class="step-badge">3</div>
+    <div><div class="step-title">Accionistas y cargos</div><div class="step-sub">${S.tipo==='uni'?'Accionista único que asume la Gerencia General':'Datos de todos los accionistas con sus cargos'}</div></div>
+  </div>
+  ${S.tipo==='uni'?`<div class="alert info"><i class="ti ti-info-circle" aria-hidden="true"></i> S.A.S. unipersonal: el único accionista actúa como Gerente General y suscribe todos los documentos.</div>`:`<div class="alert info"><i class="ti ti-info-circle" aria-hidden="true"></i> Ingresa primero al Gerente General y luego al Presidente. Asigna el cargo de cada accionista.</div>`}
+  ${blocks}
+  ${(S.tipo==='multi' && S.accionistas.length<5)||S.tipo==='uni' && S.accionistas.length<1?`<button class="btn" onclick="addAc()" style="margin-bottom:.75rem"><i class="ti ti-plus" aria-hidden="true"></i> Agregar accionista</button>`:''}
+  <div class="btn-row">
+    <button class="btn" onclick="goStep(1)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Atrás</button>
+    <button class="btn primary" onclick="goStep(3)">Continuar <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+  </div>
+</div>`;
+}
+
+function stepParams(){
+  const gg = S.accionistas.find(a=>a.cargo==='gg')||S.accionistas[0]||{};
+  const pre = S.accionistas.find(a=>a.cargo==='pre');
+  return `
+<div class="card">
+  <div class="step-header">
+    <div class="step-badge">4</div>
+    <div><div class="step-title">Parámetros legales</div><div class="step-sub">Fechas, período y referencias estatutarias</div></div>
+  </div>
+
+  <p class="section-label">Fechas del proceso</p>
+  <div class="field-row">
+    <div><label class="field-label">Fecha del acta y nombramientos *</label><input type="date" id="p_fecha" value="${S.fecha}" onchange="S.fecha=this.value;updDOM()"></div>
+    <div><label class="field-label">Período estatutario *</label><select onchange="S.periodo=this.value;updDOM()">
+      <option value="2" ${S.periodo==='2'?'selected':''}>2 años</option>
+      <option value="3" ${S.periodo==='3'?'selected':''}>3 años</option>
+      <option value="4" ${S.periodo==='4'?'selected':''}>4 años</option>
+      <option value="5" ${S.periodo==='5'?'selected':''}>5 años</option>
+    </select></div>
+  </div>
+
+  <p class="section-label">Referencias estatutarias</p>
+  <div class="field-row">
+    <div><label class="field-label">Art. del estatuto — facultades del Gerente General</label><input type="text" id="p_artGG" value="${S.empresa.artGerente}" placeholder="Artículo Séptimo" onchange="updE('artGerente',this.value)"></div>
+    <div><label class="field-label">Art. del estatuto — facultades del Presidente</label><input type="text" id="p_artPRE" value="${S.empresa.artPresidente}" placeholder="Artículo Décimo" onchange="updE('artPresidente',this.value)"></div>
+  </div>
+  <div class="alert info" style="margin-top:.25rem"><i class="ti ti-info-circle" aria-hidden="true"></i> Si no conoces los artículos exactos, coloca "XX" y corrígelos antes de imprimir.</div>
+
+  <p class="section-label">Hora de la asamblea (solo referencial)</p>
+  <div class="field-row">
+    <div><label class="field-label">Hora de inicio</label><input type="text" id="p_hora1" value="${S.horaInicio||'09h00'}" placeholder="09h00" onchange="S.horaInicio=this.value"></div>
+    <div><label class="field-label">Hora de cierre</label><input type="text" id="p_hora2" value="${S.horaFin||'10h30'}" placeholder="10h30" onchange="S.horaFin=this.value"></div>
+  </div>
+
+  <p class="section-label">Correos para notificaciones</p>
+  <div class="field-row single">
+    <div><label class="field-label">Correos electrónicos (separados por coma)</label><input type="text" value="${S.correos}" placeholder="clo@ulpik.com, legal3@ulpik.com" onchange="S.correos=this.value"></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="goStep(2)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Atrás</button>
+    <button class="btn primary" onclick="goStep(4)">Revisar y generar <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+  </div>
+</div>`;
+}
+
+function stepRevision(){
+  const gg = S.accionistas.find(a=>a.cargo==='gg')||S.accionistas[0]||{nombre:'[Gerente]',cedula:'',acciones:''};
+  const pre = S.accionistas.find(a=>a.cargo==='pre')||null;
+  const e = S.empresa;
+  const fDoc = formatDate(S.fecha);
+  const ciudad = e.ciudad||'[Ciudad]';
+  const correos = S.correos||'[correos]';
+  const periodo = S.periodo||'2';
+  const horaI = S.horaInicio||'09h00';
+  const horaF = S.horaFin||'10h30';
+  const artGG = e.artGerente||'XX';
+  const artPRE = e.artPresidente||'XX';
+  const numInsc = e.numInscripcion||'XXXXX';
+  const fConst = formatDate(e.constitucion)||'[fecha constitución]';
+  const fInsc = formatDate(e.inscripcion)||'[fecha inscripción]';
+
+  const fConst2 = e.constitucion? new Date(e.constitucion).toLocaleDateString('es-EC',{day:'numeric',month:'long',year:'numeric'}) : '[fecha constitución]';
+  const fInsc2 = e.inscripcion? new Date(e.inscripcion).toLocaleDateString('es-EC',{day:'numeric',month:'long',year:'numeric'}) : '[fecha inscripción]';
+  const fDoc2 = S.fecha? new Date(S.fecha).toLocaleDateString('es-EC',{day:'numeric',month:'long',year:'numeric'}) : '[fecha]';
+  const fDocLiteral = S.fecha? new Date(S.fecha).toLocaleDateString('es-EC',{day:'numeric',month:'long',year:'numeric'}) : '[fecha]';
+
+  const nombreGG = gg.nombre||'[GERENTE GENERAL]';
+  const ciGG = gg.cedula||'[CI GG]';
+  const dacGG = gg.dactilar||'[COD]';
+  const domGG = gg.domicilio||ciudad;
+  const nacGG = gg.nacionalidad||'ecuatoriana';
+
+  const missingFields = [];
+  if(!e.nombre) missingFields.push('Nombre de la compañía');
+  if(!e.ruc) missingFields.push('RUC');
+  if(!e.domicilio) missingFields.push('Domicilio');
+  if(!S.fecha) missingFields.push('Fecha del acta');
+  if(!gg.nombre) missingFields.push('Nombre del Gerente General');
+  if(!gg.cedula) missingFields.push('Cédula del Gerente General');
+  if(S.tipo==='multi'&&!pre) missingFields.push('Datos del Presidente');
+
+  let docs = {};
+
+  if(S.tipo==='uni'){
+    docs['acta'] = generarActaUni({e,gg,fDoc2,horaI,horaF,periodo,ciudad,artGG,numInsc,fConst2,fInsc2});
+    docs['nombramiento_gg'] = generarNombGG({e,gg,fDoc2,ciudad,periodo,artGG,artPRE,numInsc,fConst2,fInsc2,nacGG,domGG,dacGG,ciGG,nombreGG,fDocLiteral});
+    docs['solicitud'] = generarSolicitudUni({e,gg,fDoc2,ciudad,correos,fDocLiteral});
+  } else {
+    const nombrePRE = pre?(pre.nombre||'[PRESIDENTE]'):'[PRESIDENTE]';
+    const ciPRE = pre?(pre.cedula||'[CI PRE]'):'[CI PRE]';
+    const dacPRE = pre?(pre.dactilar||'[COD]'):'[COD]';
+    const domPRE = pre?(pre.domicilio||ciudad):ciudad;
+    const nacPRE = pre?(pre.nacionalidad||'ecuatoriana'):'ecuatoriana';
+    const accGG = gg.acciones||'[X]%';
+    const accPRE = pre?(pre.acciones||'[X]%'):'[X]%';
+    docs['acta'] = generarActaMulti({e,gg,pre,fDoc2,horaI,horaF,periodo,ciudad,artGG,artPRE,numInsc,fConst2,fInsc2,nombreGG,ciGG,nombrePRE,ciPRE,accGG,accPRE});
+    docs['nombramiento_gg'] = generarNombGG({e,gg,fDoc2,ciudad,periodo,artGG,artPRE,numInsc,fConst2,fInsc2,nacGG,domGG,dacGG,ciGG,nombreGG,fDocLiteral});
+    docs['nombramiento_pre'] = generarNombPRE({e,gg,pre,fDoc2,ciudad,periodo,artGG,artPRE,numInsc,fConst2,fInsc2,nacPRE,domPRE,dacPRE,ciPRE,nombrePRE,ciGG,nombreGG,fDocLiteral});
+    docs['solicitud'] = generarSolicitudMulti({e,gg,pre,fDoc2,ciudad,correos,fDocLiteral,nombreGG,ciGG,nombrePRE,ciPRE});
+  }
+  S.docsGenerados = docs;
+
+  const docLabels = {
+    acta: S.tipo==='uni'?'Resoluciones del accionista único':'Acta de asamblea general extraordinaria',
+    nombramiento_gg: 'Nombramiento — Gerente General',
+    nombramiento_pre: 'Nombramiento — Presidente',
+    solicitud: 'Solicitud ante la Superintendencia'
+  };
+
+  let summary = `
+<div class="card" style="margin-bottom:.75rem">
+  <div class="step-header">
+    <div class="step-badge">5</div>
+    <div><div class="step-title">Revisión y documentos generados</div><div class="step-sub">Revisa cada documento antes de imprimir o exportar</div></div>
+  </div>
+  ${missingFields.length?`<div class="alert" style="background:var(--color-background-warning);border-color:var(--color-border-warning);color:var(--color-text-warning)"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Campos incompletos: <strong>${missingFields.join(', ')}</strong>. Los documentos se generan con marcadores [XX] en esos campos.</div>`:'<div class="alert success"><i class="ti ti-circle-check" aria-hidden="true"></i> Todos los datos están completos. Los documentos están listos para revisión.</div>'}
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1rem">
+    <div style="text-align:center;padding:.75rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md)">
+      <div style="font-size:22px;font-weight:500;color:var(--color-text-info)">${Object.keys(docs).length}</div>
+      <div style="font-size:12px;color:var(--color-text-secondary)">Documentos</div>
+    </div>
+    <div style="text-align:center;padding:.75rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md)">
+      <div style="font-size:22px;font-weight:500;color:var(--color-text-success)">${S.tipo==='uni'?'1':'2'}</div>
+      <div style="font-size:12px;color:var(--color-text-secondary)">Accionistas</div>
+    </div>
+    <div style="text-align:center;padding:.75rem;background:var(--color-background-secondary);border-radius:var(--border-radius-md)">
+      <div style="font-size:22px;font-weight:500;color:var(--color-text-warning)">${periodo}</div>
+      <div style="font-size:12px;color:var(--color-text-secondary)">Años de período</div>
+    </div>
+  </div>
+  <div class="btn-row" style="justify-content:flex-start;margin-top:0">
+    <button class="btn" onclick="goStep(3)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Editar datos</button>
+    <button class="btn success" onclick="printAll()"><i class="ti ti-printer" aria-hidden="true"></i> Imprimir todos</button>
+  </div>
+</div>`;
+
+  let docCards = '';
+  Object.keys(docs).forEach(key=>{
+    docCards+=`
+<div class="doc-card">
+  <div class="doc-title"><i class="ti ti-file-text" aria-hidden="true"></i> ${docLabels[key]||key}</div>
+  <div class="doc-preview" id="prev_${key}">${escHTML(docs[key])}</div>
+  <div class="btn-row" style="margin-top:.75rem">
+    <button class="btn" onclick="copyDoc('${key}')"><i class="ti ti-copy" aria-hidden="true"></i> Copiar texto</button>
+    <button class="btn primary" onclick="printDoc('${key}','${(docLabels[key]||key)}')"><i class="ti ti-printer" aria-hidden="true"></i> Imprimir</button>
+  </div>
+</div>`;
+  });
+
+  return summary+docCards;
+}
+
+function generarActaUni({e,gg,fDoc2,horaI,horaF,periodo,ciudad,artGG,numInsc,fConst2,fInsc2}){
+  const nombre = e.nombre||'[COMPAÑÍA]';
+  const prov = e.provincia||'[PROVINCIA]';
+  const ruc = e.ruc||'[RUC]';
+  const dom = e.domicilio||'[domicilio]';
+  const nombreGG = gg.nombre||'[GERENTE GENERAL]';
+  const ciGG = gg.cedula||'[CI]';
+  return `ACTA DE RESOLUCIONES ADOPTADAS POR EL ACCIONISTA ÚNICO DE LA COMPAÑÍA ${nombre}
+
+En ${ciudad}, Provincia de ${prov}, el ${fDoc2}, siendo las ${horaI}, en domicilio de la compañía ${nombre} ubicado en ${dom}, el señor ${nombreGG}, titular del 100% del capital social y por lo tanto accionista único de la compañía, actúa personalmente y ejerce las funciones propias de la asamblea general extraordinaria, en virtud de lo dispuesto en el inciso noveno del artículo 236 de la Ley de Compañías y artículo 21 del Reglamento sobre Juntas Generales o Asamblea General de Socios y Accionistas de las compañías de Responsabilidad Limitada, Anónimas, en Comandita por Acciones, de Economía Mixta y Sociedades por Acciones Simplificadas; para resolver los asuntos contenidos en el siguiente orden del día:
+
+ORDEN DEL DÍA
+1. Elección y nombramiento de Gerente General de la Compañía.
+2. La proclamación de los resultados del punto número 1 y la constancia escrita de la resolución aprobada.
+
+Expuestos los puntos del orden del día, el accionista único adopta las siguientes resoluciones:
+
+1. El accionista ${nombreGG} expresa la necesidad de que se renueve su cargo de Gerente General de la compañía para el período estatutario de ${periodo==='1'?'UN (1)':periodo==='2'?'DOS (2)':periodo==='3'?'TRES (3)':periodo==='4'?'CUATRO (4)':'CINCO (5)'} años. Esto pasa a ser llevado a votación, en la cual por unanimidad se decide que el Gerente General para el siguiente período estatutario de ${periodo} años será el señor ${nombreGG}, quien desempeñará individualmente la representación legal de la compañía, así como todas las funciones establecidas en el artículo ${artGG} del Estatuto Social de la Compañía. Se dispone que se realice el debido nombramiento para la aceptación del cargo y se pasa al siguiente punto.
+
+2. En concordancia con el artículo 33 del Reglamento de Sociedades por Acciones Simplificadas, el accionista único resuelve: renovar el nombramiento del Sr. ${nombreGG}, titular de la cédula de ciudadanía No. ${ciGG}, como Gerente General de la compañía por un período estatutario de ${periodo} años para que desempeñe individualmente la representación legal de la compañía, así como todas las funciones establecidas en el artículo ${artGG} del Estatuto Social de la misma, contado a partir de la fecha de inscripción del respectivo nombramiento. Déjese constancia de la presente resolución en el libro correspondiente de la sociedad.
+
+El accionista único ${nombreGG} declara bajo juramento que la información proporcionada y la documentación de soporte presentada a la Superintendencia de Compañías Valores y Seguros, es veraz y auténtica.
+
+Como constancia de las resoluciones adoptadas, el accionista suscribe la presente acta a las ${horaF}.
+
+f._____________________
+${nombreGG}
+Accionista Único – Gerente General de ${nombre}
+C.I. ${ciGG}`;
+}
+
+function generarActaMulti({e,gg,pre,fDoc2,horaI,horaF,periodo,ciudad,artGG,artPRE,numInsc,fConst2,fInsc2,nombreGG,ciGG,nombrePRE,ciPRE,accGG,accPRE}){
+  const nombre = e.nombre||'[COMPAÑÍA]';
+  const prov = e.provincia||'[PROVINCIA]';
+  const ruc = e.ruc||'[RUC]';
+  const dom = e.domicilio||'[domicilio]';
+  const per = periodo==='1'?'UN (1)':periodo==='2'?'DOS (2)':periodo==='3'?'TRES (3)':periodo==='4'?'CUATRO (4)':'CINCO (5)';
+  return `ACTA DE ASAMBLEA GENERAL EXTRAORDINARIA DE ACCIONISTAS DE LA COMPAÑÍA ${nombre}
+
+En ${ciudad}, provincia de ${prov}, el ${fDoc2}, siendo las ${horaI}, en el domicilio de la compañía ${nombre}, con RUC: ${ruc}, ubicado en ${dom}, el señor ${nombreGG}, titular del ${accGG} de las acciones, y el señor ${nombrePRE}, titular del otro ${accPRE} de las acciones, se reúnen y proceden a instalar la presente Asamblea General Extraordinaria de Accionistas con el 100% del capital social de la compañía, en virtud de lo dispuesto en el inciso noveno del artículo 236 de la Ley de Compañías y artículo 21 del Reglamento sobre Juntas Generales o Asamblea General de Socios y Accionistas de las compañías de Responsabilidad Limitada, Anónimas, en Comandita por Acciones, de Economía Mixta y Sociedades por Acciones Simplificadas. Actúa como Presidente de la Asamblea el señor ${nombrePRE}, y actúa como Secretario de la Asamblea el señor ${nombreGG}, para resolver el asunto contenido en el siguiente orden del día:
+
+ORDEN DEL DÍA
+1. Renovación de nombramientos de Gerente General y Presidente de la compañía.
+2. Autorización para inscripción de nombramientos.
+
+PRIMER PUNTO: RENOVACIÓN DE NOMBRAMIENTOS
+El Presidente de la Asamblea somete a consideración de los accionistas la renovación de los nombramientos de los administradores de la compañía. Luego del análisis correspondiente, los accionistas, por unanimidad, adoptan las siguientes resoluciones:
+
+1. Renovar el nombramiento del señor ${nombreGG}, titular de la cédula de ciudadanía No. ${ciGG}, como GERENTE GENERAL de la compañía ${nombre}, para un período estatutario de ${per} años, conforme el artículo ${artGG} de los Estatutos Sociales, contado a partir de la fecha de inscripción del respectivo nombramiento, correspondiéndole la representación legal, judicial y extrajudicial de manera individual de la compañía, así como las demás atribuciones señaladas en el Acto Constitutivo y la Ley de Compañías.
+
+2. Renovar el nombramiento del señor ${nombrePRE}, titular de la cédula de ciudadanía No. ${ciPRE}, como PRESIDENTE de la compañía ${nombre}, para un período estatutario de ${per} años, conforme el artículo ${artPRE||artGG} de los Estatutos Sociales, contado a partir de la fecha de inscripción del respectivo nombramiento, correspondiéndole la representación legal, judicial y extrajudicial de manera individual de la compañía y reemplazar al GERENTE GENERAL en los casos de falta, ausencia temporal o definitiva, renuncia, remoción, separación, reemplazo o impedimento para actuar, así como las demás atribuciones señaladas en el Acto Constitutivo y la Ley de Compañías.
+
+SEGUNDO PUNTO: AUTORIZACIÓN PARA INSCRIPCIÓN
+La Asamblea Extraordinaria de Accionistas autoriza expresamente al señor ${nombreGG}, titular de la cédula de identidad ${ciGG}, en su calidad de Gerente General de la compañía, para que suscriba, gestione y lleve a cabo todos los trámites necesarios a fin de inscribir los nuevos nombramientos del Gerente General y del Presidente de la compañía, acordados en esta sesión, así como para realizar cualquier aclaración, rectificación o diligencia adicional que dicha dependencia requiera para el perfeccionamiento de dichas inscripciones.
+
+Como constancia de las resoluciones adoptadas, los accionistas suscriben la presente acta en la ciudad de ${ciudad}, el ${fDoc2} a las ${horaF}.
+
+_________________________________________
+${nombrePRE}
+C.I. ${ciPRE}
+Accionista – Presidente de la Asamblea
+Presidente ${nombre}
+
+______________________________________
+${nombreGG}
+C.I. ${ciGG}
+Accionista – Secretario de la Asamblea
+Gerente General ${nombre}`;
+}
+
+function generarNombGG({e,gg,fDoc2,ciudad,periodo,artGG,artPRE,numInsc,fConst2,fInsc2,nacGG,domGG,dacGG,ciGG,nombreGG,fDocLiteral}){
+  const nombre = e.nombre||'[COMPAÑÍA]';
+  const ruc = e.ruc||'[RUC]';
+  const per = periodo==='1'?'UN (1)':periodo==='2'?'DOS (2)':periodo==='3'?'TRES (3)':periodo==='4'?'CUATRO (4)':'CINCO (5)';
+  return `${nombre}
+${ciudad}, ${fDocLiteral}
+
+Señor
+${nombreGG}
+Ciudad.
+
+De mis consideraciones:
+
+Cúmpleme llevar a su conocimiento que en las resoluciones de la ${S.tipo==='uni'?'Resoluciones del Accionista Único':'Asamblea General Extraordinaria de Accionistas'} de la compañía ${nombre}, con RUC: ${ruc}, adoptadas el día ${fDocLiteral}, se ha decidido elegirlo como GERENTE GENERAL de la compañía para un período estatutario de ${per} años, correspondiéndole la representación individual legal, judicial y extrajudicial de la Compañía, así como las demás atribuciones y deberes constantes en el ${artGG||'artículo XX'} del Estatuto Social y las disposiciones de la Ley de Compañías en sus artículos 123 y posteriores.
+
+Sus atribuciones vigentes constan en el ${S.tipo==='uni'?'Acto':'Contrato'} Constitutivo de la Compañía celebrado el ${fConst2} e inscrito el ${fInsc2} en el Registro de Sociedades de la Superintendencia de Compañías, Valores y Seguros con número ${numInsc}.
+
+Debidamente autorizado por la ${S.tipo==='uni'?'Resolución del Accionista Único':'Asamblea de accionistas'}.
+
+f. __________________________
+${nombreGG}
+C.I. ${ciGG}
+${S.tipo==='uni'?'Accionista Único':'Gerente General'} ${nombre}
+
+Acepto el cargo de Gerente General de la sociedad por acciones simplificadas denominada ${nombre}, para el cual he sido elegido, siendo mi nacionalidad ${nacGG} y mi domicilio la ciudad de ${domGG}.
+
+${ciudad}, ${fDocLiteral}.
+
+f. ___________________________
+${nombreGG}
+CI: ${ciGG}
+Cod. Dactilar ${dacGG}`;
+}
+
+function generarNombPRE({e,gg,pre,fDoc2,ciudad,periodo,artGG,artPRE,numInsc,fConst2,fInsc2,nacPRE,domPRE,dacPRE,ciPRE,nombrePRE,ciGG,nombreGG,fDocLiteral}){
+  const nombre = e.nombre||'[COMPAÑÍA]';
+  const ruc = e.ruc||'[RUC]';
+  const per = periodo==='1'?'UN (1)':periodo==='2'?'DOS (2)':periodo==='3'?'TRES (3)':periodo==='4'?'CUATRO (4)':'CINCO (5)';
+  return `${nombre}
+${ciudad}, ${fDocLiteral}
+
+Señor
+${nombrePRE}
+Ciudad.
+
+De mis consideraciones:
+
+Cúmpleme llevar a su conocimiento que en las resoluciones de la Asamblea General Extraordinaria de Accionistas de la compañía ${nombre}, con RUC: ${ruc}, adoptadas el día ${fDocLiteral}, se ha decidido elegirlo como PRESIDENTE de la compañía para un período estatutario de ${per} años, correspondiéndole la representación individual legal, judicial y extrajudicial de la Compañía; reemplazar en los casos de falta, ausencia temporal o definitiva, renuncia, remoción, separación, reemplazo o impedimento para actuar del Gerente General, así como las demás atribuciones y deberes constantes en el ${artPRE||'artículo XX'} del Estatuto Social y las disposiciones de la Ley de Compañías en sus artículos 123 y posteriores.
+
+Sus atribuciones vigentes constan en el Contrato Constitutivo de la Compañía celebrado el ${fConst2} e inscrito el ${fInsc2} en el Registro de Sociedades de la Superintendencia de Compañías, Valores y Seguros con número ${numInsc}.
+
+Debidamente autorizado por la Asamblea de accionistas.
+
+f. __________________________
+${nombreGG}
+C.I. ${ciGG}
+Gerente General ${nombre}
+
+Acepto el cargo de Presidente de la sociedad por acciones simplificadas denominada ${nombre}, para el cual he sido elegido, siendo mi nacionalidad ${nacPRE} y mi domicilio la ciudad de ${domPRE}.
+
+${ciudad}, ${fDocLiteral}.
+
+f. ___________________________
+${nombrePRE}
+CI: ${ciPRE}
+Cod. Dactilar ${dacPRE}`;
+}
+
+function generarSolicitudUni({e,gg,fDoc2,ciudad,correos,fDocLiteral}){
+  const nombre = e.nombre||'[COMPAÑÍA]';
+  const ruc = e.ruc||'[RUC]';
+  const nombreGG = gg.nombre||'[GERENTE GENERAL]';
+  const ciGG = gg.cedula||'[CI]';
+  const correosList = (correos||'').split(',').map(c=>c.trim());
+  return `${fDocLiteral}
+Superintendencia de Compañías Valores y Seguros
+Su despacho. –
+
+Asunto: Solicitud de inscripción de renovación de nombramiento de Gerente General
+
+De mis consideraciones:
+
+Yo, ${nombreGG}, portador de la cédula de ciudadanía No. ${ciGG}, en calidad de Gerente General y representante legal de la compañía ${nombre}, con RUC No. ${ruc}, ante usted comparezco y respetuosamente solicito:
+
+Solicito a su Autoridad se sirva inscribir la RENOVACIÓN DEL NOMBRAMIENTO DE GERENTE GENERAL de la compañía a la cual represento, en el Registro de Sociedades de la Superintendencia de Compañías Valores y Seguros, conforme el Acta de Resoluciones Adoptadas por el Accionista Único de la Compañía y el Nombramiento presentados. Adjunto a la presente:
+
+1. Acta de Resoluciones Adoptadas por el Accionista Único de la Compañía ${nombre}.
+2. Nombramiento del Gerente General.
+3. Copia de cédula del Gerente General.
+4. Certificado de RUC de la Compañía.
+
+Las notificaciones que me correspondan las recibiré en los siguientes correos electrónicos: ${correosList.join(' y ')}.
+
+Atentamente,
+
+f.______________________
+${nombreGG}
+CI: ${ciGG}
+Accionista Único – Gerente General ${nombre}`;
+}
+
+function generarSolicitudMulti({e,gg,pre,fDoc2,ciudad,correos,fDocLiteral,nombreGG,ciGG,nombrePRE,ciPRE}){
+  const nombre = e.nombre||'[COMPAÑÍA]';
+  const ruc = e.ruc||'[RUC]';
+  const correosList = (correos||'').split(',').map(c=>c.trim());
+  return `${ciudad}, ${fDocLiteral}
+Señores
+Superintendencia De Compañías, Valores y Seguros
+Ciudad.
+
+De mis consideraciones:
+
+Yo, ${nombreGG}, portador de la cédula de ciudadanía No. ${ciGG}, en calidad de GERENTE GENERAL y representante legal de la compañía ${nombre}, con RUC No. ${ruc}, domiciliada en ${e.domicilio||'[domicilio]'}, ante usted respetuosamente comparezco y solicito se proceda con la INSCRIPCIÓN DE RENOVACIÓN DE NOMBRAMIENTOS conforme los siguientes documentos:
+
+1. Acta de Asamblea General Extraordinaria de Accionistas de ${nombre}, de fecha ${fDocLiteral}, en la que constan las resoluciones de renovación respectivas.
+2. Nombramiento de Gerente General a favor del señor ${nombreGG}, cédula No. ${ciGG}.
+3. Nombramiento de Presidente a favor del señor ${nombrePRE}, cédula No. ${ciPRE}.
+4. Copias de cédulas de ciudadanía de los designados.
+5. Certificado de RUC de la compañía ${nombre}.
+
+Para efectos de notificación, señalo las siguientes direcciones de correo electrónico: ${correosList.join(' y ')}.
+
+Por la atención que se digne dar a la presente, anticipo mis agradecimientos.
+
+Atentamente,
+
+_____________________________________
+${nombreGG}
+C.I. ${ciGG}
+GERENTE GENERAL
+${nombre}`;
+}
+
+function formatDate(d){
+  if(!d) return null;
+  try{return new Date(d).toLocaleDateString('es-EC',{day:'numeric',month:'long',year:'numeric'})}catch(e){return d}
+}
+function escHTML(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function setTipo(t){ S.tipo=t; if(S.accionistas.length===0){S.accionistas=t==='uni'?[{nombre:'',cedula:'',dactilar:'',nacionalidad:'ecuatoriana',domicilio:'',acciones:'100%',cargo:'uni'}]:[{nombre:'',cedula:'',dactilar:'',nacionalidad:'ecuatoriana',domicilio:'',acciones:'50%',cargo:'gg'},{nombre:'',cedula:'',dactilar:'',nacionalidad:'ecuatoriana',domicilio:'',acciones:'50%',cargo:'pre'}];} render(); }
+function goStep(n){ if(n<S.step||n===S.step+1||n<5) S.step=n; render(); }
+function updE(k,v){ S.empresa[k]=v; }
+function updAc(i,k,v){ S.accionistas[i][k]=v; }
+function updDOM(){ }
+function addAc(){ S.accionistas.push({nombre:'',cedula:'',dactilar:'',nacionalidad:'ecuatoriana',domicilio:'',acciones:'',cargo:'gg'}); render(); }
+function rmAc(i){ S.accionistas.splice(i,1); render(); }
+function handleFiles(ev){ const fs=Array.from(ev.target.files); S.archivosNombres=fs.map(f=>f.name); render(); }
+
+function copyDoc(key){
+  const txt = S.docsGenerados[key]||'';
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn = event.target.closest('button');
+    const orig = btn.innerHTML;
+    btn.innerHTML='<i class="ti ti-check" aria-hidden="true"></i> Copiado';
+    setTimeout(()=>btn.innerHTML=orig,2000);
+  }).catch(()=>alert('No se pudo copiar. Selecciona el texto manualmente.'));
+}
+
+function printDoc(key, title){
+  const txt = S.docsGenerados[key]||'';
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>body{font-family:Arial,sans-serif;font-size:12pt;line-height:1.8;padding:2.5cm;max-width:21cm;margin:0 auto;color:#111}pre{white-space:pre-wrap;font-family:Arial,sans-serif;font-size:12pt}h1{font-size:13pt;text-align:center;margin-bottom:1.5rem}@media print{body{padding:1.5cm}}</style></head><body><pre>${escHTML(txt)}</pre><script>window.onload=()=>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+
+function printAll(){
+  const labels = {acta:S.tipo==='uni'?'Resoluciones del Accionista Único':'Acta de Asamblea General Extraordinaria',nombramiento_gg:'Nombramiento — Gerente General',nombramiento_pre:'Nombramiento — Presidente',solicitud:'Solicitud ante la Superintendencia'};
+  let allHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Renovación de Nombramientos</title><style>body{font-family:Arial,sans-serif;font-size:12pt;line-height:1.8;padding:2.5cm;color:#111}pre{white-space:pre-wrap;font-family:Arial,sans-serif;font-size:12pt}.page-break{page-break-after:always;margin-bottom:2rem}h2{font-size:13pt;text-align:center;border-bottom:1px solid #333;padding-bottom:.5rem;margin-bottom:1.5rem}@media print{.page-break{page-break-after:always}}</style></head><body>`;
+  Object.keys(S.docsGenerados).forEach((key,i,arr)=>{
+    allHtml+=`<div class="${i<arr.length-1?'page-break':''}"><h2>${labels[key]||key}</h2><pre>${escHTML(S.docsGenerados[key])}</pre></div>`;
+  });
+  allHtml+=`<script>window.onload=()=>window.print();<\/script></body></html>`;
+  const w=window.open('','_blank');
+  w.document.write(allHtml);
+  w.document.close();
+}
+
+function attachEvents(){}
+
+render();
+</script>
