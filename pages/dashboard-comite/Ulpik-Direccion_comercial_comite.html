@@ -18,7 +18,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;}
-.topbar{position:sticky;top:0;z-index:300;display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:52px;background:var(--dark);border-bottom:1px solid rgba(255,255,255,0.06);}
+.topbar{position:sticky;top:0;z-index:300;display:flex;align-items:center;justify-content:space-between;padding:0 20px 0 28px;height:52px;background:var(--dark);border-bottom:1px solid rgba(255,255,255,0.06);gap:16px;flex-wrap:wrap;}
 .brand{display:flex;align-items:center;gap:10px;}
 .brand-mark{width:28px;height:28px;border-radius:6px;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;}
 .brand-title{font-size:13px;font-weight:500;color:#fff;}
@@ -38,16 +38,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .snav-btn.active{color:#fff;font-weight:500;border-bottom-color:var(--orange);}
 .main-wrap{padding:20px 28px 70px;max-width:1440px;margin:0 auto;}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;}
-.card-title{font-size:13px;font-weight:600;margin-bottom:4px;}
+.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
 .card-note{font-size:11px;color:var(--text3);margin-bottom:12px;}
 .segment{margin-bottom:26px;scroll-margin-top:110px;animation:fadeIn .2s ease;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
 .seg-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 .seg-num{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:2px 7px;border-radius:4px;}
 .seg-dot{width:7px;height:7px;border-radius:50%;}
-.seg-title{font-size:13px;font-weight:600;}
+.seg-title{font-size:13px;font-weight:600;color:var(--text);}
 .seg-meta{font-size:11px;color:var(--text3);margin-left:auto;}
-.triple-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.triple-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;align-items:stretch;}
+.triple-row .card{display:flex;flex-direction:column;}
 .kpi-strip-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
 .kpi-4-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
 .kpi-4-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;}
@@ -62,6 +63,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .kpi-4-sub2{font-size:10px;color:var(--text3);margin-top:2px;}
 .kpi-card{background:var(--bg3);border-radius:var(--radius-sm);padding:12px 14px;border:1px solid var(--border);}
 .kpi-label{font-size:10px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em;}
+.num-sm{font-size:14px;font-weight:600;}
 .num-md{font-size:18px;font-weight:500;letter-spacing:-.2px;}
 .num-lg{font-size:20px;font-weight:500;letter-spacing:-.3px;}
 .pbar{height:6px;background:var(--bg3);border-radius:3px;margin:6px 0 3px;overflow:hidden;border:1px solid var(--border);}
@@ -71,7 +73,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .si-l{font-size:12px;color:var(--text2);}
 .si-r{font-size:12px;font-weight:600;}
 .divider{height:1px;background:var(--border);margin:12px 0;}
-.chip{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;}
+.chip{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;letter-spacing:.02em;}
 .chip-o{background:rgba(255,37,0,.10);color:var(--orange);}
 .chip-t{background:rgba(0,173,176,.10);color:var(--teal);}
 .chip-p{background:rgba(130,59,218,.10);color:var(--purple);}
@@ -81,6 +83,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .alert-box{background:rgba(255,37,0,.04);border:1px solid rgba(255,37,0,.20);border-radius:8px;padding:11px 14px;}
 .info-box{background:rgba(130,59,218,.04);border:1px solid rgba(130,59,218,.18);border-radius:8px;padding:11px 14px;}
 .warn-box{background:rgba(255,165,0,.05);border:1px solid rgba(255,165,0,.22);border-radius:8px;padding:11px 14px;}
+.highlight-box{background:linear-gradient(135deg,rgba(22,163,74,.06),rgba(0,173,176,.06));border:1px solid rgba(22,163,74,.25);border-radius:8px;padding:11px 14px;}
 .a-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
 .a-body{font-size:11px;color:var(--text2);line-height:1.55;}
 .co{color:var(--orange);}.ct{color:var(--teal);}.cp{color:var(--purple);}.cs{color:var(--text3);}.cg{color:var(--green);}.cw{color:var(--warn);}
@@ -147,15 +150,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .priv .d-conv-badge{background:rgba(0,173,176,.12);color:var(--teal);}
 .d-divider{border:none;border-top:1px solid var(--d-border);margin:20px 0;}
 .d-chart-wrap{background:var(--d-card);border:1px solid var(--d-border);border-radius:10px;padding:16px 16px 12px;margin-bottom:14px;}
-.d-chart-hdr{margin-bottom:12px;}
+.d-chart-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .d-chart-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--d-muted);}
+.d-legend{display:flex;gap:10px;flex-wrap:wrap;}
+.d-leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--d-muted);}
+.d-leg-dot{width:7px;height:7px;border-radius:50%;}
 .panel-note{margin-top:14px;font-size:11px;color:var(--d-muted);background:var(--d-card);padding:10px 13px;border-radius:0 6px 6px 0;line-height:1.55;}
 .marcas .panel-note{border-left:3px solid rgba(255,37,0,.4);}
 .priv .panel-note{border-left:3px solid rgba(0,173,176,.4);}
-.evo-mini{display:grid;gap:6px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
+.evo-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
 .evo-cell{text-align:center;padding:8px 4px;border-radius:6px;}
 .evo-cell.best{background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.22);}
 .evo-cell.warn{background:rgba(192,120,0,.05);border:1px solid rgba(192,120,0,.22);}
+.evo-cell.neutral{background:var(--bg3);border:1px solid var(--border);}
 .evo-period{font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:2px;}
 .evo-val{font-size:13px;font-weight:700;}
 .evo-pct{font-size:9px;margin-top:1px;}
@@ -163,6 +170,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .no-data-icon{font-size:24px;margin-bottom:8px;opacity:.5;}
 .no-data-text{font-size:11px;color:var(--text3);}
 .no-data-sub{font-size:10px;color:var(--text3);margin-top:3px;font-family:'DM Mono',monospace;}
+.tf-wrap{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;}
+.tf-label{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.38);white-space:nowrap;}
+.tf-input{font-family:'DM Mono',monospace;font-size:11px;padding:4px 9px;border:1px solid rgba(255,255,255,.14);border-radius:5px;background:rgba(255,255,255,.06);color:#fff;outline:none;width:106px;letter-spacing:.04em;}
+.tf-input::placeholder{color:rgba(255,255,255,.22);}
+.tf-input:focus{border-color:var(--orange);background:rgba(255,255,255,.10);}
+.tf-sep{font-size:11px;color:rgba(255,255,255,.25);}
+.tf-btn{font-family:inherit;font-size:10px;font-weight:700;padding:4px 12px;border-radius:5px;border:none;cursor:pointer;transition:opacity .15s;letter-spacing:.02em;white-space:nowrap;}
+.tf-btn.apply{background:var(--orange);color:#fff;}
+.tf-btn.apply:hover{opacity:.82;}
+.tf-btn.clear{background:rgba(255,255,255,.08);color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.12);}
+.tf-btn.clear:hover{background:rgba(255,255,255,.14);}
+.tf-status{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.38);white-space:nowrap;}
+.tf-status.active{color:var(--orange);}
+.tf-err{font-size:10px;color:#ff6b4a;white-space:nowrap;}
+.no-date-notice{display:none;align-items:center;gap:10px;padding:10px 14px;background:rgba(192,120,0,.07);border:1px solid rgba(192,120,0,.22);border-radius:8px;margin-bottom:14px;}
+.no-date-notice.visible{display:flex;}
+.no-date-notice-icon{font-size:16px;}
+.no-date-notice-text{font-size:11px;color:var(--warn);line-height:1.4;}
+[data-fecha]{transition:opacity .1s;}
 </style>
 </head>
 <body>
@@ -176,11 +202,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <span class="brand-sep">/</span>
     <span class="brand-sub">Dirección Comercial</span>
   </div>
-  <div style="display:flex;align-items:center;gap:10px;">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
     <select class="sem-select" id="semSelect" onchange="loadData(this.value)">
       <option>Cargando...</option>
     </select>
     <div class="brand-badge" id="semBadge">—</div>
+    <div class="tf-wrap">
+      <span class="tf-label">📅 Rango</span>
+      <input type="text" class="tf-input" id="tfFrom" placeholder="dd/mm/aaaa" maxlength="10" autocomplete="off">
+      <span class="tf-sep">→</span>
+      <input type="text" class="tf-input" id="tfTo" placeholder="dd/mm/aaaa" maxlength="10" autocomplete="off">
+      <button type="button" class="tf-btn apply" onclick="applyGlobalFilter()">Aplicar</button>
+      <button type="button" class="tf-btn clear" id="tfClearBtn" onclick="clearGlobalFilter()" style="display:none;">✕ Limpiar</button>
+      <span class="tf-status" id="tfStatus"></span>
+      <span class="tf-err" id="tfErr" style="display:none;">Formato inválido</span>
+    </div>
   </div>
 </div>
 
@@ -225,6 +261,28 @@ const sumF = (arr,k) => arr.reduce((s,r)=>s+Number(r[k]||0),0);
 const clamp = (v,a,b) => Math.min(Math.max(v,a),b);
 const colA = a => a==='Martín'?'var(--orange)':a==='Javier'?'rgba(130,59,218,.8)':a==='Nela'?'rgba(0,173,176,.8)':a==='Clau'?'rgba(22,163,74,.8)':a==='Andrea'?'rgba(192,120,0,.8)':'rgba(160,160,160,.6)';
 const MESES = {1:'Ene',2:'Feb',3:'Mar',4:'Abr',5:'May',6:'Jun',7:'Jul',8:'Ago',9:'Sep',10:'Oct',11:'Nov',12:'Dic'};
+let _lastData = null;
+
+function yearFromData(d){
+  const sid=String(d?.semana_actual||'');
+  const m=sid.match(/(\d{4})/);
+  if(m)return+m[1];
+  const hist=(d?.historico_mensual||[]).slice(-1)[0];
+  const hm=hist?.label?.match(/(\d{4})/);
+  if(hm)return+hm[1];
+  return new Date().getFullYear();
+}
+function fechaAttr(f,year){
+  if(!f)return '';
+  const s=String(f).trim();
+  const m=s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?$/);
+  if(!m)return s;
+  const y=m[3]||year||new Date().getFullYear();
+  return `${m[1].padStart(2,'0')}/${m[2].padStart(2,'0')}/${y}`;
+}
+function filterActive(){
+  return !!($('tfFrom')?.value.trim()||$('tfTo')?.value.trim());
+}
 
 function killChart(k){if(charts[k]){try{charts[k].destroy();}catch(e){}delete charts[k];}}
 function loadBar(on){const b=$('lbar');if(on){b.className='lbar on';}else{b.className='lbar done';setTimeout(()=>b.className='lbar',600);}}
@@ -348,11 +406,13 @@ function compute(d){
 }
 
 function renderAll(d){
+  _lastData=d;
   const c=compute(d);
   rKPIs(d,c);rPresupuestos(d,c);rAsesores(d,c);
   rEvolutivo(d);rEmbudos(d,c);
   rConvenio(d.convenio||{});rUpsell(d.upsell||{});
   rDisc(c.discData);rPI(d.pi||{});rLegal(d,c);
+  if(filterActive()) applyGlobalFilter();
 }
 
 // ══════════ §1 KPIs ══════════════════════════════
@@ -378,24 +438,24 @@ function rKPIs(d,c){
 
   $('s-kpi').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">01</span><span class="seg-dot" style="background:var(--orange);"></span>
-    <span class="seg-title">KPIs Clave</span>
-    <span class="seg-meta">${v.length} ventas · ${fmt(totalLegal)} legal · ${fmt(totalEdu)||'sin datos edu'}</span></div>
+    <span class="seg-title">KPIs Clave — Período seleccionado</span>
+    <span class="seg-meta">${v.length} ventas · ${fmt(totalLegal)} legal · ${totalEdu>0?fmt(totalEdu)+' educación':'sin datos edu'}</span></div>
   <div class="kpi-strip-3">
     <div class="kpi-4-card ${kC}">
       <div class="kpi-4-label">${hasMeta?'% Meta semanal — Marcas':'Total facturado — Marcas'}</div>
       <div class="kpi-4-val" style="color:${wC};">${hasMeta?Number(pctM).toFixed(1)+'%':fmt(totalM)}</div>
       <div class="kpi-4-sub">${hasMeta?fmt(totalM)+' / meta '+fmt(metaM):c.vMarcas.length+' ventas · '+fmt(totalM)}</div>
-      <div class="kpi-4-sub2">${c.vMarcas.length} ventas marcas · ${[...new Set(c.vMarcas.map(x=>x.asesor))].length} asesores</div>
+      <div class="kpi-4-sub2">${hasMeta&&diff<0?'–'+fmt(Math.abs(diff))+' · ':''}${c.vMarcas.length} ventas marcas · ${[...new Set(c.vMarcas.map(x=>x.asesor))].length} asesores</div>
       ${marcasBar}</div>
     <div class="kpi-4-card c-purple">
-      <div class="kpi-4-label">Educación</div>
+      <div class="kpi-4-label">Educación — Mes en curso</div>
       <div class="kpi-4-val cp">${pctE!==null?Number(pctE).toFixed(1)+'%':edu.inscritos>0?edu.inscritos+' inscritos':'—'}</div>
       <div class="kpi-4-sub">${totalEdu>0?fmt(totalEdu)+' · ':''}${edu.producto||'Cursos'} · ${edu.inscritos||0} inscritos</div>
-      <div class="kpi-4-sub2">${edu.downsell||0} downsell · ${edu.upsell||0} upsell · ${edu.becas||0} becas</div>
+      <div class="kpi-4-sub2">${metaE>0?'Meta mensual '+fmt(metaE)+' · ':''}${edu.downsell||0} downsell · ${edu.upsell||0} upsell · ${edu.becas||0} becas</div>
       ${eduBar}</div>
     <div class="kpi-4-card c-teal">
-      <div class="kpi-4-label">Total del período</div>
-      <div class="kpi-4-val ct">${fmt(totalLegal)}</div>
+      <div class="kpi-4-label">Gran total período</div>
+      <div class="kpi-4-val ct">${fmt(total)}</div>
       <div class="kpi-4-sub">Legal ${fmt(totalLegal)}${totalEdu>0?' + Edu '+fmt(totalEdu):''}${totalPriv>0?' + Priv '+fmt(totalPriv):''}</div>
       <div class="kpi-4-sub2">Priv activos: ${ps.activos||'—'} · churn: ${ps.churn||0}</div>
       <div style="margin-top:10px;"><div class="pbar"><div class="pbar-fill" style="width:100%;background:var(--teal);"></div></div></div></div>
@@ -405,56 +465,66 @@ function rKPIs(d,c){
 // ══════════ §2-4 Presupuestos ════════════════════
 function rPresupuestos(d,c){
   const{totalM,metaM,pctM,totalEdu,pctE,metaE,totalPriv,dias,diasMap,v,vMarcas,edu,ps,pp}=c;
+  const yr=yearFromData(d);
   const diasVals=dias.map(f=>diasMap[f]);
   const maxD=Math.max(...diasVals,1);
   const diasColors=diasVals.map(v=>v===0?'rgba(190,188,184,.25)':v===maxD?'rgba(255,37,0,.65)':'rgba(22,163,74,.55)');
   const diasList=dias.map(dia=>{const val=diasMap[dia];const vtas=v.filter(x=>x.fecha===dia).length;
-    return `<div class="si"><span class="si-l">${dia}</span><span class="si-r ${val===0?'cs':val===maxD?'cw':'cg'}">${val===0?'$0.00':fmt(val)+' · '+vtas+' venta'+(vtas!==1?'s':'')}</span></div>`;}).join('');
+    const fa=fechaAttr(dia,yr);
+    return `<div class="si" data-fecha="${fa}"><span class="si-l">${dia}</span><span class="si-r ${val===0?'cs':val===maxD?'cw':'cg'}">${val===0?'$0.00':fmt(val)+' · '+vtas+' venta'+(vtas!==1?'s':'')}</span></div>`;}).join('');
 
   $('s-budgets').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">02 – 04</span><span class="seg-dot" style="background:var(--text3);"></span>
-    <span class="seg-title">Cumplimiento de presupuesto</span><span class="seg-meta">Comparativo · Marcas · Educación</span></div>
+    <span class="seg-title">Cumplimiento de presupuesto — Comparativo · Marcas · Educación</span><span class="seg-meta">Período cargado</span></div>
   <div class="triple-row">
     <div class="card">
-      <div class="card-title">Comparativo mensual</div>
-      <div class="card-note">Evolución histórica de ingresos legales</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div class="card-title">Comparativo mensual</div>
+        <span class="chip chip-d" style="font-size:9px;">Marcas + Educación</span></div>
+      <div class="card-note">Evolución histórica de ingresos legales y educación</div>
       <div style="position:relative;height:200px;"><canvas id="compChart"></canvas></div>
       <div class="divider"></div><div id="compLegend" style="display:flex;flex-direction:column;gap:6px;"></div></div>
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-        <div class="card-title">Marcas</div>
-        <span class="chip ${pctM!==null?(pctM>=100?'chip-g':'chip-w'):'chip-t'}">${pctM!==null?Number(pctM).toFixed(1)+'% meta':'Sin meta'}</span></div>
-      <div class="card-note">${vMarcas.length} ventas · ${pctM!==null?'meta '+fmt(metaM):'Configura meta en PRESUPUESTOS'}</div>
+        <div class="card-title">Marcas — Período</div>
+        <span class="chip ${pctM!==null?(pctM>=100?'chip-g':'chip-w'):'chip-t'}">${pctM!==null?Number(pctM).toFixed(1)+'% meta sem.':'Sin meta'}</span></div>
+      <div class="card-note">Propiedad intelectual · ${vMarcas.length} ventas · ${pctM!==null?'meta semanal '+fmt(metaM):'Configura meta en PRESUPUESTOS'}</div>
       <div style="background:rgba(255,37,0,.04);border:1px solid rgba(255,37,0,.15);border-radius:8px;padding:14px 16px;margin-bottom:12px;">
-        <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Total facturado</div>
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Total facturado período</div>
         <div style="font-size:28px;font-weight:700;color:var(--orange);letter-spacing:-1.5px;font-family:'DM Mono',monospace;">${fmt(totalM)}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:4px;">${vMarcas.length} ventas · ticket ${fmt(vMarcas.length>0?totalM/vMarcas.length:0)}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">${vMarcas.length} ventas marcas · ticket ${fmt(vMarcas.length>0?totalM/vMarcas.length:0)}</div>
         ${pctM!==null?`<div class="pbar" style="margin-top:8px;"><div class="pbar-fill" style="width:${clamp(pctM,0,100)}%;background:var(--warn);"></div></div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>Meta ${fmt(metaM)}</span><span style="color:var(--warn);font-weight:600;">${Number(pctM).toFixed(1)}%</span></div>`:''}</div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>Meta sem. ${fmt(metaM)}</span><span style="color:var(--warn);font-weight:600;">${Number(pctM).toFixed(1)}%${pctM<100?' — '+fmt(metaM-totalM)+' bajo':''}</span></div>`:''}</div>
       <div style="position:relative;height:90px;margin-bottom:10px;"><canvas id="marcasMiniChart"></canvas></div>
       <div class="divider"></div>${diasList}</div>
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-        <div class="card-title">Educación + Priv</div>
+        <div class="card-title">Educación + Priv — Período</div>
         <span class="chip ${pctE!==null?(pctE>=100?'chip-g':'chip-w'):(edu.inscritos>0?'chip-p':'chip-d')}">${pctE!==null?Number(pctE).toFixed(1)+'% meta':edu.inscritos>0?edu.inscritos+' inscritos':'Sin datos'}</span></div>
-      <div class="card-note">${edu.producto||'Cursos'} + Ulpik Priv</div>
+      <div class="card-note">${edu.producto||'Cursos'} + Ulpik Priv${metaE>0?' · Meta mensual '+fmt(metaE):''}</div>
       ${edu.inscritos>0||totalEdu>0?`
       <div style="background:rgba(130,59,218,.05);border:1px solid rgba(130,59,218,.18);border-radius:8px;padding:14px 16px;margin-bottom:12px;">
-        <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">${edu.producto||'Total Educación'}</div>
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Total Educación período</div>
         <div style="font-size:28px;font-weight:700;color:var(--purple);letter-spacing:-1.5px;font-family:'DM Mono',monospace;">${totalEdu>0?fmt(totalEdu):edu.inscritos+' inscritos'}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:4px;">${edu.inscritos||0} inscritos · ${edu.downsell||0} downsell · ${edu.upsell||0} upsell · ${edu.becas||0} becas</div>
-        ${totalEdu>0&&pctE!==null?`<div class="pbar" style="margin-top:8px;"><div class="pbar-fill" style="width:${clamp(pctE,0,100)}%;background:var(--purple);"></div></div>`:''}
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">${edu.producto||'Cursos'} · ${edu.inscritos||0} inscritos · ${edu.downsell||0} downsell · ${edu.upsell||0} upsell · ${edu.becas||0} becas</div>
+        ${totalEdu>0&&pctE!==null?`<div class="pbar" style="margin-top:8px;"><div class="pbar-fill" style="width:${clamp(pctE,0,100)}%;background:var(--purple);"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>Meta ${fmt(metaE)}</span><span style="color:${pctE>=100?'var(--green)':'var(--purple)'};font-weight:600;">${Number(pctE).toFixed(1)}%${pctE>=100?' ✓ superada':''}</span></div>`:''}
         ${totalEdu===0?`<div style="margin-top:8px;font-size:10px;color:var(--warn);padding:4px 8px;background:rgba(192,120,0,.08);border-radius:4px;">⚠ Monto en $0 — revisar columna en INSCRITOS CURSOS</div>`:''}</div>`
       :`<div style="margin-bottom:12px;">${noData('Sin datos de educación en este período','Verifica hoja INSCRITOS CURSOS')}</div>`}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div style="background:rgba(130,59,218,.05);border-radius:8px;border:1px solid rgba(130,59,218,.15);padding:12px 14px;">
+          <div style="font-size:10px;color:var(--purple);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">${edu.producto||'Educación'}</div>
+          <div style="font-size:20px;font-weight:700;color:var(--purple);font-family:'DM Mono',monospace;">${totalEdu>0?fmt(totalEdu):edu.inscritos||0}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:3px;">${edu.inscritos||0} inscritos</div></div>
         <div style="background:rgba(0,173,176,.05);border-radius:8px;border:1px solid rgba(0,173,176,.20);padding:12px 14px;">
           <div style="font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Ulpik Priv</div>
           <div style="font-size:20px;font-weight:700;color:var(--teal);font-family:'DM Mono',monospace;">${totalPriv>0?fmt(totalPriv):pp.length+' miembros'}</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:3px;">${pp.length} pagos${totalPriv===0?' · monto pendiente de configurar':''}</div></div>
-        <div style="background:var(--bg3);border-radius:8px;border:1px solid var(--border);padding:12px 14px;">
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Estado Priv</div>
-          <div style="font-size:14px;font-weight:600;">${ps.activos||'—'} activos</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:3px;">${ps.retraso||0} retraso · ${ps.churn||0} churn</div></div></div></div></div>`;
+          <div style="font-size:10px;color:var(--text3);margin-top:3px;">${pp.length} pagos${totalPriv===0?' · monto pendiente de configurar':''}</div></div></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
+        <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Activos</div><div class="num-md ct">${ps.activos||'—'}</div></div>
+        <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Retraso</div><div class="num-md cw">${ps.retraso||0}</div></div>
+        <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Hábiles</div><div class="num-md cg">${ps.habiles||'—'}</div></div>
+        <div class="kpi-card" style="padding:8px;"><div class="kpi-label">Churn</div><div class="num-md cs">${ps.churn||0}</div></div></div></div></div>`;
 
   // Comparativo chart
   killChart('comp');
@@ -467,10 +537,19 @@ function rPresupuestos(d,c){
                   {label:'Edu',data:last12.map(h=>Number(h.edu||0)),backgroundColor:'rgba(130,59,218,.55)',borderRadius:4,barPercentage:.7}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>' '+fmt(x.raw)}}},
         scales:{x:{grid:{display:false},ticks:{font:{size:9},color:'#9e9e9e'}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#9e9e9e',callback:v=>'$'+v.toLocaleString()}}}}});
-    // Show last 3 in legend
-    $('compLegend').innerHTML=hist.slice(-3).reverse().map(h=>`<div style="display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:11px;">${h.label}</span>
-      <span style="font-size:12px;font-weight:700;font-family:'DM Mono',monospace;">${fmt(Number(h.legal||0)+Number(h.edu||0))}</span></div>`).join('');
+    const legColors=['rgba(22,163,74,0.75)','rgba(190,188,184,0.65)','rgba(190,188,184,0.35)'];
+    $('compLegend').innerHTML=hist.slice(-3).reverse().map((h,i)=>{
+      const tot=Number(h.legal||0)+Number(h.edu||0)+Number(h.priv||0);
+      return `<div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;">
+          <span style="width:8px;height:8px;border-radius:2px;background:${legColors[i]||legColors[2]};display:inline-block;"></span>
+          <span>${h.label}</span></div>
+        <span style="font-size:12px;font-weight:${i===0?700:600};font-family:'DM Mono',monospace;color:${i===0?'var(--warn)':'var(--text2)'};">${fmt(tot)}</span></div>
+        ${i===0?`<div style="display:flex;gap:16px;padding-left:14px;">
+          <span style="font-size:10px;color:var(--text3);">Legal ${fmt(Number(h.legal||0))}</span>
+          <span style="font-size:10px;color:var(--text3);">Educación ${fmt(Number(h.edu||0))}</span>
+          ${h.priv?`<span style="font-size:10px;color:var(--text3);">Priv ${fmt(Number(h.priv||0))}</span>`:''}
+        </div>`:''}`;}).join('');
   }
   killChart('marcasMini');
   if(dias.length){
@@ -482,24 +561,33 @@ function rPresupuestos(d,c){
 }
 
 // ══════════ §5 Asesores ══════════════════════════
+function asesorNota(a,x){
+  if(x.ventas===0) return 'Sin ventas esta semana';
+  const otras=x.ventas-x.ventasMarcas;
+  let s=`${x.ventasMarcas} marcas`;
+  if(otras>0) s+=` + ${otras} otras`;
+  if(x.chats>0) s+=` · ${x.chats} chats registrados`;
+  return s;
+}
 function rAsesores(d,c){
   const{names,ad,maxM,totalLegal,v,m}=c;
   const meta=Number(m.meta_conv||5);
+  const activos=names.filter(a=>ad[a].ventas>0).length;
   const rows=names.map(a=>{
     const x=ad[a];const bw=maxM>0?(x.monto/maxM*100).toFixed(1):0;
-    return `<tr><td style="font-weight:600;">${a}</td>
+    return `<tr><td style="font-weight:600;${x.ventas===0?'color:var(--text3);':''}">${a}</td>
       <td><div class="ibar"><div class="ibar-track"><div class="ibar-fill" style="width:${bw}%;background:${colA(a)};"></div></div><span class="ibar-val">${fmt(x.monto)}</span></div></td>
-      <td class="r" style="font-size:14px;font-weight:700;color:${colA(a)};">${x.ventas}</td>
+      <td class="r" style="font-size:14px;font-weight:700;color:${x.ventas>0?colA(a):'var(--text3)'};">${x.ventas}</td>
       <td class="r" style="font-family:'DM Mono',monospace;">${x.ventas>0?fmt(x.ticket):'—'}</td>
-      <td class="r" style="color:${colA(a)};">${x.pct}%</td>
-      <td style="font-size:11px;color:var(--text3);">${x.chats>0?x.chats+' chats':'—'}</td></tr>`;}).join('');
+      <td class="r" style="color:${x.ventas>0?colA(a):'var(--text3)'};">${x.pct}%</td>
+      <td style="font-size:11px;color:var(--text3);">${asesorNota(a,x)}</td></tr>`;}).join('');
 
   const convAs=names.filter(a=>ad[a].chats>0);
   const convSection=convAs.length?`
     <div style="margin-top:14px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
       <div style="padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-size:11px;font-weight:600;">Conversión por asesor</span>
-        <span style="font-size:10px;color:var(--text3);">Objetivo: <strong style="color:var(--green);">${meta}.00%</strong></span></div>
+        <span style="font-size:11px;font-weight:600;color:var(--text);">Conversión por asesor — Período cargado</span>
+        <span style="font-size:10px;color:var(--text3);">Objetivo equipo: <strong style="color:var(--green);">${meta.toFixed(2)}%</strong></span></div>
       <div style="display:grid;grid-template-columns:repeat(${convAs.length},1fr);">
         ${convAs.map((a,i)=>{const x=ad[a];const cv=Number(x.conv||0);const over=cv>=meta;const col=over?'var(--green)':'var(--warn)';
           return `<div style="padding:14px 16px;${i<convAs.length-1?'border-right:1px solid var(--border);':''}">
@@ -509,27 +597,44 @@ function rAsesores(d,c){
             <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;border:1px solid var(--border);margin-bottom:6px;">
               <div style="width:${clamp(cv/30*100,0,100)}%;height:100%;background:${col};border-radius:3px;min-width:4px;"></div></div>
             <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);">
-              <span>${x.ventasMarcas}v / ${x.chats} chats</span>
+              <span>${x.ventasMarcas} ventas (marcas) / ${x.chats} chats</span>
               <span style="color:${col};font-weight:600;">${over?'✓ sobre meta':'⚠ bajo meta'}</span></div></div>`;}).join('')}
-      </div></div>`
+      </div>
+      <div style="padding:8px 16px;background:var(--bg3);border-top:1px solid var(--border);font-size:10px;color:var(--text3);">
+        Conversión calculada sobre ventas de <strong>Marcas</strong> vs. chats registrados en CONTACTADOS_LEGAL</div></div>`
     :`<div class="warn-box" style="margin-top:14px;"><div class="a-title" style="color:var(--warn);">Tasa de conversión no disponible</div>
       <div class="a-body">Carga los datos de CONTACTADOS LEGAL con columnas <strong>Mes y Año</strong>, <strong>Responsable</strong> y <strong>Chats</strong>.</div></div>`;
 
+  const withSales=names.filter(a=>ad[a].ventas>0);
+  const topChats=names.slice().sort((a,b)=>ad[b].chats-ad[a].chats)[0];
+  const pcts=withSales.map(a=>+ad[a].pct);
+  const spread=pcts.length>1?Math.max(...pcts)-Math.min(...pcts):0;
+  const infoBox=withSales.length?`
+    <div class="info-box" style="flex:1;">
+      <div class="a-title" style="color:var(--purple);">📊 Distribución del equipo</div>
+      <div class="a-body">${withSales.map(a=>`${a} (${ad[a].pct}%)`).join(', ')}${spread<30?' reparten el ingreso de forma equilibrada.':'.'}${topChats&&ad[topChats].chats>0?' '+topChats+' registró '+ad[topChats].chats+' chats — máxima actividad del equipo.':''}</div></div>`:'';
+  const worstConv=convAs.filter(a=>Number(ad[a].conv||0)<meta).sort((a,b)=>Number(ad[a].conv||0)-Number(ad[b].conv||0))[0];
+  const alertBox=worstConv?`
+    <div class="alert-box" style="flex:1;">
+      <div class="a-title" style="color:var(--orange);">⚠ Conversión ${worstConv}: ${ad[worstConv].conv}% — ${ad[worstConv].chats} chats · ${ad[worstConv].ventasMarcas} ventas marcas</div>
+      <div class="a-body">${ad[worstConv].chats} contactos gestionados con ${ad[worstConv].ventasMarcas} cierres en marcas. Por debajo del objetivo ${meta.toFixed(2)}%.</div></div>`:'';
+
   $('s-asesores').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">05</span><span class="seg-dot" style="background:var(--teal);"></span>
-    <span class="seg-title">Gestión Individual — Asesores</span><span class="seg-meta">Ventas · Monto · Participación</span></div>
+    <span class="seg-title">Gestión Individual — Asesores Marcas</span><span class="seg-meta">Chats · Ventas · Monto · Participación</span></div>
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <div class="card-title" style="margin:0;">Rendimiento por asesor</div>
+      <div class="card-title" style="margin:0;">Rendimiento por asesor · Período cargado</div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <span class="chip chip-d">${names.length} asesores</span>
-        <span style="font-size:10px;color:var(--text3);">Total: <strong class="co">${fmt(totalLegal)}</strong></span></div></div>
+        <span class="chip chip-d">${activos} asesor${activos!==1?'es':''} activo${activos!==1?'s':''}</span>
+        <span style="font-size:10px;color:var(--text3);">Total sem: <strong class="co">${fmt(totalLegal)}</strong></span></div></div>
     <table class="data-table">
-      <thead><tr><th>Asesor</th><th>Monto</th><th class="r">Ventas</th><th class="r">Ticket prom.</th><th class="r">Part.</th><th>Chats</th></tr></thead>
+      <thead><tr><th>Asesor</th><th>Monto período</th><th class="r">N° ventas</th><th class="r">Ticket prom.</th><th class="r">Participación</th><th>Nota</th></tr></thead>
       <tbody>${rows}
         <tr class="t-total"><td>TOTAL</td><td><span style="font-family:'DM Mono',monospace;font-size:12px;">${fmt(totalLegal)}</span></td>
           <td class="r co">${v.length}</td><td class="r" style="font-family:'DM Mono',monospace;font-size:12px;">${fmt(v.length>0?totalLegal/v.length:0)}</td>
           <td class="r cs">100%</td><td></td></tr></tbody></table>
+    ${infoBox||alertBox?`<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">${infoBox}${alertBox}</div>`:''}
     ${convSection}</div>`;
 }
 
@@ -544,19 +649,23 @@ function rEvolutivo(d){
   const cells=windowEvo.map((e)=>{
     const isCur=e.semana_id===curId;
     const pv=hasMeta&&e.meta>0?e.ingresos/e.meta*100:null;
-    const cls=pv===null?'neutral':pv>=100?'best':'warn';
-    return `<div class="evo-cell ${isCur?'warn':cls}" style="${isCur?'border-color:rgba(255,37,0,.30);':''}">
+    const cls=isCur?'warn':pv===null?'neutral':pv>=100?'best':'warn';
+    return `<div class="evo-cell ${cls}" style="${isCur?'border-color:rgba(255,37,0,.30);':''}">
       <div class="evo-period" style="${isCur?'color:var(--orange);font-weight:600;':''}">${e.label}${isCur?' ← actual':''}</div>
       <div class="evo-val ${pv===null?'cs':pv>=100?'cg':'co'}">${fmt(e.ingresos)}</div>
-      ${pv!==null?`<div class="evo-pct ${pv>=100?'cg':'co'}">${pv.toFixed(1)}% ${pv>=100?'✓':'✗'}</div>`:''}
+      ${pv!==null?`<div class="evo-pct ${pv>=100?'cg':'co'}">${pv.toFixed(1)}% ${pv>=100?'✓':'✗'}${isCur&&pv<100?' bajo meta':''}</div>`:''}
     </div>`;}).join('');
 
   $('s-evo').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">06</span><span class="seg-dot" style="background:var(--orange);"></span>
-    <span class="seg-title">Evolutivo — Ingresos mensuales</span><span class="seg-meta">${evo.length} períodos · viendo ${curId||'—'}</span></div>
+    <span class="seg-title">Evolutivo — Ingresos semana a semana</span><span class="seg-meta">${evo.length} períodos · viendo ${curId||'—'}</span></div>
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <div class="card-title" style="margin:0;">Ingresos totales · mes a mes</div></div>
+      <div class="card-title" style="margin:0;">Ingresos totales · semana a semana</div>
+      <div style="display:flex;gap:10px;">
+        <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);"><span style="width:10px;height:2px;background:var(--orange);display:inline-block;"></span>Ingresos</div>
+        ${hasMeta?`<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);"><span style="width:10px;height:2px;background:var(--green);opacity:.5;display:inline-block;border-top:1px dashed;"></span>Meta</div>`:''}
+      </div></div>
     <div style="position:relative;height:200px;"><canvas id="evoChart"></canvas></div>
     <div class="evo-mini" style="grid-template-columns:repeat(${windowEvo.length},1fr);">${cells}</div></div>`;
 
@@ -576,24 +685,36 @@ function rEvolutivo(d){
 // ══════════ §7 Embudos ═══════════════════════════
 function rEmbudos(d,c){
   const{adsClean,vMarcas,totalM,pp,ps,totalPriv}=c;
+  const yr=yearFromData(d);
   const hasAds=adsClean.length>0;
   const gasto=sumF(adsClean,'gasto'),conv=sumF(adsClean,'conv_wpp'),clics=sumF(adsClean,'clics'),alc=sumF(adsClean,'alcance');
   const cpr=conv>0?(gasto/conv).toFixed(2):0;
   const roas=gasto>0?(totalM/gasto).toFixed(1):0;
   const privG=Number(ps.gasto||0),privC=Number(ps.conv_wpp||0);
   const privCPR=privC>0?(privG/privC).toFixed(2):0;
+  const privRows=pp.length?pp.map(p=>{
+    const fa=fechaAttr(p.fecha,yr);
+    return `<div data-fecha="${fa}" style="display:flex;justify-content:space-between;font-size:11px;color:var(--d-text);padding:4px 0;border-bottom:1px solid var(--d-border);">
+      <span>${p.nombre}</span>
+      <span style="color:var(--d-muted);">${p.fecha||'—'} · ${p.monto?fmt(p.monto)+' · ':''}cuota ${p.cuota}</span></div>`;}).join('')
+    :`<div style="text-align:center;padding:16px;color:var(--d-muted);font-size:11px;">Sin pagos en este período</div>`;
 
   const marcasFunnel=hasAds
     ?`<div class="kpi-strip">
-        <div class="d-kpi-card"><div class="d-kpi-label">Gasto</div><div class="d-kpi-value accent">${fmt(gasto)}</div><div class="d-kpi-sub">${adsClean.length} días</div></div>
-        <div class="d-kpi-card"><div class="d-kpi-label">CPR</div><div class="d-kpi-value">$${cpr}</div><div class="d-kpi-sub">${conv} conv. WPP</div></div>
-        <div class="d-kpi-card"><div class="d-kpi-label">ROAS</div><div class="d-kpi-value accent">${roas}×</div></div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">Gasto período</div><div class="d-kpi-value accent">${fmt(gasto)}</div><div class="d-kpi-sub">${adsClean.length} días</div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">CPR período</div><div class="d-kpi-value">$${cpr}</div><div class="d-kpi-sub">${conv} conv. WPP</div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">ROAS período</div><div class="d-kpi-value accent">${roas}×</div><div class="d-kpi-sub">${fmt(totalM)} / ${fmt(gasto)}</div></div></div>
       <div class="roas-banner">
         <div><div class="roas-label">ROAS</div><div class="roas-val">${roas}×</div></div>
         <div style="text-align:right;"><div class="roas-sub">Marcas facturadas</div><div class="roas-revenue">${fmt(totalM)}</div></div></div>
       <div class="d-funnel-title">Embudo</div><div id="mstg"></div>
       <hr class="d-divider">
-      <div class="d-chart-wrap"><div class="d-chart-hdr"><div class="d-chart-label">Conv. WPP diarias</div></div>
+      <div class="d-chart-wrap"><div class="d-chart-hdr">
+        <div class="d-chart-label">Conv. WPP diarias</div>
+        <div class="d-legend">
+          <div class="d-leg-item"><span class="d-leg-dot" style="background:rgba(255,37,0,.75);"></span>Conv. WPP</div>
+          <div class="d-leg-item"><span class="d-leg-dot" style="background:rgba(130,59,218,.35);"></span>Clics</div>
+          <div class="d-leg-item"><span class="d-leg-dot" style="background:rgba(248,237,226,.7);"></span>Gasto</div></div></div>
         <div style="position:relative;height:130px;"><canvas id="adsChart"></canvas></div></div>`
     :`<div style="margin-top:16px;padding:24px;text-align:center;background:var(--d-card);border:1px dashed var(--d-border);border-radius:10px;">
         <div style="font-size:22px;margin-bottom:8px;">📊</div>
@@ -606,7 +727,7 @@ function rEmbudos(d,c){
 
   $('s-embudos').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">07</span><span class="seg-dot" style="background:#ff2500;"></span>
-    <span class="seg-title">Embudos — Marcas &amp; Ulpik Priv</span>
+    <span class="seg-title">Embudos — Marcas &amp; Ulpik Priv · Ads período</span>
     <span class="seg-meta">${hasAds?adsClean.length+' días con datos':'Sin datos de Ads'}</span></div>
   <div class="emb-section"><div class="emb-inner">
     <div class="funnel-panel marcas">
@@ -620,6 +741,7 @@ function rEmbudos(d,c){
       <div class="emb-sub">${pp.length} miembros registrados en este período</div>
       <div class="kpi-strip">
         <div class="d-kpi-card"><div class="d-kpi-label">Gasto Ads</div><div class="d-kpi-value accent">${privG>0?fmt(privG):'—'}</div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">CPR</div><div class="d-kpi-value">${privCPR>0?'$'+privCPR:'—'}</div></div>
         <div class="d-kpi-card"><div class="d-kpi-label">Conv. WPP</div><div class="d-kpi-value">${privC||'—'}</div></div>
         <div class="d-kpi-card"><div class="d-kpi-label">Pagos</div><div class="d-kpi-value">${pp.length}</div></div></div>
       <div class="roas-banner">
@@ -627,12 +749,10 @@ function rEmbudos(d,c){
         <div style="text-align:right;"><div class="roas-sub">Hábiles / Activos</div>
           <div class="roas-revenue">${ps.habiles||'—'} / ${ps.activos||'—'}</div>
           <div class="roas-sub">${totalPriv>0?fmt(totalPriv)+' facturado':'Configura columnas en FACTURACION'}</div></div></div>
+      ${privG>0||privC>0?`<div class="d-funnel-title">Embudo Priv</div><div id="pstg"></div>`:''}
       <div class="d-funnel-title">Miembros del período</div>
       <div style="background:var(--d-card);border:1px solid var(--d-border);border-radius:10px;padding:14px 16px;max-height:280px;overflow-y:auto;">
-        ${pp.length?pp.map(p=>`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--d-text);padding:4px 0;border-bottom:1px solid var(--d-border);">
-          <span>${p.nombre}</span>
-          <span style="color:var(--d-muted);">${p.fecha||'—'} · cuota ${p.cuota}</span></div>`).join('')
-          :`<div style="text-align:center;padding:16px;color:var(--d-muted);font-size:11px;">Sin pagos en este período</div>`}
+        ${privRows}
       </div>
       <div class="panel-note">ℹ️ Montos en $0 → verifica columna "Dinero que representa" en FACTURACION ULPIK PRIV</div></div>
   </div></div>`;
@@ -653,6 +773,14 @@ function rEmbudos(d,c){
         scales:{y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{font:{size:9},color:'#7a7068'}},
           y2:{position:'right',grid:{display:false},ticks:{font:{size:9},color:'rgba(248,237,226,.5)',callback:v=>'$'+v}}}}});
   }
+  if(privG>0||privC>0){
+    const hab=Number(ps.habiles||0);
+    buildStg('pstg','priv',[
+      {name:'Gasto Ads',sub:'',label:fmt(privG),val:privG,conv:'↓ conv.'},
+      {name:'Conv. WPP',sub:'leads',label:String(privC),val:privC,conv:'↓ hábiles'},
+      {name:'Hábiles',sub:'1er pago',label:String(hab||pp.length),val:hab||pp.length,conv:'↓ pagos'},
+      {name:'Pagos',sub:'período',label:String(pp.length),val:pp.length,conv:null}]);
+  }
 }
 
 function buildStg(id,cls,stages){
@@ -668,35 +796,69 @@ function buildStg(id,cls,stages){
 // ══════════ §8 Convenio ══════════════════════════
 function rConvenio(cv){
   const empty=!cv||Object.keys(cv).length===0;
+  const ct=Number(cv.contactados||0), re=Number(cv.respondieron||0), ll=Number(cv.llamadas||0), co=Number(cv.convenios||0);
+  const pctRe=ct>0?(re/ct*100).toFixed(1):0;
+  const pctLl=re>0?(ll/re*100).toFixed(1):0;
+  const pctCo=ll>0?(co/ll*100).toFixed(1):0;
+  const funnel=empty?'':`
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Contactados</div><div class="num-lg">${ct}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Respondieron</div><div class="num-lg co">${re}</div><div style="font-size:10px;color:var(--text3);">${pctRe}%</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Llamadas</div><div class="num-lg ct">${ll}</div><div style="font-size:10px;color:var(--text3);">${pctLl}%</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.06);border-color:rgba(0,173,176,.20);"><div class="kpi-label ct">Convenios / proc.</div><div class="num-lg ct">${co}</div><div style="font-size:10px;color:var(--text3);">${pctCo}%</div></div></div>
+    <div class="funnel-row"><span class="funnel-label">Contactados</span><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:rgba(255,37,0,.12);"><span class="co">${ct}</span></div></div></div>
+    <div class="funnel-arrow">↓ ${pctRe}% responden</div>
+    <div class="funnel-row"><span class="funnel-label">Respondieron</span><div class="funnel-track"><div class="funnel-fill" style="width:${ct>0?re/ct*100:0}%;background:rgba(255,37,0,.22);"><span class="co">${re}</span></div></div></div>
+    <div class="funnel-arrow">↓ ${pctLl}% llamada</div>
+    <div class="funnel-row"><span class="funnel-label">Llamadas</span><div class="funnel-track"><div class="funnel-fill" style="width:${ct>0?ll/ct*100:0}%;background:rgba(0,173,176,.35);"><span class="ct">${ll}</span></div></div></div>
+    <div class="funnel-arrow">↓ ${pctCo}% convenio</div>
+    <div class="funnel-row"><span class="funnel-label">Convenio / Proc.</span><div class="funnel-track"><div class="funnel-fill" style="width:${ct>0?co/ct*100:0}%;background:var(--teal);"><span>${co}</span></div></div></div>
+    ${cv.ultima_gestion?`<div class="warn-box" style="margin-top:12px;"><div class="a-title" style="color:var(--warn);">Última gestión: ${cv.ultima_gestion}</div>
+      <div class="a-body">${co} diseñadores en proceso o con convenio firmado.</div></div>`:''}`;
+
   $('s-convenio').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">08</span><span class="seg-dot" style="background:var(--teal);"></span>
-    <span class="seg-title">Convenio Diseñadores</span><span class="seg-meta">${empty?'Sin datos':'Última gestión: '+(cv.ultima_gestion||'—')}</span></div>
+    <span class="seg-title">Convenio Diseñadores — Histórico</span><span class="seg-meta">${empty?'Sin datos':'Última gestión: '+(cv.ultima_gestion||'—')}</span></div>
   <div class="card">
-    <div class="card-title" style="margin-bottom:12px;">Convenio Diseñadores</div>
-    ${empty?noData('Sin datos en GESTION CONVENIO DISEÑADORES','Verifica que la hoja tenga columnas: Contactados, Respondieron, Llamadas, Convenios'):
-    `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
-      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Contactados</div><div class="num-lg">${cv.contactados||0}</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Respondieron</div><div class="num-lg co">${cv.respondieron||0}</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Llamadas</div><div class="num-lg ct">${cv.llamadas||0}</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.06);border-color:rgba(0,173,176,.20);"><div class="kpi-label ct">Convenios</div><div class="num-lg ct">${cv.convenios||0}</div></div></div>`
-    }</div>`;
+    <div class="no-date-notice" id="notice-convenio"><span class="no-date-notice-icon">📅</span><span class="no-date-notice-text">Esta sección muestra datos históricos sin granularidad de fecha — el filtro activo no aplica aquí.</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="card-title" style="margin:0;">Convenio Diseñadores</div>
+      ${cv.ultima_gestion?`<span class="chip chip-o">Última gestión ${cv.ultima_gestion}</span>`:''}</div>
+    ${empty?noData('Sin datos en GESTION CONVENIO DISEÑADORES','Verifica que la hoja tenga columnas: Contactados, Respondieron, Llamadas, Convenios'):funnel}
+  </div>`;
 }
 
 // ══════════ §9 Upsell ════════════════════════════
 function rUpsell(up){
   const{aprobadas:ap=0,en_proceso:ep=0,negadas:ng=0,estado:es='—',ultima_gestion:ug='—'}=up;
-  $('s-upsell').innerHTML=`
-  <div class="seg-hdr"><span class="seg-num">09</span><span class="seg-dot" style="background:var(--text3);"></span>
-    <span class="seg-title">Upsell</span><span class="seg-meta">Estado: ${es}</span></div>
-  <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div class="card-title" style="margin:0;">Upsell · Estado actual</div><span class="chip chip-o">${es}</span></div>
-    ${ap===0&&ep===0&&ng===0?noData('Sin datos en GESTION UPSELL','Verifica columnas: Aprobadas, En proceso, Negadas, Estado'):
-    `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+  const empty=ap===0&&ep===0&&ng===0;
+  const paused=/paus/i.test(String(es));
+  const body=empty?noData('Sin datos en GESTION UPSELL','Verifica columnas: Aprobadas, En proceso, Negadas, Estado'):
+    paused?`<div style="display:flex;gap:16px;align-items:flex-start;">
+      <div style="display:flex;flex-direction:column;align-items:center;padding:20px;text-align:center;min-width:150px;">
+        <div style="width:50px;height:50px;border-radius:50%;background:rgba(255,37,0,.08);border:1px solid rgba(255,37,0,.20);display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:20px;">⏸</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text);">${es}</div>
+        ${ug!=='—'?`<div style="font-size:10px;color:var(--text3);">${ug}</div>`:''}</div>
+      <div style="flex:1;">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:12px;">Cartera de referencia registrada en GESTION UPSELL.</div>
+        <div class="sec-label">Cartera referencia</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(130,59,218,.05);"><div class="kpi-label">Aprobadas</div><div class="num-md cp">${ap}</div></div>
+          <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.05);"><div class="kpi-label">En proceso</div><div class="num-md ct">${ep}</div></div>
+          <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Negadas</div><div class="num-md cs">${ng}</div></div></div></div></div>`
+    :`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
       <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(130,59,218,.05);"><div class="kpi-label">Aprobadas</div><div class="num-lg cp">${ap}</div></div>
       <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.05);"><div class="kpi-label">En proceso</div><div class="num-lg ct">${ep}</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Negadas</div><div class="num-lg cs">${ng}</div></div></div>`
-    }</div>`;
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Negadas</div><div class="num-lg cs">${ng}</div></div></div>`;
+
+  $('s-upsell').innerHTML=`
+  <div class="seg-hdr"><span class="seg-num">09</span><span class="seg-dot" style="background:var(--text3);"></span>
+    <span class="seg-title">Upsell — Histórico</span><span class="seg-meta">Estado: ${es}</span></div>
+  <div class="card">
+    <div class="no-date-notice" id="notice-upsell"><span class="no-date-notice-icon">📅</span><span class="no-date-notice-text">Esta sección muestra datos históricos sin granularidad de fecha — el filtro activo no aplica aquí.</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="card-title" style="margin:0;">Upsell · Estado actual</div><span class="chip chip-o">${es}</span></div>
+    ${body}</div>`;
 }
 
 // ══════════ §10 DISC ═════════════════════════════
@@ -705,24 +867,30 @@ function rDisc(discData){
   const pres=discData.reduce((s,d)=>s+d.presentados,0);
   const vts=discData.reduce((s,d)=>s+d.ventas,0);
   const maxAg=Math.max(...discData.map(d=>d.agendados),1);
+  const convPct=tot>0?(vts/tot*100).toFixed(1):0;
+  const lastMes=discData.length?discData[discData.length-1]:null;
 
   $('s-disc').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">10</span><span class="seg-dot" style="background:var(--purple);"></span>
-    <span class="seg-title">Taller DISC</span><span class="seg-meta">${tot} agendados histórico · ${vts===0?'0 ventas':vts+' ventas'}</span></div>
+    <span class="seg-title">Taller DISC — Histórico</span><span class="seg-meta">${tot} agendados histórico · ${vts} ventas</span></div>
   <div class="card">
+    <div class="no-date-notice" id="notice-disc"><span class="no-date-notice-icon">📅</span><span class="no-date-notice-text">Esta sección muestra datos históricos sin granularidad de fecha — el filtro activo no aplica aquí.</span></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="card-title" style="margin:0;">Taller DISC · Funnel histórico</div>
-      <span class="chip chip-o">${vts===0?'0% conversión':vts+' ventas'}</span></div>
+      <span class="chip chip-o">${tot>0?convPct+'% conversión':'0% conversión'}</span></div>
     ${tot===0?noData('Sin datos en TALLER DISC','Verifica que la hoja tenga columna Mes con el número de mes'):
-    `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
-      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Agendados</div><div class="num-lg">${tot}</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Se presentaron</div><div class="num-lg cw">${pres}</div></div>
+    `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Agendados total</div><div class="num-lg">${tot}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">${lastMes?lastMes.mes+' agendados':'Último mes'}</div><div class="num-lg cp">${lastMes?lastMes.agendados:0}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Se presentaron</div><div class="num-lg cw">${pres}</div><div style="font-size:10px;color:var(--text3);">histórico total</div></div>
       <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(255,37,0,.04);"><div class="kpi-label co">Ventas</div><div class="num-lg cs">${vts}</div></div></div>
     ${discData.map(d=>`<div class="funnel-row"><span class="funnel-label">${d.mes} (${d.agendados} ag.)</span>
       <div class="funnel-track"><div class="funnel-fill" style="width:${d.agendados/maxAg*100}%;background:rgba(130,59,218,.35);">
         <span class="cp">${d.agendados}</span></div></div></div>`).join('')}
-    ${pres===0&&tot>0?`<div class="warn-box" style="margin-top:12px;"><div class="a-title" style="color:var(--warn);">⚠ Asistencia sin registrar</div>
-      <div class="a-body">Agrega columna "Se presentó" (Sí/No) en TALLER DISC para ver la tasa de asistencia.</div></div>`:''}`
+    ${pres===0&&tot>0?`<div class="alert-box" style="margin-top:12px;"><div class="a-title" style="color:var(--orange);">⚠ Rotura de funnel — asistencia baja</div>
+      <div class="a-body">Solo ${pres} de ${tot} agendados (${tot>0?(pres/tot*100).toFixed(1):0}%) se presentaron. Revisa el protocolo de confirmación pre-taller.</div></div>`
+    :pres>0&&vts===0?`<div class="warn-box" style="margin-top:12px;"><div class="a-title" style="color:var(--warn);">⚠ Asistencia sin conversión</div>
+      <div class="a-body">${pres} presentados sin ventas registradas. Verifica columna de ventas en TALLER DISC.</div></div>`:''}`
     }</div>`;
 }
 
@@ -731,8 +899,9 @@ function rPI(pi){
   const{leads:le=0,contactados:co=0,respondieron:re=0,negociacion:ne=0,ventas_cerradas:vc=0}=pi;
   $('s-pi').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">11</span><span class="seg-dot" style="background:var(--purple);"></span>
-    <span class="seg-title">Test PI</span><span class="seg-meta">${le} leads · ${ne} en negociación · ${vc} ventas</span></div>
+    <span class="seg-title">Test PI — Histórico</span><span class="seg-meta">${le} leads · ${ne} en negociación · ${vc} ventas</span></div>
   <div class="card">
+    <div class="no-date-notice" id="notice-pi"><span class="no-date-notice-icon">📅</span><span class="no-date-notice-text">Esta sección muestra datos históricos sin granularidad de fecha — el filtro activo no aplica aquí.</span></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="card-title" style="margin:0;">Test PI · Funnel</div>
       <div style="display:flex;gap:8px;"><span class="chip chip-p">${le} leads</span><span class="chip chip-w">${ne} en negociación</span></div></div>
@@ -754,19 +923,23 @@ function rPI(pi){
 // ══════════ §12 Ventas LEGAL ═════════════════════
 function rLegal(d,c){
   const{v,totalLegal,vMarcas,prodMap}=c;
+  const yr=yearFromData(d);
   const tickProm=v.length>0?totalLegal/v.length:0;
   const topP=Object.entries(prodMap).sort((a,b)=>b[1].monto-a[1].monto)[0];
   const chips=Object.entries(prodMap).map(([p,x])=>{
     const pv=totalLegal>0?(x.monto/totalLegal*100).toFixed(1):0;
     return `<div style="display:flex;align-items:center;gap:5px;font-size:11px;"><span class="chip chip-o" style="font-size:9px;">${p}</span>${x.ventas}v · ${fmt(x.monto)} · ${pv}%</div>`;}).join('');
-  const rows=v.map(x=>`<tr><td>${x.fecha}</td>
-    <td style="font-weight:600;color:${colA(x.asesor||'')};">${x.asesor||'—'}</td>
+  const rows=v.map(x=>{
+    const ext=/sebastián|sebastian/i.test(x.asesor||'');
+    const fa=fechaAttr(x.fecha,yr);
+    return `<tr data-fecha="${fa}"${ext?' style="background:rgba(0,0,0,.02);"':''}><td>${x.fecha}</td>
+    <td style="font-weight:600;color:${ext?'var(--text3)':colA(x.asesor||'')};">${x.asesor||'—'}${ext?' <span style="font-size:9px;color:var(--text3);">[ext.]</span>':''}</td>
     <td>${x.categoria}</td><td><span class="chip chip-o" style="font-size:9px;">${x.producto}</span></td>
-    <td class="r co" style="font-family:'DM Mono',monospace;">${fmt(x.monto)}</td></tr>`).join('');
+    <td class="r co" style="font-family:'DM Mono',monospace;">${fmt(x.monto)}</td></tr>`;}).join('');
 
   $('s-legal').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">12</span><span class="seg-dot" style="background:var(--orange);"></span>
-    <span class="seg-title">Ventas LEGAL — Detalle completo</span><span class="seg-meta">${v.length} transacciones · ${fmt(totalLegal)}</span></div>
+    <span class="seg-title">Ventas LEGAL — Detalle completo</span><span class="seg-meta">${v.length} transacciones · ${fmt(totalLegal)} · filtrable por fecha</span></div>
   <div class="card" style="padding:0;overflow:hidden;">
     <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);">
       <div style="padding:16px 20px;border-right:1px solid var(--border);"><div class="kpi-label">Total</div>
@@ -783,11 +956,108 @@ function rLegal(d,c){
     <div style="padding:0 20px 20px;">
       <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:14px 0 8px;">Resumen por producto</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">${chips}</div>
+      <div class="info-box" style="margin-bottom:14px;">
+        <div class="a-title" style="color:var(--purple);">📅 Filtro de fechas</div>
+        <div class="a-body">Usa el rango en la barra superior para filtrar filas por fecha. Las secciones históricas (Convenio, Upsell, DISC, PI) no tienen granularidad diaria.</div></div>
       <table class="data-table" style="font-size:11px;">
         <thead><tr><th>Fecha</th><th>Asesor</th><th>Categoría</th><th>Producto</th><th class="r">Monto</th></tr></thead>
         <tbody>${rows}
           <tr class="t-total"><td colspan="4">TOTAL · ${v.length} TRANSACCIONES</td>
             <td class="r co" style="font-family:'DM Mono',monospace;">${fmt(totalLegal)}</td></tr></tbody></table></div></div>`;
+}
+
+// ── FILTRO GLOBAL DE FECHAS ───────────────────────
+const UNDATED_SECTIONS=[
+  {id:'s-convenio',noticeId:'notice-convenio'},
+  {id:'s-upsell',noticeId:'notice-upsell'},
+  {id:'s-disc',noticeId:'notice-disc'},
+  {id:'s-pi',noticeId:'notice-pi'}
+];
+
+function tfParseDate(str){
+  const m=(str||'').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(!m)return null;
+  const d=+m[1],mo=+m[2],y=+m[3];
+  if(mo<1||mo>12||d<1||d>31)return null;
+  return new Date(y,mo-1,d);
+}
+
+['tfFrom','tfTo'].forEach(id=>{
+  const el=$(id);
+  if(!el)return;
+  el.addEventListener('input',function(){
+    let v=this.value.replace(/\D/g,'');
+    if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);
+    if(v.length>5)v=v.slice(0,5)+'/'+v.slice(5);
+    if(v.length>10)v=v.slice(0,10);
+    this.value=v;
+  });
+  el.addEventListener('keydown',e=>{if(e.key==='Enter')applyGlobalFilter();});
+});
+
+function applyGlobalFilter(){
+  const fromVal=$('tfFrom')?.value||'';
+  const toVal=$('tfTo')?.value||'';
+  const errEl=$('tfErr'),statusEl=$('tfStatus'),clearBtn=$('tfClearBtn');
+  errEl.style.display='none';
+
+  const fromDate=fromVal.trim()?tfParseDate(fromVal):null;
+  const toDate=toVal.trim()?tfParseDate(toVal):null;
+
+  if((fromVal.trim()&&!fromDate)||(toVal.trim()&&!toDate)){
+    errEl.style.display='inline';
+    return;
+  }
+
+  const isActive=!!(fromDate||toDate);
+  let totalVisible=0;
+
+  document.querySelectorAll('[data-fecha]').forEach(el=>{
+    if(el.classList.contains('t-total'))return;
+    if(!isActive){el.style.display='';totalVisible++;return;}
+    const fd=tfParseDate(el.dataset.fecha);
+    let show=true;
+    if(fd){
+      if(fromDate&&fd<fromDate)show=false;
+      if(toDate&&fd>toDate)show=false;
+    }
+    el.style.display=show?'':'none';
+    if(show)totalVisible++;
+  });
+
+  UNDATED_SECTIONS.forEach(s=>{
+    const notice=$(s.noticeId);
+    if(notice)notice.classList.toggle('visible',isActive);
+  });
+
+  if(isActive){
+    const parts=[];
+    if(fromDate)parts.push(fromVal.trim());
+    if(toDate)parts.push(toVal.trim());
+    const rangeStr=parts.join(' → ');
+    statusEl.textContent=rangeStr+' · '+totalVisible+' registro'+(totalVisible!==1?'s':'')+' visible'+(totalVisible!==1?'s':'');
+    statusEl.className='tf-status active';
+    clearBtn.style.display='inline-block';
+  }else{
+    statusEl.textContent='';
+    statusEl.className='tf-status';
+    clearBtn.style.display='none';
+  }
+}
+
+function clearGlobalFilter(){
+  const fromEl=$('tfFrom'),toEl=$('tfTo');
+  if(fromEl)fromEl.value='';
+  if(toEl)toEl.value='';
+  $('tfErr').style.display='none';
+  $('tfStatus').textContent='';
+  $('tfStatus').className='tf-status';
+  $('tfClearBtn').style.display='none';
+  document.querySelectorAll('[data-fecha]').forEach(el=>el.style.display='');
+  UNDATED_SECTIONS.forEach(s=>{
+    const notice=$(s.noticeId);
+    if(notice)notice.classList.remove('visible');
+  });
 }
 
 // ── INIT ──────────────────────────────────────────
