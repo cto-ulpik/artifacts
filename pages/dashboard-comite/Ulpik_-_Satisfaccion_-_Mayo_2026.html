@@ -65,6 +65,61 @@ body {
   opacity: 0.7;
   font-weight: 400;
 }
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.month-select {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(248,237,226,0.2);
+  background: rgba(255,255,255,0.08);
+  color: var(--cream);
+  cursor: pointer;
+}
+.month-select:focus { outline: none; border-color: var(--orange); }
+.live-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: rgba(0,173,176,0.2);
+  color: var(--green);
+  border: 1px solid rgba(0,173,176,0.35);
+}
+.lbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  z-index: 200;
+  background: transparent;
+  pointer-events: none;
+}
+.lbar.on { background: linear-gradient(90deg, var(--orange), var(--green)); animation: lbarPulse 1s ease infinite; }
+.lbar.done { background: var(--green); }
+@keyframes lbarPulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.load-box, .err-box {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  border: 1px solid rgba(0,0,0,0.06);
+  margin-bottom: 24px;
+}
+.err-box { border-color: rgba(255,37,0,0.25); background: rgba(255,37,0,0.04); color: var(--orange); }
+.static-note {
+  font-size: 12px;
+  color: #888;
+  background: rgba(130,59,218,0.06);
+  border: 1px solid rgba(130,59,218,0.15);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+}
 
 /* ─── TABS ─── */
 .tabs {
@@ -425,13 +480,21 @@ body {
 </head>
 <body>
 
+<div class="lbar" id="lbar"></div>
+
 <div class="header">
   <div class="header-left">
     <div class="logo-mark">U</div>
     <div>
       <h1>Tablero de Satisfacción</h1>
-      <div class="period">1 de mayo — 31 de mayo 2026</div>
+      <div class="period" id="headerPeriod">Cargando período…</div>
     </div>
+  </div>
+  <div class="header-right">
+    <span class="live-badge" id="liveBadge" style="display:none">● NPS en vivo</span>
+    <select class="month-select" id="monthSelect" onchange="onMonthChange()" style="display:none">
+      <option value="">Cargando…</option>
+    </select>
   </div>
 </div>
 
@@ -445,6 +508,8 @@ body {
 <!-- ════════════════════════════════════════════════════════ -->
 
 <div class="content active" id="tab-inicio">
+
+  <div class="static-note">La encuesta de <strong>inicio de trámite</strong> usa datos estáticos de mayo 2026. La pestaña <strong>NPS — Fin de trámite</strong> se actualiza desde el spreadsheet NPS ULPIK vía Apps Script.</div>
 
   <div class="kpi-strip">
     <div class="kpi-card">
@@ -682,118 +747,202 @@ body {
 <!-- ════════════════════════════════════════════════════════ -->
 
 <div class="content" id="tab-nps">
+  <div id="nps-mount">
+    <div class="load-box">Cargando respuestas NPS desde Google Sheets…</div>
+  </div>
+</div>
 
+
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4xY5ANQUvjEO4wJEoufvJ5c9-s6COttYfHQlebekqxnDpRSuq8dvnz5O6KgTPPgY/exec';
+const MN = {'01':'Ene','02':'Feb','03':'Mar','04':'Abr','05':'May','06':'Jun','07':'Jul','08':'Ago','09':'Sep','10':'Oct','11':'Nov','12':'Dic'};
+
+let allRows = [];
+let curMonth = '';
+let chartDrawn = false;
+
+function $(id) { return document.getElementById(id); }
+function avg(a) { return a.length ? +(a.reduce((s, v) => s + v, 0) / a.length).toFixed(1) : 0; }
+function npsScore(a) {
+  if (!a.length) return 0;
+  const p = a.filter(v => v >= 9).length;
+  const d = a.filter(v => v <= 6).length;
+  return Math.round((p - d) / a.length * 100);
+}
+function semaClass(v) { return v >= 9 ? 'status-green' : v >= 8 ? 'status-yellow' : 'status-red'; }
+function barColor(v) { return v >= 9 ? 'var(--green)' : v >= 8 ? 'var(--purple)' : 'var(--orange)'; }
+function monthLabel(m) {
+  if (!m) return '—';
+  const p = m.split('-');
+  return (MN[p[1]] || p[1]) + ' ' + p[0];
+}
+function monthRange(m) {
+  const p = m.split('-');
+  const y = +p[0], mo = +p[1];
+  const last = new Date(y, mo, 0).getDate();
+  const names = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return '1 de ' + names[mo - 1] + ' — ' + last + ' de ' + names[mo - 1] + ' ' + y;
+}
+
+function loadBar(on) {
+  const b = $('lbar');
+  if (!b) return;
+  b.className = on ? 'lbar on' : 'lbar done';
+  if (!on) setTimeout(() => { b.className = 'lbar'; }, 600);
+}
+
+function fetchJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = '_ulpikSat_' + Date.now();
+    const timer = setTimeout(() => { cleanup(); reject(new Error('Timeout al cargar datos')); }, 45000);
+    const script = document.createElement('script');
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cb];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cb] = (data) => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error('No se pudo conectar con Apps Script')); };
+    const sep = url.includes('?') ? '&' : '?';
+    script.src = url + sep + 'action=read&callback=' + encodeURIComponent(cb);
+    document.head.appendChild(script);
+  });
+}
+
+function ratingDist(values) {
+  const map = {};
+  values.forEach(v => { const k = Math.round(Number(v)); if (k >= 0) map[k] = (map[k] || 0) + 1; });
+  return Object.keys(map).map(Number).sort((a, b) => b - a).map(k => ({ score: k, count: map[k] }));
+}
+
+function ratingRowsHtml(dist, total, field) {
+  return dist.map(d => {
+    const pct = total ? (d.count / total * 100) : 0;
+    return `<div class="rating-row"><div class="rating-label">${d.score}</div>
+      <div class="rating-bar-track"><div class="rating-bar-fill" style="width:${pct.toFixed(1)}%;background:${barColor(d.score)}"></div></div>
+      <div class="rating-count">${d.count} (${Math.round(pct)}%)</div></div>`;
+  }).join('');
+}
+
+function hbarHtml(items) {
+  const max = Math.max(...items.map(x => x.count), 1);
+  return items.map(x => `<div class="hbar-group">
+    <div class="hbar-label"><span>${x.label}</span><span>${x.count}</span></div>
+    <div class="hbar-track"><div class="hbar-fill" style="width:${(x.count / max * 100).toFixed(1)}%;background:${x.color || 'var(--green)'}"></div></div>
+  </div>`).join('');
+}
+
+function feedbackHtml(rows) {
+  const items = rows
+    .filter(r => (r.comentario || '').trim().length > 8)
+    .map(r => {
+      const crit = r.nps <= 6 || r.satisfaccion <= 6 || r.velocidad <= 5;
+      const warn = !crit && (r.nps <= 8 || r.velocidad <= 7);
+      const tag = crit ? 'critical' : warn ? 'warning' : 'neutral';
+      const label = crit ? 'Crítico' : warn ? 'Proceso' : 'Comentario';
+      return { tag, label, text: r.comentario, nps: r.nps };
+    })
+    .sort((a, b) => {
+      const rank = { critical: 0, warning: 1, neutral: 2 };
+      return rank[a.tag] - rank[b.tag] || a.nps - b.nps;
+    })
+    .slice(0, 8);
+  if (!items.length) return '<div style="font-size:13px;color:#999;padding:12px 0">Sin comentarios en este período.</div>';
+  return items.map(i => `<div class="feedback-item ${i.tag}"><span class="feedback-tag ${i.tag}">${i.label}</span>"${i.text.replace(/"/g, '&quot;')}"</div>`).join('');
+}
+
+function asesorTable(rows) {
+  const map = {};
+  rows.forEach(r => { const a = r.asesor || '—'; map[a] = (map[a] || 0) + 1; });
+  const total = rows.length;
+  const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]);
+  const colors = ['var(--green)', 'var(--purple)', 'rgba(130,59,218,0.4)'];
+  return sorted.map(([a, n], i) => {
+    const pct = total ? Math.round(n / total * 100) : 0;
+    return `<tr><td>${a}</td><td style="text-align:center">${n}</td>
+      <td style="text-align:center"><span class="badge" style="background:${colors[i] || '#aaa'};color:white">${pct}%</span></td></tr>`;
+  }).join('');
+}
+
+function renderNps(rows, month) {
+  const mount = $('nps-mount');
+  if (!rows.length) {
+    mount.innerHTML = `<div class="err-box"><strong>Sin respuestas</strong><br><span style="font-size:13px;color:#666">No hay encuestas NPS para ${monthLabel(month)}.</span></div>`;
+    return;
+  }
+
+  const n = rows.length;
+  const nps = npsScore(rows.map(r => r.nps));
+  const pr = rows.filter(r => r.nps >= 9).length;
+  const pa = rows.filter(r => r.nps >= 7 && r.nps <= 8).length;
+  const det = rows.filter(r => r.nps <= 6).length;
+  const aNps = avg(rows.map(r => r.nps));
+  const aCla = avg(rows.map(r => r.claridad));
+  const aVel = avg(rows.map(r => r.velocidad));
+  const aCal = avg(rows.map(r => r.calidad));
+  const aSat = avg(rows.map(r => r.satisfaccion));
+  const npsColor = nps >= 60 ? 'var(--green)' : nps >= 30 ? 'var(--yellow)' : 'var(--orange)';
+
+  const servMap = {};
+  rows.forEach(r => { const s = r.servicio || 'N/A'; servMap[s] = (servMap[s] || 0) + 1; });
+  const servItems = Object.entries(servMap).sort((a, b) => b[1] - a[1]).map(([label, count], i) => ({
+    label, count, color: i === 0 ? 'var(--green)' : 'var(--orange)'
+  }));
+
+  mount.innerHTML = `
   <div class="kpi-strip">
-
     <div class="kpi-card" style="grid-column: span 2;">
       <div class="nps-gauge">
         <div class="kpi-label" style="margin-bottom:10px">NET PROMOTER SCORE</div>
-        <div class="nps-score" id="nps-final" style="color:var(--green)">73</div>
-        <div style="margin-top:8px;font-size:13px;color:#888">Promotores 82% − Detractores 9% · Prom. recomendación 9.3/10</div>
+        <div class="nps-score" style="color:${npsColor}">${nps}</div>
+        <div style="margin-top:8px;font-size:13px;color:#888">Promotores ${n ? Math.round(pr / n * 100) : 0}% − Detractores ${n ? Math.round(det / n * 100) : 0}% · Prom. recomendación ${aNps}/10</div>
         <div class="nps-category">
-          <div class="nps-cat-item">
-            <div class="nps-cat-value" style="color:var(--green)">9</div>
-            <div class="nps-cat-label">Promotores (9-10)</div>
-          </div>
-          <div class="nps-cat-item">
-            <div class="nps-cat-value" style="color:var(--purple)">1</div>
-            <div class="nps-cat-label">Pasivos (7-8)</div>
-          </div>
-          <div class="nps-cat-item">
-            <div class="nps-cat-value" style="color:var(--orange)">1</div>
-            <div class="nps-cat-label">Detractores (0-6)</div>
-          </div>
+          <div class="nps-cat-item"><div class="nps-cat-value" style="color:var(--green)">${pr}</div><div class="nps-cat-label">Promotores (9-10)</div></div>
+          <div class="nps-cat-item"><div class="nps-cat-value" style="color:var(--purple)">${pa}</div><div class="nps-cat-label">Pasivos (7-8)</div></div>
+          <div class="nps-cat-item"><div class="nps-cat-value" style="color:var(--orange)">${det}</div><div class="nps-cat-label">Detractores (0-6)</div></div>
         </div>
       </div>
     </div>
-
-    <div class="kpi-card">
-      <div class="kpi-value" style="color:var(--purple)">11</div>
-      <div class="kpi-label">Respuestas</div>
-      <div class="kpi-sub">Mayo 2026</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value" style="color:var(--yellow)">55.0%</div>
-      <div class="kpi-label">Ratio de respuesta</div>
-      <div class="kpi-sub">11 de 20 trámites finalizados</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value" style="color:var(--green)">9.6</div>
-      <div class="kpi-label">Claridad paso a paso</div>
-      <div class="kpi-sub">Promedio /10</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value" style="color:var(--yellow)">8.9</div>
-      <div class="kpi-label">Rapidez percibida</div>
-      <div class="kpi-sub">Promedio /10</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value" style="color:var(--green)">9.2</div>
-      <div class="kpi-label">Calidad de atención</div>
-      <div class="kpi-sub">Promedio /10</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value" style="color:var(--green)">9.3</div>
-      <div class="kpi-label">Satisfacción resultado</div>
-      <div class="kpi-sub">Promedio /10</div>
-    </div>
+    <div class="kpi-card"><div class="kpi-value" style="color:var(--purple)">${n}</div><div class="kpi-label">Respuestas</div><div class="kpi-sub">${monthLabel(month)}</div></div>
+    <div class="kpi-card"><div class="kpi-value" style="color:var(--green)">${aCla}</div><div class="kpi-label">Claridad paso a paso</div><div class="kpi-sub">Promedio /10</div></div>
+    <div class="kpi-card"><div class="kpi-value" style="color:${aVel >= 9 ? 'var(--green)' : 'var(--yellow)'}">${aVel}</div><div class="kpi-label">Rapidez percibida</div><div class="kpi-sub">Promedio /10</div></div>
+    <div class="kpi-card"><div class="kpi-value" style="color:var(--green)">${aCal}</div><div class="kpi-label">Calidad de atención</div><div class="kpi-sub">Promedio /10</div></div>
+    <div class="kpi-card"><div class="kpi-value" style="color:var(--green)">${aSat}</div><div class="kpi-label">Satisfacción resultado</div><div class="kpi-sub">Promedio /10</div></div>
   </div>
 
   <div class="semaforo-note"><strong>Semáforo de promedios:</strong> <span class="semaforo-dot" style="background:var(--green)"></span>Verde ≥ 9.0 <span class="semaforo-dot" style="background:var(--yellow)"></span>Amarillo 8.0–8.9 <span class="semaforo-dot" style="background:var(--orange)"></span>Rojo &lt; 8.0.</div>
 
   <div class="grid-2">
     <div class="card">
-      <div class="card-title"><span>Distribución de recomendación (NPS)</span><span class="title-metric status-green">NPS 73 · Prom. 9.3/10</span></div>
-      <div class="rating-row"><div class="rating-label">10</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:81.8%;background:var(--green)"></div></div><div class="rating-count">9 (82%)</div></div>
-      <div class="rating-row"><div class="rating-label">7</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.1%;background:var(--purple)"></div></div><div class="rating-count">1 (9%)</div></div>
-      <div class="rating-row"><div class="rating-label">5</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.1%;background:var(--orange)"></div></div><div class="rating-count">1 (9%)</div></div>
+      <div class="card-title"><span>Distribución de recomendación (NPS)</span><span class="title-metric ${semaClass(aNps)}">NPS ${nps} · Prom. ${aNps}/10</span></div>
+      ${ratingRowsHtml(ratingDist(rows.map(r => r.nps)), n)}
     </div>
-
     <div class="card">
-      <div class="card-title"><span>Claridad del paso a paso</span><span class="title-metric status-green">Prom. 9.6/10</span></div>
-      <div class="rating-row"><div class="rating-label">10</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:81.8%;background:var(--green)"></div></div><div class="rating-count">9 (82%)</div></div>
-      <div class="rating-row"><div class="rating-label">8</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:18.2%;background:var(--purple)"></div></div><div class="rating-count">2 (18%)</div></div>
+      <div class="card-title"><span>Claridad del paso a paso</span><span class="title-metric ${semaClass(aCla)}">Prom. ${aCla}/10</span></div>
+      ${ratingRowsHtml(ratingDist(rows.map(r => r.claridad)), n)}
     </div>
   </div>
 
   <div class="grid-2">
     <div class="card">
-      <div class="card-title"><span>Rapidez percibida del servicio</span><span class="title-metric status-yellow">Prom. 8.9/10</span></div>
-      <div class="rating-row"><div class="rating-label">10</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:54.5%;background:var(--green)"></div></div><div class="rating-count">6 (55%)</div></div>
-      <div class="rating-row"><div class="rating-label">9</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:18.2%;background:var(--green)"></div></div><div class="rating-count">2 (18%)</div></div>
-      <div class="rating-row"><div class="rating-label">8</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.1%;background:var(--purple)"></div></div><div class="rating-count">1 (9%)</div></div>
-      <div class="rating-row"><div class="rating-label">7</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.1%;background:var(--purple)"></div></div><div class="rating-count">1 (9%)</div></div>
-      <div class="rating-row"><div class="rating-label">5</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.1%;background:var(--orange)"></div></div><div class="rating-count">1 (9%)</div></div>
+      <div class="card-title"><span>Rapidez percibida del servicio</span><span class="title-metric ${semaClass(aVel)}">Prom. ${aVel}/10</span></div>
+      ${ratingRowsHtml(ratingDist(rows.map(r => r.velocidad)), n)}
     </div>
-
     <div class="card">
-      <div class="card-title"><span>Calidad de atención del asesor</span><span class="title-metric status-green">Prom. 9.2/10</span></div>
-      <div class="rating-row"><div class="rating-label">10</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:72.7%;background:var(--green)"></div></div><div class="rating-count">8 (73%)</div></div>
-      <div class="rating-row"><div class="rating-label">8</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.1%;background:var(--purple)"></div></div><div class="rating-count">1 (9%)</div></div>
-      <div class="rating-row"><div class="rating-label">7</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.1%;background:var(--purple)"></div></div><div class="rating-count">1 (9%)</div></div>
-      <div class="rating-row"><div class="rating-label">6</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.1%;background:var(--orange)"></div></div><div class="rating-count">1 (9%)</div></div>
+      <div class="card-title"><span>Calidad de atención del asesor</span><span class="title-metric ${semaClass(aCal)}">Prom. ${aCal}/10</span></div>
+      ${ratingRowsHtml(ratingDist(rows.map(r => r.calidad)), n)}
     </div>
   </div>
 
   <div class="grid-2">
     <div class="card">
-      <div class="card-title"><span>Satisfacción con resultado final</span><span class="title-metric status-green">Prom. 9.3/10</span></div>
-      <div class="rating-row"><div class="rating-label">10</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:72.7%;background:var(--green)"></div></div><div class="rating-count">8 (73%)</div></div>
-      <div class="rating-row"><div class="rating-label">9</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.1%;background:var(--green)"></div></div><div class="rating-count">1 (9%)</div></div>
-      <div class="rating-row"><div class="rating-label">7</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.1%;background:var(--purple)"></div></div><div class="rating-count">1 (9%)</div></div>
-      <div class="rating-row"><div class="rating-label">6</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.1%;background:var(--orange)"></div></div><div class="rating-count">1 (9%)</div></div>
+      <div class="card-title"><span>Satisfacción con resultado final</span><span class="title-metric ${semaClass(aSat)}">Prom. ${aSat}/10</span></div>
+      ${ratingRowsHtml(ratingDist(rows.map(r => r.satisfaccion)), n)}
     </div>
-
     <div class="card">
       <div class="card-title">Servicio contratado (Fin de trámite)</div>
-      <div class="hbar-group">
-        <div class="hbar-label"><span>Registro de marca</span><span>10</span></div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:90.9%;background:var(--green)"></div></div>
-      </div>
-      <div class="hbar-group">
-        <div class="hbar-label"><span>Otro</span><span>1</span></div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:9.1%;background:var(--orange)"></div></div>
-      </div>
+      ${hbarHtml(servItems)}
     </div>
   </div>
 
@@ -802,109 +951,138 @@ body {
       <div class="card-title">Atención por asesor (Fin de trámite)</div>
       <table class="data-table">
         <thead><tr><th>Asesor</th><th style="text-align:center">Respuestas</th><th style="text-align:center">%</th></tr></thead>
-        <tbody>
-          <tr><td>Martín Coello</td><td style="text-align:center">8</td><td style="text-align:center"><span class="badge" style="background:var(--green);color:white">73%</span></td></tr>
-          <tr><td>Esteban Maldonado</td><td style="text-align:center">2</td><td style="text-align:center"><span class="badge" style="background:var(--purple);color:white">18%</span></td></tr>
-          <tr><td>Marianela Espinoza</td><td style="text-align:center">1</td><td style="text-align:center"><span class="badge" style="background:rgba(130,59,218,0.4);color:var(--purple)">9%</span></td></tr>
-        </tbody>
+        <tbody>${asesorTable(rows)}</tbody>
       </table>
     </div>
-
     <div class="card">
-      <div class="card-title"><span>Retroalimentación principal</span><span class="title-metric status-red">Incluye los más críticos</span></div>
-      <div style="max-height:330px;overflow-y:auto">
-        <div class="feedback-item critical"><span class="feedback-tag critical">Crítico</span>"En mi caso se cambió de asesor, entonces no me acompañó la persona que estuvo desde el principio."</div>
-        <div class="feedback-item critical"><span class="feedback-tag critical">Crítico</span>"Mantener constantemente una actualización del estado del trámite; durante meses no hubo ningún pronunciamiento y solo cuando yo consultaba me daban una respuesta."</div>
-        <div class="feedback-item warning"><span class="feedback-tag warning">Demora</span>"Notificar y explicar la larga demora desde un inicio."</div>
-        <div class="feedback-item warning"><span class="feedback-tag warning">Proceso</span>"En la primera conversación, una reunión por Zoom para que el cliente se familiarice con el proceso, vea una cara y entre más en confianza."</div>
-        <div class="feedback-item warning"><span class="feedback-tag warning">Servicios</span>"Añadir asesorías empresariales: fideicomisos, impuestos, contratos entre proveedores y clientes."</div>
-      </div>
+      <div class="card-title"><span>Retroalimentación principal</span><span class="title-metric status-red">Ordenada por criticidad</span></div>
+      <div style="max-height:330px;overflow-y:auto">${feedbackHtml(rows)}</div>
     </div>
   </div>
 
   <div class="card full-width" style="margin-bottom:28px">
-    <div class="card-title">Evolución mensual — Satisfacción con el resultado final (Jul 2025 – May 2026)</div>
+    <div class="card-title">Evolución mensual — Satisfacción con el resultado final</div>
     <div style="display:flex;gap:20px;margin-bottom:16px;flex-wrap:wrap">
       <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span style="font-size:12px">Satisfacción con el resultado</span></div>
     </div>
     <div style="position:relative;width:100%;overflow-x:auto">
       <canvas id="evolutionChart" width="900" height="340" style="width:100%;max-width:900px"></canvas>
     </div>
-    <div style="display:flex;justify-content:space-between;max-width:900px;padding:8px 50px 0 60px">
-      <span style="font-size:10px;color:#bbb;text-align:center">n=6</span>
-      <span style="font-size:10px;color:#bbb;text-align:center">n=9</span>
-      <span style="font-size:10px;color:#bbb;text-align:center">n=21</span>
-      <span style="font-size:10px;color:#bbb;text-align:center">n=39</span>
-      <span style="font-size:10px;color:#bbb;text-align:center">n=19</span>
-      <span style="font-size:10px;color:#bbb;text-align:center">n=31</span>
-      <span style="font-size:10px;color:#bbb;text-align:center">n=8</span>
-      <span style="font-size:10px;color:#bbb;text-align:center">n=9</span>
-      <span style="font-size:10px;color:#bbb;text-align:center">n=21</span>
-      <span style="font-size:10px;color:#bbb;text-align:center">n=15</span>
-      <span style="font-size:10px;color:#bbb;text-align:center">n=11</span>
-    </div>
-  </div>
+    <div id="chartCounts" style="display:flex;justify-content:space-between;max-width:900px;padding:8px 50px 0 60px"></div>
+  </div>`;
 
-</div>
+  chartDrawn = false;
+  if ($('tab-nps').classList.contains('active')) setTimeout(drawChart, 50);
+}
 
+function updateMonthSelector() {
+  const months = [...new Set(allRows.map(r => r.mes).filter(Boolean))].sort();
+  const sel = $('monthSelect');
+  if (!months.length) {
+    sel.style.display = 'none';
+    $('headerPeriod').textContent = 'Sin datos NPS';
+    return;
+  }
+  if (!curMonth || !months.includes(curMonth)) curMonth = months[months.length - 1];
+  sel.innerHTML = months.map(m => `<option value="${m}"${m === curMonth ? ' selected' : ''}>${monthLabel(m)}</option>`).join('');
+  sel.style.display = 'block';
+  $('liveBadge').style.display = 'inline';
+  $('headerPeriod').textContent = monthRange(curMonth) + ' · NPS fin de trámite';
+}
 
+function onMonthChange() {
+  curMonth = $('monthSelect').value;
+  $('headerPeriod').textContent = monthRange(curMonth) + ' · NPS fin de trámite';
+  renderNps(allRows.filter(r => r.mes === curMonth), curMonth);
+}
 
-<script>
+async function loadNpsData() {
+  loadBar(true);
+  const mount = $('nps-mount');
+  try {
+    const raw = await fetchJsonp(APPS_SCRIPT_URL);
+    if (!raw.ok) throw new Error(raw.error || 'Error al leer datos');
+    allRows = (raw.rows || []).filter(r => r.nps > 0 || r.satisfaccion > 0);
+    updateMonthSelector();
+    renderNps(allRows.filter(r => r.mes === curMonth), curMonth);
+  } catch (e) {
+    mount.innerHTML = `<div class="err-box"><strong>Error de conexión</strong><br>
+      <span style="font-size:13px;color:#666">${e.message}</span><br><br>
+      <span style="font-size:12px;color:#888">Verifica que Apps Script tenga <code>action=read</code> desplegado. Código en <code>nps-ulpik-apps-script.gs</code>.</span></div>`;
+    $('headerPeriod').textContent = 'Error al cargar NPS';
+  } finally {
+    loadBar(false);
+  }
+}
+
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
   if (tab === 'inicio') {
     document.querySelectorAll('.tab')[0].classList.add('active');
-    document.getElementById('tab-inicio').classList.add('active');
+    $('tab-inicio').classList.add('active');
+    $('headerPeriod').textContent = '1 de mayo — 31 de mayo 2026 · Inicio de trámite (estático)';
+    $('monthSelect').style.display = 'none';
+    $('liveBadge').style.display = 'none';
   } else {
     document.querySelectorAll('.tab')[1].classList.add('active');
-    document.getElementById('tab-nps').classList.add('active');
-    setTimeout(drawChart, 50);
+    $('tab-nps').classList.add('active');
+    updateMonthSelector();
+    if (!chartDrawn) setTimeout(drawChart, 50);
   }
 }
 
 function drawChart() {
-  const canvas = document.getElementById('evolutionChart');
-  if (!canvas) return;
+  const canvas = $('evolutionChart');
+  if (!canvas || !allRows.length) return;
+
+  const monthMap = {};
+  allRows.forEach(r => {
+    if (!r.mes) return;
+    if (!monthMap[r.mes]) monthMap[r.mes] = [];
+    monthMap[r.mes].push(r.satisfaccion);
+  });
+  const months = Object.keys(monthMap).sort();
+  const labels = months.map(m => {
+    const p = m.split('-');
+    return (MN[p[1]] || p[1]) + ' ' + p[0].slice(2);
+  });
+  const satisfaccion = months.map(m => avg(monthMap[m]));
+  const counts = months.map(m => monthMap[m].length);
+
+  const countsEl = $('chartCounts');
+  if (countsEl) {
+    countsEl.innerHTML = counts.map(n => `<span style="font-size:10px;color:#bbb;text-align:center">n=${n}</span>`).join('');
+  }
+
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
-
-  const months = ["Jul 25", "Ago 25", "Sep 25", "Oct 25", "Nov 25", "Dic 25", "Ene 26", "Feb 26", "Mar 26", "Abr 26", "May 26"];
-  const satisfaccion = [10.0, 9.11, 9.1, 9.46, 9.26, 9.65, 9.88, 8.89, 8.95, 9.13, 9.27];
-
   const padL = 60, padR = 40, padT = 30, padB = 50;
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
-  const minY = 8, maxY = 10.2;
+  const minY = Math.max(6, Math.floor(Math.min(...satisfaccion, 10) - 0.5));
+  const maxY = Math.min(10.2, Math.max(...satisfaccion) + 0.3);
 
-  function xPos(i) { return padL + (i / (months.length - 1)) * chartW; }
+  function xPos(i) { return padL + (months.length > 1 ? (i / (months.length - 1)) * chartW : chartW / 2); }
   function yPos(v) { return padT + chartH - ((v - minY) / (maxY - minY)) * chartH; }
 
   ctx.clearRect(0, 0, W, H);
-
   ctx.strokeStyle = '#e8ddd3';
   ctx.lineWidth = 1;
-  for (let v = 8; v <= 10; v += 0.5) {
+  for (let v = Math.ceil(minY); v <= Math.floor(maxY); v++) {
     ctx.beginPath();
-    ctx.setLineDash(v % 1 === 0 ? [] : [4, 4]);
     ctx.moveTo(padL, yPos(v));
     ctx.lineTo(W - padR, yPos(v));
     ctx.stroke();
-    if (v % 1 === 0) {
-      ctx.fillStyle = '#aaa';
-      ctx.font = '12px DM Sans';
-      ctx.textAlign = 'right';
-      ctx.fillText(v.toFixed(1), padL - 10, yPos(v) + 4);
-    }
+    ctx.fillStyle = '#aaa';
+    ctx.font = '12px DM Sans';
+    ctx.textAlign = 'right';
+    ctx.fillText(v.toFixed(1), padL - 10, yPos(v) + 4);
   }
-  ctx.setLineDash([]);
-
   ctx.fillStyle = '#888';
   ctx.font = '600 12px DM Sans';
   ctx.textAlign = 'center';
-  months.forEach((m, i) => {
-    ctx.fillText(m, xPos(i), H - padB + 22);
-  });
+  labels.forEach((m, i) => ctx.fillText(m, xPos(i), H - padB + 22));
 
   const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
   grad.addColorStop(0, 'rgba(0, 173, 176, 0.18)');
@@ -920,16 +1098,10 @@ function drawChart() {
 
   ctx.strokeStyle = '#00adb0';
   ctx.lineWidth = 3;
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
   ctx.beginPath();
-  satisfaccion.forEach((v, i) => {
-    if (i === 0) ctx.moveTo(xPos(i), yPos(v));
-    else ctx.lineTo(xPos(i), yPos(v));
-  });
+  satisfaccion.forEach((v, i) => { if (i === 0) ctx.moveTo(xPos(i), yPos(v)); else ctx.lineTo(xPos(i), yPos(v)); });
   ctx.stroke();
 
-  // Highlight May 2026 (last point) with a different color
   satisfaccion.forEach((v, i) => {
     const isLatest = i === satisfaccion.length - 1;
     ctx.beginPath();
@@ -939,18 +1111,17 @@ function drawChart() {
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2.5;
     ctx.stroke();
-
     ctx.fillStyle = isLatest ? '#ff2500' : '#222';
     ctx.font = isLatest ? 'bold 700 13px DM Sans' : '700 12px DM Sans';
     ctx.textAlign = 'center';
     ctx.fillText(v.toFixed(2), xPos(i), yPos(v) - 14);
   });
+  chartDrawn = true;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('tab-nps').classList.contains('active')) {
-    setTimeout(drawChart, 100);
-  }
+  $('headerPeriod').textContent = '1 de mayo — 31 de mayo 2026 · Inicio de trámite (estático)';
+  loadNpsData();
 });
 </script>
 
