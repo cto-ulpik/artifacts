@@ -783,18 +783,36 @@ function loadBar(on) {
   if (!on) setTimeout(() => { b.className = 'lbar'; }, 600);
 }
 
+let _jsonpSeq = 0;
+
 function fetchJsonp(url) {
   return new Promise((resolve, reject) => {
-    const cb = '_ulpikSat_' + Date.now();
-    const timer = setTimeout(() => { cleanup(); reject(new Error('Timeout al cargar datos')); }, 45000);
+    const cb = '_ulpikSat_' + (++_jsonpSeq) + '_' + Math.random().toString(36).slice(2, 9);
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('Timeout al cargar datos'));
+    }, 60000);
     const script = document.createElement('script');
     function cleanup() {
       clearTimeout(timer);
-      delete window[cb];
+      window[cb] = function () {};
       if (script.parentNode) script.parentNode.removeChild(script);
     }
-    window[cb] = (data) => { cleanup(); resolve(data); };
-    script.onerror = () => { cleanup(); reject(new Error('No se pudo conectar con Apps Script')); };
+    window[cb] = (data) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(data);
+    };
+    script.onerror = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('No se pudo conectar con Apps Script'));
+    };
     const sep = url.includes('?') ? '&' : '?';
     script.src = url + sep + 'action=read&callback=' + encodeURIComponent(cb);
     document.head.appendChild(script);
@@ -1251,7 +1269,6 @@ async function loadInicioData() {
 }
 
 async function loadNpsData() {
-  loadBar(true);
   const mount = $('nps-mount');
   try {
     const raw = await fetchJsonp(NPS_APPS_SCRIPT_URL);
@@ -1269,8 +1286,6 @@ async function loadNpsData() {
       <span style="font-size:13px;color:#666">${e.message}</span><br><br>
       <span style="font-size:12px;color:#888">Verifica que Apps Script tenga <code>action=read</code> desplegado. Código en <code>nps-ulpik-apps-script.gs</code>.</span></div>`;
     $('headerPeriod').textContent = 'Error al cargar NPS';
-  } finally {
-    loadBar(false);
   }
 }
 
@@ -1380,10 +1395,11 @@ function drawChart() {
   chartDrawn = true;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   $('headerPeriod').textContent = 'Cargando datos…';
-  loadInicioData();
-  loadNpsData();
+  loadBar(true);
+  await Promise.all([loadInicioData(), loadNpsData()]);
+  loadBar(false);
 });
 </script>
 
