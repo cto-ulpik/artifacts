@@ -529,8 +529,8 @@ body {
   <div class="header-right" id="headerPeriodFilters" style="display:none">
     <span class="live-badge" id="liveBadge">● En vivo</span>
     <div class="period-filters">
-      <select class="month-select" id="monthNumHdr" onchange="onPeriodChange()"></select>
-      <select class="month-select" id="yearHdr" onchange="onPeriodChange()"></select>
+      <select class="month-select" id="monthNumHdr" onchange="onPeriodChange(event)"></select>
+      <select class="month-select" id="yearHdr" onchange="onPeriodChange(event)"></select>
     </div>
   </div>
 </div>
@@ -548,8 +548,8 @@ body {
   <div class="nps-filter-bar" id="inicioFilterBar" style="display:none">
     <label>📅 Marca temporal</label>
     <div class="period-filters">
-      <select class="month-select" id="monthNumInicio" onchange="onPeriodChange()"></select>
-      <select class="month-select" id="yearInicio" onchange="onPeriodChange()"></select>
+      <select class="month-select" id="monthNumInicio" onchange="onPeriodChange(event)"></select>
+      <select class="month-select" id="yearInicio" onchange="onPeriodChange(event)"></select>
     </div>
     <span class="nps-filter-hint">Encuesta proceso de compra · columna A</span>
     <span class="nps-filter-count" id="inicioFilterCount"></span>
@@ -567,8 +567,8 @@ body {
   <div class="nps-filter-bar" id="npsFilterBar" style="display:none">
     <label>📅 Marca temporal</label>
     <div class="period-filters">
-      <select class="month-select" id="monthNumNps" onchange="onPeriodChange()"></select>
-      <select class="month-select" id="yearNps" onchange="onPeriodChange()"></select>
+      <select class="month-select" id="monthNumNps" onchange="onPeriodChange(event)"></select>
+      <select class="month-select" id="yearNps" onchange="onPeriodChange(event)"></select>
     </div>
     <span class="nps-filter-hint">Columna A del sheet · mes + año</span>
     <span class="nps-filter-count" id="npsFilterCount"></span>
@@ -750,9 +750,20 @@ function updatePeriodSelector() {
   if (onNps && npsLoaded) updateHeaderForPeriod('nps');
   else if (!onNps && inicioLoaded) updateHeaderForPeriod('inicio');
 }
-function onPeriodChange() {
-  curMonthNum = $('monthNumNps')?.value || $('monthNumHdr')?.value || $('monthNumInicio')?.value || curMonthNum;
-  curYear = $('yearNps')?.value || $('yearHdr')?.value || $('yearInicio')?.value || curYear;
+function readPeriodFromUi(sourceEl) {
+  const id = sourceEl?.id || '';
+  if (id.includes('year')) curYear = sourceEl.value;
+  else if (id.includes('month') || id === 'monthNumHdr') curMonthNum = sourceEl.value;
+  else if (isNpsTab()) {
+    curMonthNum = $('monthNumNps')?.value || $('monthNumHdr')?.value || curMonthNum;
+    curYear = $('yearNps')?.value || $('yearHdr')?.value || curYear;
+  } else {
+    curMonthNum = $('monthNumInicio')?.value || $('monthNumHdr')?.value || curMonthNum;
+    curYear = $('yearInicio')?.value || $('yearHdr')?.value || curYear;
+  }
+}
+function onPeriodChange(ev) {
+  readPeriodFromUi(ev?.target);
   syncPeriodSelects();
   if (isNpsTab()) {
     updateHeaderForPeriod('nps');
