@@ -272,7 +272,23 @@ function formatFecha(v) {
 }
 
 function isSi(v) {
-  return /^s[ií]$/i.test(String(v || '').trim());
+  if (v === true || v === 1) return true;
+  var s = String(v || '').trim().toLowerCase();
+  if (!s || s === 'false' || s === '0') return false;
+  if (s === 'true' || s === '1') return true;
+  return /^s[ií]\.?$/i.test(s);
+}
+
+function isNo(v) {
+  if (v === false || v === 0) return true;
+  return /^no$/i.test(String(v || '').trim());
+}
+
+function responded(v) {
+  if (isSi(v)) return true;
+  var s = String(v || '').trim();
+  if (!s || isNo(s)) return false;
+  return /^s/i.test(s);
 }
 
 function matchMesAnio(key, mes, anio) {
@@ -629,17 +645,20 @@ function readConvenio() {
   var data = sheetRows(SHEETS.convenio);
   var h = data.headers;
   var iCont = col(h, ['contactados', 'contacto']);
-  var iResp = col(h, ['respuestas', 'respondieron']);
+  var iResp = col(h, ['respuestas', 'respondieron', 'respuesta']);
   var iLlam = col(h, ['llamadas cerrad', 'llamadas', 'llamadas cerradas']);
   var iConv = col(h, ['convenios', 'convenio']);
   var iFecha = col(h, ['fecha']);
+  if (iResp < 0 && iCont >= 0) iResp = iCont + 2;
+  if (iLlam < 0 && iCont >= 0) iLlam = iCont + 3;
+  if (iConv < 0 && iCont >= 0) iConv = iCont + 4;
   var contactados = 0, respondieron = 0, llamadas = 0, convenios = 0;
   var ultimaDate = null;
 
   data.rows.forEach(function (r) {
     var c = iCont >= 0 ? String(r[iCont] || '').trim() : '';
     if (c) contactados++;
-    if (iResp >= 0 && isSi(r[iResp])) respondieron++;
+    if (iResp >= 0 && responded(r[iResp])) respondieron++;
     if (iLlam >= 0 && isSi(r[iLlam])) llamadas++;
     if (iConv >= 0) {
       var cv = String(r[iConv] || '').toLowerCase();
