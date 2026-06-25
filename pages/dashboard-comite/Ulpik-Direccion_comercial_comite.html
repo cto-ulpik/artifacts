@@ -454,7 +454,7 @@ function compute(d){
   vMarcasSem.forEach(x=>{diasMap[x.fecha]=(diasMap[x.fecha]||0)+Number(x.monto||0);});
   const dias=Object.keys(diasMap).sort((a,b)=>new Date(a.split('/').reverse().join('-'))-new Date(b.split('/').reverse().join('-')));
 
-  // Productos (mes completo para tabla legal)
+  // Productos (mes completo — rLegal arma buckets propios)
   const prodMap={};
   v.forEach(x=>{if(!prodMap[x.producto])prodMap[x.producto]={ventas:0,monto:0};prodMap[x.producto].ventas++;prodMap[x.producto].monto+=Number(x.monto||0);});
 
@@ -1064,49 +1064,148 @@ function rPI(pi){
 }
 
 // ══════════ §12 Ventas LEGAL ═════════════════════
-function rLegal(d,c){
-  const{v,totalLegal,vMarcas,prodMap}=c;
-  const yr=yearFromData(d);
-  const tickProm=v.length>0?totalLegal/v.length:0;
-  const topP=Object.entries(prodMap).sort((a,b)=>b[1].monto-a[1].monto)[0];
-  const chips=Object.entries(prodMap).map(([p,x])=>{
-    const pv=totalLegal>0?(x.monto/totalLegal*100).toFixed(1):0;
-    return `<div style="display:flex;align-items:center;gap:5px;font-size:11px;"><span class="chip chip-o" style="font-size:9px;">${p}</span>${x.ventas}v · ${fmt(x.monto)} · ${pv}%</div>`;}).join('');
-  const rows=v.map(x=>{
-    const ext=/sebastián|sebastian/i.test(x.asesor||'');
-    const fa=fechaAttr(x.fecha,yr);
-    return `<tr data-fecha="${fa}"${ext?' style="background:rgba(0,0,0,.02);"':''}><td>${x.fecha}</td>
-    <td style="font-weight:600;color:${ext?'var(--text3)':colA(x.asesor||'')};">${x.asesor||'—'}${ext?' <span style="font-size:9px;color:var(--text3);">[ext.]</span>':''}</td>
-    <td>${x.categoria}</td><td><span class="chip chip-o" style="font-size:9px;">${x.producto}</span></td>
-    <td class="r co" style="font-family:'DM Mono',monospace;">${fmt(x.monto)}</td></tr>`;}).join('');
+const LEGAL_BUCKET_CHIP = {
+  'Pack BF+M': 'chip-o',
+  'BB/SAS': 'chip-g',
+  'RM': 'chip-t',
+  'BF solo': 'chip-d',
+  'Externo': 'chip-p'
+};
+function legalIsExternal(asesor) {
+  return /sebastián|sebastian/i.test(asesor || '');
+}
+function legalBucket(x) {
+  if (legalIsExternal(x.asesor)) return 'Externo';
+  const p = String(x.producto || '').toLowerCase();
+  const c = String(x.categoria || '').toLowerCase();
+  if (p.includes('pack bf')) return 'Pack BF+M';
+  if (p === 'bf' || (p.includes('bf') && !p.includes('pack') && !p.includes('upsell'))) return 'BF solo';
+  if (p === 'rm' || p.includes('registro de marca')) return 'RM';
+  if (c.includes('buenos business') || c.includes('sas') || p.includes('sas') || p.includes('renov')) return 'BB/SAS';
+  return null;
+}
+function legalProdLabel(producto) {
+  const p = String(producto || '').toLowerCase();
+  if (p.includes('pack bf')) return 'Pack BF+M';
+  if (p.includes('renovación nombramiento') || p.includes('renovacion nombramiento')) return 'Renov. nombramiento';
+  return producto || '—';
+}
+function legalProdChip(producto, categoria, asesor) {
+  const bucket = legalBucket({ producto, categoria, asesor });
+  if (bucket) return LEGAL_BUCKET_CHIP[bucket];
+  const c = String(categoria || '').toLowerCase();
+  if (c.includes('buenos business') || c.includes('sas')) return 'chip-g';
+  return 'chip-o';
+}
+function legalMontoClass(x) {
+  if (legalIsExternal(x.asesor)) return 'cs';
+  const c = String(x.categoria || '').toLowerCase();
+  const p = String(x.producto || '').toLowerCase();
+  if (c.includes('buenos business') || c.includes('sas') || p.includes('sas') || p.includes('renov')) return 'cg';
+  if (p.includes('pack bf')) return 'co';
+  if (p === 'rm' || p.includes('registro de marca')) return 'ct';
+  return '';
+}
+function fechaCortaLegal(f) {
+  const m = String(f || '').match(/^(\d{1,2})\/(\d{1,2})/);
+  return m ? `${String(+m[1]).padStart(2, '0')}/${String(+m[2]).padStart(2, '0')}` : (f || '—');
+}
+function rLegal(d, c) {
+  const yr = yearFromData(d);
+  const vLegal = (c.v || []).filter(x => !/^educaci/i.test(x.categoria || ''))
+    .slice().sort((a, b) => {
+      const da = tfParseDate(fechaAttr(a.fecha, yr));
+      const db = tfParseDate(fechaAttr(b.fecha, yr));
+      return (da || 0) - (db || 0);
+    });
+  const totalLegal = sumF(vLegal, 'monto');
+  const vMarcas = vLegal.filter(x => x.categoria === 'Marcas');
+  const totalMarcas = sumF(vMarcas, 'monto');
+  const pctMarcas = totalLegal > 0 ? (totalMarcas / totalLegal * 100).toFixed(1) : '0.0';
+  const tickProm = vLegal.length > 0 ? totalLegal / vLegal.length : 0;
 
-  $('s-legal').innerHTML=`
+  const bucketMap = {};
+  vLegal.forEach(x => {
+    const b = legalBucket(x);
+    if (!b) return;
+    if (!bucketMap[b]) bucketMap[b] = { ventas: 0, monto: 0 };
+    bucketMap[b].ventas++;
+    bucketMap[b].monto += Number(x.monto || 0);
+  });
+  const buckets = Object.entries(bucketMap).sort((a, b) => b[1].monto - a[1].monto);
+  const topBucket = buckets[0];
+  const tickNote = buckets.slice(0, 2).map(([n]) => n).join(' y ') || '—';
+
+  const chips = buckets.map(([name, x]) => {
+    const pv = totalLegal > 0 ? (x.monto / totalLegal * 100).toFixed(1) : '0.0';
+    const chip = LEGAL_BUCKET_CHIP[name] || 'chip-o';
+    const pct = name === 'Externo' ? '—' : `${pv}%`;
+    return `<div style="display:flex;align-items:center;gap:5px;font-size:11px;"><span class="chip ${chip}" style="font-size:9px;">${name}</span>${x.ventas}v · ${fmt(x.monto)} · ${pct}</div>`;
+  }).join('');
+
+  const extSales = vLegal.filter(x => legalIsExternal(x.asesor));
+  const extCount = extSales.length;
+
+  const rows = vLegal.map(x => {
+    const ext = legalIsExternal(x.asesor);
+    const fa = fechaAttr(x.fecha, yr);
+    const chip = legalProdChip(x.producto, x.categoria, x.asesor);
+    const mc = legalMontoClass(x);
+    return `<tr data-fecha="${fa}"${ext ? ' style="background:rgba(0,0,0,.02);"' : ''}>
+      <td>${fechaCortaLegal(x.fecha)}</td>
+      <td style="font-weight:600;color:${ext ? 'var(--text3)' : colA(x.asesor || '')};">${x.asesor || '—'}${ext ? ' <span style="font-size:9px;color:var(--text3);">[ext.]</span>' : ''}</td>
+      <td>${x.categoria || '—'}</td>
+      <td><span class="chip ${chip}" style="font-size:9px;">${legalProdLabel(x.producto)}</span></td>
+      <td class="r ${mc}" style="font-family:'DM Mono',monospace;">${fmt(x.monto)}</td></tr>`;
+  }).join('');
+
+  const extNote = extCount > 0
+    ? `<div style="margin-top:10px;font-size:10px;color:var(--text3);padding:8px 10px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);">
+        ℹ️ <strong>Sebastián [ext.]</strong>: venta${extCount > 1 ? 's' : ''} externa${extCount > 1 ? 's' : ''} no atribuida${extCount > 1 ? 's' : ''} a asesor del equipo · ${extSales.map(x => `${fmt(x.monto)} ${x.producto}`).join(' · ')} · excluida${extCount > 1 ? 's' : ''} de metas individuales
+      </div>`
+    : '';
+
+  $('s-legal').innerHTML = `
   <div class="seg-hdr"><span class="seg-num">12</span><span class="seg-dot" style="background:var(--orange);"></span>
-    <span class="seg-title">Ventas LEGAL — Detalle completo</span><span class="seg-meta">${v.length} transacciones · ${fmt(totalLegal)} · filtrable por fecha</span></div>
+    <span class="seg-title">Ventas LEGAL — Detalle período cargado</span>
+    <span class="seg-meta">${vLegal.length} transacciones · ${fmt(totalLegal)} · período cargado</span></div>
   <div class="card" style="padding:0;overflow:hidden;">
     <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);">
-      <div style="padding:16px 20px;border-right:1px solid var(--border);"><div class="kpi-label">Total</div>
+      <div style="padding:16px 20px;border-right:1px solid var(--border);">
+        <div class="kpi-label">Total período</div>
         <div style="font-size:22px;font-weight:700;color:var(--orange);font-family:'DM Mono',monospace;">${fmt(totalLegal)}</div>
-        <div style="font-size:10px;color:var(--text3);">${v.length} transacciones</div></div>
-      <div style="padding:16px 20px;border-right:1px solid var(--border);"><div class="kpi-label">Solo Marcas</div>
-        <div style="font-size:22px;font-weight:700;color:var(--orange);font-family:'DM Mono',monospace;">${fmt(c.totalM)}</div>
-        <div style="font-size:10px;color:var(--text3);">${vMarcas.length} ventas</div></div>
-      <div style="padding:16px 20px;border-right:1px solid var(--border);"><div class="kpi-label">Ticket promedio</div>
-        <div style="font-size:22px;font-weight:700;color:var(--teal);font-family:'DM Mono',monospace;">${fmt(tickProm)}</div></div>
-      <div style="padding:16px 20px;"><div class="kpi-label">Mejor producto</div>
-        <div style="font-size:14px;font-weight:600;margin-top:4px;">${topP?topP[0]:'—'}</div>
-        <div style="font-size:10px;color:var(--text3);">${topP?topP[1].ventas+'v · '+fmt(topP[1].monto):''}</div></div></div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">${vLegal.length} transacciones</div>
+      </div>
+      <div style="padding:16px 20px;border-right:1px solid var(--border);">
+        <div class="kpi-label">Marcas</div>
+        <div style="font-size:22px;font-weight:700;color:var(--orange);font-family:'DM Mono',monospace;">${fmt(totalMarcas)}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">${vMarcas.length} ventas · ${pctMarcas}%</div>
+      </div>
+      <div style="padding:16px 20px;border-right:1px solid var(--border);">
+        <div class="kpi-label">Ticket promedio</div>
+        <div style="font-size:22px;font-weight:700;color:var(--teal);font-family:'DM Mono',monospace;">${fmt(tickProm)}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">${tickNote} dominan</div>
+      </div>
+      <div style="padding:16px 20px;">
+        <div class="kpi-label">Mejor producto</div>
+        <div style="font-size:14px;font-weight:600;margin-top:4px;">${topBucket ? topBucket[0] : '—'}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">${topBucket ? `${topBucket[1].ventas}v · ${fmt(topBucket[1].monto)} · ${totalLegal > 0 ? (topBucket[1].monto / totalLegal * 100).toFixed(1) : '0'}%` : ''}</div>
+      </div>
+    </div>
     <div style="padding:0 20px 20px;">
       <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:14px 0 8px;">Resumen por producto</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">${chips}</div>
-      <div class="info-box" style="margin-bottom:14px;">
-        <div class="a-title" style="color:var(--purple);">📅 Filtro de fechas</div>
-        <div class="a-body">Usa el rango en la barra superior para filtrar filas por fecha. Las secciones históricas (Convenio, Upsell, DISC, PI) no tienen granularidad diaria.</div></div>
-      <table class="data-table" style="font-size:11px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">${chips || noData('Sin ventas LEGAL en el período')}</div>
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:6px 0 8px;">Detalle por transacción — período cargado (${vLegal.length} transacciones)</div>
+      <table class="data-table" style="font-size:11px;" id="legalTable">
         <thead><tr><th>Fecha</th><th>Asesor</th><th>Categoría</th><th>Producto</th><th class="r">Monto</th></tr></thead>
-        <tbody>${rows}
-          <tr class="t-total"><td colspan="4">TOTAL · ${v.length} TRANSACCIONES</td>
-            <td class="r co" style="font-family:'DM Mono',monospace;">${fmt(totalLegal)}</td></tr></tbody></table></div></div>`;
+        <tbody>${rows || `<tr><td colspan="5">${noData('Sin transacciones en el período')}</td></tr>`}
+          <tr class="t-total"><td colspan="4">TOTAL PERÍODO · ${vLegal.length} TRANSACCIONES${extCount ? ` <span style="color:var(--text3);font-size:9px;">(incl. ${extCount} venta${extCount > 1 ? 's' : ''} externa${extCount > 1 ? 's' : ''})</span>` : ''}</td>
+            <td class="r co" style="font-family:'DM Mono',monospace;font-size:12px;">${fmt(totalLegal)}</td></tr>
+        </tbody>
+      </table>
+      ${extNote}
+    </div>
+  </div>`;
 }
 
 // ── FILTRO GLOBAL DE FECHAS ───────────────────────

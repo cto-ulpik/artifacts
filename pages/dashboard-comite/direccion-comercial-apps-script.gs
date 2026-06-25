@@ -303,11 +303,11 @@ function matchMesAnio(key, mes, anio) {
 function readVentas() {
   var data = sheetRows(SHEETS.ventas);
   var h = data.headers, out = [];
-  var iFecha = col(h, ['fecha', 'fecha venta', 'fecha de venta', 'fecha prode']);
+  var iFecha = col(h, ['fecha', 'fecha venta', 'fecha de venta', 'fecha prode', 'fechame']);
   var iAsesor = col(h, ['asesor', 'responsable', 'vendedor', 'responsable producci']);
   var iCat = col(h, ['categoria', 'categoría', 'categoria venta', 'tipo']);
   var iProd = col(h, ['producto', 'servicio', 'detalle producto', 'detalle']);
-  var iMonto = col(h, ['monto', 'valor', 'total', 'precio', 'facturacion', 'facturación', 'importe', 'valor venta', 'monto venta', 'facturado', 'subtotal', 'venta neta', 'venta total']);
+  var iMonto = col(h, ['monto', 'valor', 'total', 'precio', 'dinero que representa', 'facturacion', 'facturación', 'importe', 'valor venta', 'monto venta', 'facturado', 'subtotal', 'venta neta', 'venta total']);
   if (iMonto < 0 && iProd >= 0) iMonto = iProd + 1;
   if (iMonto < 0) iMonto = 8;
 
