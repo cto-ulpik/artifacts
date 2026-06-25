@@ -1078,7 +1078,7 @@ function legalBucket(x) {
   if (legalIsExternal(x.asesor)) return 'Externo';
   const p = String(x.producto || '').toLowerCase();
   const c = String(x.categoria || '').toLowerCase();
-  if (p.includes('pack bf')) return 'Pack BF+M';
+  if (p.includes('pack bf') || (p.includes('pack') && p.includes('bf'))) return 'Pack BF+M';
   if (p === 'bf' || (p.includes('bf') && !p.includes('pack') && !p.includes('upsell'))) return 'BF solo';
   if (p === 'rm' || p.includes('registro de marca')) return 'RM';
   if (c.includes('buenos business') || c.includes('sas') || p.includes('sas') || p.includes('renov')) return 'BB/SAS';
