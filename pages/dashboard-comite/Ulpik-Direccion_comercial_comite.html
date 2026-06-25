@@ -488,7 +488,7 @@ function renderAll(d){
   const c=compute(d);
   rKPIs(d,c);rPresupuestos(d,c);rAsesores(d,c);
   rEvolutivo(d);rEmbudos(d,c);
-  rConvenio(d.convenio||{});rUpsell(d.upsell||{});
+  rConvenio(d.convenio||{}, d.semana_actual||'');rUpsell(d.upsell||{});
   rDisc(c.discData);rPI(d.pi||{});rLegal(d,c);
   if(filterActive()) applyGlobalFilter();
 }
@@ -873,13 +873,34 @@ function buildStg(id,cls,stages){
 }
 
 // ══════════ §8 Convenio ══════════════════════════
-function rConvenio(cv){
-  const empty=!cv||Object.keys(cv).length===0;
-  const ct=Number(cv.contactados||0), re=Number(cv.respondieron||0), ll=Number(cv.llamadas||0), co=Number(cv.convenios||0);
-  const pctRe=ct>0?(re/ct*100).toFixed(1):0;
-  const pctLl=re>0?(ll/re*100).toFixed(1):0;
-  const pctCo=ll>0?(co/ll*100).toFixed(1):0;
-  const funnel=empty?'':`
+const MESES_CORTO = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function fechaCorta(f) {
+  const m = String(f || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (!m) return f || '—';
+  return `${+m[1]} ${MESES_CORTO[+m[2] - 1]} ${m[3]}`;
+}
+function mesSinActividadConvenio(ultima, semanaId) {
+  const um = String(ultima || '').match(/\/(\d{1,2})\/(\d{4})$/);
+  const sm = String(semanaId || '').match(/^(\d+)-(\d+)$/);
+  if (!um || !sm) return '';
+  const ultMes = +um[1], ultAnio = +um[2], curMes = +sm[1], curAnio = +sm[2];
+  if (curAnio > ultAnio || (curAnio === ultAnio && curMes > ultMes)) {
+    return (MESES[curMes] || curMes).toLowerCase();
+  }
+  return '';
+}
+function rConvenio(cv, semanaId) {
+  const empty = !cv || !Number(cv.contactados);
+  const ct = Number(cv.contactados || 0), re = Number(cv.respondieron || 0);
+  const ll = Number(cv.llamadas || 0), co = Number(cv.convenios || 0);
+  const pctRe = ct > 0 ? (re / ct * 100).toFixed(1) : '0.0';
+  const pctLl = re > 0 ? (ll / re * 100).toFixed(1) : '0.0';
+  const pctCo = ll > 0 ? (co / ll * 100).toFixed(1) : '0.0';
+  const ultLabel = fechaCorta(cv.ultima_gestion);
+  const mesInactivo = mesSinActividadConvenio(cv.ultima_gestion, semanaId);
+  const sinActividad = !!mesInactivo;
+
+  const funnel = empty ? '' : `
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
       <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Contactados</div><div class="num-lg">${ct}</div></div>
       <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Respondieron</div><div class="num-lg co">${re}</div><div style="font-size:10px;color:var(--text3);">${pctRe}%</div></div>
@@ -887,23 +908,25 @@ function rConvenio(cv){
       <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.06);border-color:rgba(0,173,176,.20);"><div class="kpi-label ct">Convenios / proc.</div><div class="num-lg ct">${co}</div><div style="font-size:10px;color:var(--text3);">${pctCo}%</div></div></div>
     <div class="funnel-row"><span class="funnel-label">Contactados</span><div class="funnel-track"><div class="funnel-fill" style="width:100%;background:rgba(255,37,0,.12);"><span class="co">${ct}</span></div></div></div>
     <div class="funnel-arrow">↓ ${pctRe}% responden</div>
-    <div class="funnel-row"><span class="funnel-label">Respondieron</span><div class="funnel-track"><div class="funnel-fill" style="width:${ct>0?re/ct*100:0}%;background:rgba(255,37,0,.22);"><span class="co">${re}</span></div></div></div>
+    <div class="funnel-row"><span class="funnel-label">Respondieron</span><div class="funnel-track"><div class="funnel-fill" style="width:${ct > 0 ? (re / ct * 100).toFixed(1) : 0}%;background:rgba(255,37,0,.22);"><span class="co">${re}</span></div></div></div>
     <div class="funnel-arrow">↓ ${pctLl}% llamada</div>
-    <div class="funnel-row"><span class="funnel-label">Llamadas</span><div class="funnel-track"><div class="funnel-fill" style="width:${ct>0?ll/ct*100:0}%;background:rgba(0,173,176,.35);"><span class="ct">${ll}</span></div></div></div>
+    <div class="funnel-row"><span class="funnel-label">Llamadas</span><div class="funnel-track"><div class="funnel-fill" style="width:${ct > 0 ? (ll / ct * 100).toFixed(1) : 0}%;background:rgba(0,173,176,.35);"><span class="ct">${ll}</span></div></div></div>
     <div class="funnel-arrow">↓ ${pctCo}% convenio</div>
-    <div class="funnel-row"><span class="funnel-label">Convenio / Proc.</span><div class="funnel-track"><div class="funnel-fill" style="width:${ct>0?co/ct*100:0}%;background:var(--teal);"><span>${co}</span></div></div></div>
-    ${cv.ultima_gestion?`<div class="warn-box" style="margin-top:12px;"><div class="a-title" style="color:var(--warn);">Última gestión: ${cv.ultima_gestion}</div>
-      <div class="a-body">${co} diseñadores en proceso o con convenio firmado.</div></div>`:''}`;
+    <div class="funnel-row"><span class="funnel-label">Convenio / Proc.</span><div class="funnel-track"><div class="funnel-fill" style="width:${ct > 0 ? (co / ct * 100).toFixed(1) : 0}%;background:var(--teal);"><span>${co}</span></div></div></div>
+    ${cv.ultima_gestion ? `<div class="warn-box" style="margin-top:12px;">
+      <div class="a-title" style="color:var(--warn);">${sinActividad ? `⏸ Sin actividad en ${mesInactivo}` : `Última gestión: ${ultLabel}`}</div>
+      <div class="a-body">Última gestión: ${ultLabel}. ${co} diseñador${co !== 1 ? 'es' : ''} en proceso o con convenio firmado pendientes de activación.</div></div>` : ''}`;
 
-  $('s-convenio').innerHTML=`
+  $('s-convenio').innerHTML = `
   <div class="seg-hdr"><span class="seg-num">08</span><span class="seg-dot" style="background:var(--teal);"></span>
-    <span class="seg-title">Convenio Diseñadores — Histórico</span><span class="seg-meta">${empty?'Sin datos':'Última gestión: '+(cv.ultima_gestion||'—')}</span></div>
+    <span class="seg-title">Convenio Diseñadores — Histórico</span>
+    <span class="seg-meta">${empty ? 'Sin datos' : sinActividad ? `Sin actividad · última gestión ${ultLabel}` : `Última gestión ${ultLabel}`}</span></div>
   <div class="card">
     <div class="no-date-notice" id="notice-convenio"><span class="no-date-notice-icon">📅</span><span class="no-date-notice-text">Esta sección muestra datos históricos sin granularidad de fecha — el filtro activo no aplica aquí.</span></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="card-title" style="margin:0;">Convenio Diseñadores</div>
-      ${cv.ultima_gestion?`<span class="chip chip-o">Última gestión ${cv.ultima_gestion}</span>`:''}</div>
-    ${empty?noData('Sin datos en GESTION CONVENIO DISEÑADORES','Verifica que la hoja tenga columnas: Contactados, Respondieron, Llamadas, Convenios'):funnel}
+      ${cv.ultima_gestion ? `<span class="chip chip-o">${sinActividad ? `Sin gestión desde ${ultLabel}` : `Última gestión ${ultLabel}`}</span>` : ''}</div>
+    ${empty ? noData('Sin datos en GESTION CONVENIO DISEÑADORES', 'Verifica columnas: Contactados, Respuestas, Llamadas cerrad, Convenios') : funnel}
   </div>`;
 }
 

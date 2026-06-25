@@ -110,7 +110,7 @@ function buildDashboardData(semanaFilter) {
     priv_stats: privStats,
     evolutivo: evolutivo,
     historico_mensual: historico,
-    convenio: readConvenio(mes, anio),
+    convenio: readConvenio(),
     disc: readDisc(),
     pi: readPI(),
     upsell: readUpsell()
@@ -625,7 +625,7 @@ function readAds(mes, anio) {
 
 // ── CONVENIO / UPSELL / DISC / PI ─────────────────
 
-function readConvenio(mes, anio) {
+function readConvenio() {
   var data = sheetRows(SHEETS.convenio);
   var h = data.headers;
   var iCont = col(h, ['contactados', 'contacto']);
@@ -634,11 +634,9 @@ function readConvenio(mes, anio) {
   var iConv = col(h, ['convenios', 'convenio']);
   var iFecha = col(h, ['fecha']);
   var contactados = 0, respondieron = 0, llamadas = 0, convenios = 0;
-  var ultima = '';
+  var ultimaDate = null;
 
   data.rows.forEach(function (r) {
-    var key = mesAnioFromRow(h, r);
-    if (mes && anio && key && !matchMesAnio(key, mes, anio)) return;
     var c = iCont >= 0 ? String(r[iCont] || '').trim() : '';
     if (c) contactados++;
     if (iResp >= 0 && isSi(r[iResp])) respondieron++;
@@ -647,7 +645,10 @@ function readConvenio(mes, anio) {
       var cv = String(r[iConv] || '').toLowerCase();
       if (isSi(cv) || cv.indexOf('proceso') >= 0) convenios++;
     }
-    if (iFecha >= 0 && r[iFecha]) ultima = formatFecha(r[iFecha]);
+    if (iFecha >= 0 && r[iFecha]) {
+      var fd = parseFechaDDMMYYYY(formatFecha(r[iFecha]));
+      if (fd && !isNaN(fd.getTime()) && (!ultimaDate || fd > ultimaDate)) ultimaDate = fd;
+    }
   });
 
   return {
@@ -655,7 +656,7 @@ function readConvenio(mes, anio) {
     respondieron: respondieron,
     llamadas: llamadas,
     convenios: convenios,
-    ultima_gestion: ultima
+    ultima_gestion: ultimaDate ? formatFecha(ultimaDate) : ''
   };
 }
 
