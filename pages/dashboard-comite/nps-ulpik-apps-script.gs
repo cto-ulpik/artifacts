@@ -27,6 +27,15 @@ function doGet(e) {
     }
   }
 
+  // Diagnóstico: ?action=debug — conteos por mes y muestra de filas
+  if (p.action === 'debug') {
+    try {
+      return jsonpOutput(p.callback, buildDebugReport());
+    } catch (err) {
+      return jsonpOutput(p.callback, { ok: false, error: String(err.message || err) });
+    }
+  }
+
   if (p.data) {
     try {
       var payload = JSON.parse(p.data);
@@ -121,6 +130,26 @@ function appendSurveyRow(data) {
   sendSurveyNotification(data, marca);
 }
 
+function toMarcaDate(raw) {
+  if (raw instanceof Date && !isNaN(raw.getTime())) return raw;
+  if (typeof raw === 'number' && raw > 0) {
+    return new Date(Math.round((raw - 25569) * 86400 * 1000));
+  }
+  var s = String(raw || '').trim();
+  if (!s) return null;
+  var datePart = s.split(/\s+/)[0];
+  if (datePart.indexOf('/') !== -1) {
+    var bits = datePart.split('/');
+    if (bits.length >= 3) {
+      var d = +bits[0], mo = +bits[1], y = +bits[2];
+      if (d && mo && y) return new Date(y, mo - 1, d);
+    }
+  }
+  var parsed = new Date(s);
+  if (!isNaN(parsed.getTime()) && /\d{4}/.test(s)) return parsed;
+  return null;
+}
+
 function readSurveyData() {
   var sheet = getSheet();
   var values = sheet.getDataRange().getValues();
@@ -132,14 +161,11 @@ function readSurveyData() {
     var r = values[i];
     if (!r[2] && !r[1] && (r[3] === '' || r[3] === null || r[3] === undefined)) continue;
 
-    var marcaRaw = r[0];
-    if (typeof marcaRaw === 'number' && marcaRaw > 0) {
-      marcaRaw = new Date(Math.round((marcaRaw - 25569) * 86400 * 1000));
-    }
-    var marca = marcaRaw instanceof Date
-      ? Utilities.formatDate(marcaRaw, tz, 'dd/MM/yyyy HH:mm:ss')
-      : String(marcaRaw || '');
-    var parsed = parseMarcaTemporal(marcaRaw instanceof Date ? marcaRaw : marca);
+    var marcaDate = toMarcaDate(r[0]);
+    var marca = marcaDate
+      ? Utilities.formatDate(marcaDate, tz, 'dd/MM/yyyy HH:mm:ss')
+      : String(r[0] || '');
+    var parsed = marcaDate ? parseMarcaTemporal(marcaDate) : parseMarcaTemporal(marca);
 
     rows.push({
       marca: marca,
@@ -163,37 +189,40 @@ function readSurveyData() {
 }
 
 function parseMarcaTemporal(marca) {
-  if (marca instanceof Date) {
+  var d = marca instanceof Date ? marca : toMarcaDate(marca);
+  if (d && !isNaN(d.getTime())) {
     var tz = Session.getScriptTimeZone() || 'America/Guayaquil';
-    var iso = Utilities.formatDate(marca, tz, 'yyyy-MM-dd');
+    var iso = Utilities.formatDate(d, tz, 'yyyy-MM-dd');
     var mesNum = iso.substring(5, 7);
     var anio = iso.substring(0, 4);
     return { iso: iso, mes: anio + '-' + mesNum, anio: anio, mesNum: mesNum };
   }
-  var s = String(marca || '').trim();
-  // "23/5/2026 8:19:07" → split espacio → split "/" → [día, mes, año]
-  var datePart = s.split(/\s+/)[0];
-  if (datePart && datePart.indexOf('/') !== -1) {
-    var bits = datePart.split('/');
-    if (bits.length >= 3) {
-      var d = +bits[0], mo = +bits[1], y = +bits[2];
-      if (d && mo && y) {
-        var mesNum = ('0' + mo).slice(-2);
-        var iso = y + '-' + mesNum + '-' + ('0' + d).slice(-2);
-        return { iso: iso, mes: y + '-' + mesNum, anio: String(y), mesNum: mesNum };
-      }
-    }
-  }
-  var isoM = s.match(/(\d{4})-(\d{2})-(\d{2})/);
-  if (isoM) {
-    return {
-      iso: isoM[1] + '-' + isoM[2] + '-' + isoM[3],
-      mes: isoM[1] + '-' + isoM[2],
-      anio: isoM[1],
-      mesNum: isoM[2]
-    };
-  }
   return { iso: '', mes: '', anio: '', mesNum: '' };
+}
+
+function buildDebugReport() {
+  var sheet = getSheet();
+  var values = sheet.getDataRange().getValues();
+  var rawSample = values.length > 1 ? values[values.length - 1][0] : null;
+  var rows = readSurveyData();
+  var byMonth = {};
+  var sinFecha = 0;
+  rows.forEach(function (r) {
+    if (r.mes) byMonth[r.mes] = (byMonth[r.mes] || 0) + 1;
+    else sinFecha++;
+  });
+  return {
+    ok: true,
+    sheet: sheet.getName(),
+    total: rows.length,
+    sin_fecha: sinFecha,
+    por_mes: byMonth,
+    raw_tipo: rawSample === null ? 'vacío' : Object.prototype.toString.call(rawSample),
+    raw_muestra: rawSample === null ? null : String(rawSample).substring(0, 80),
+    ultimas_3: rows.slice(-3).map(function (r) {
+      return { marca: r.marca, anio: r.anio, mes_num: r.mes_num, asesor: r.asesor };
+    })
+  };
 }
 
 function numCol(v) {
@@ -279,7 +308,7 @@ function testAppendRow() {
 }
 
 function testReadData() {
-  var rows = readSurveyData();
-  Logger.log('Filas leídas: ' + rows.length);
-  if (rows.length) Logger.log(JSON.stringify(rows[rows.length - 1]));
+  var report = buildDebugReport();
+  Logger.log(JSON.stringify(report, null, 2));
+  return report;
 }
