@@ -10,6 +10,7 @@
  */
 
 var SHEET_NAME = 'Respuestas de formulario 1';
+var SHEET_NAME_ALT = 'Form_Responses';
 var NOTIFY_EMAIL = 'churchill@ulpik.com';
 
 function doGet(e) {
@@ -141,6 +142,8 @@ function readSurveyData() {
       marca: marca,
       fecha_str: parsed.iso,
       mes: parsed.mes,
+      anio: parsed.anio,
+      mes_num: parsed.mesNum,
       email: String(r[1] || ''),
       asesor: String(r[2] || ''),
       nps: numCol(r[3]),
@@ -160,20 +163,28 @@ function parseMarcaTemporal(marca) {
   if (marca instanceof Date) {
     var tz = Session.getScriptTimeZone() || 'America/Guayaquil';
     var iso = Utilities.formatDate(marca, tz, 'yyyy-MM-dd');
-    return { iso: iso, mes: iso.substring(0, 7) };
+    var mesNum = iso.substring(5, 7);
+    var anio = iso.substring(0, 4);
+    return { iso: iso, mes: anio + '-' + mesNum, anio: anio, mesNum: mesNum };
   }
   var s = String(marca || '').trim();
-  var isoM = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  var isoM = s.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (isoM) {
-    return { iso: isoM[1] + '-' + isoM[2] + '-' + isoM[3], mes: isoM[1] + '-' + isoM[2] };
+    return {
+      iso: isoM[1] + '-' + isoM[2] + '-' + isoM[3],
+      mes: isoM[1] + '-' + isoM[2],
+      anio: isoM[1],
+      mesNum: isoM[2]
+    };
   }
-  var m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  var m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if (!m) {
-    return { iso: '', mes: '' };
+    return { iso: '', mes: '', anio: '', mesNum: '' };
   }
   var d = +m[1], mo = +m[2], y = +m[3];
-  var iso = y + '-' + ('0' + mo).slice(-2) + '-' + ('0' + d).slice(-2);
-  return { iso: iso, mes: y + '-' + ('0' + mo).slice(-2) };
+  var mesNum = ('0' + mo).slice(-2);
+  var iso = y + '-' + mesNum + '-' + ('0' + d).slice(-2);
+  return { iso: iso, mes: y + '-' + mesNum, anio: String(y), mesNum: mesNum };
 }
 
 function numCol(v) {
@@ -212,9 +223,9 @@ function sendSurveyNotification(data, marca) {
 
 function getSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(SHEET_NAME);
+  var sheet = ss.getSheetByName(SHEET_NAME) || ss.getSheetByName(SHEET_NAME_ALT);
   if (!sheet) {
-    throw new Error('No existe la pestaña: ' + SHEET_NAME);
+    throw new Error('No existe la pestaña: ' + SHEET_NAME + ' ni ' + SHEET_NAME_ALT);
   }
   return sheet;
 }
