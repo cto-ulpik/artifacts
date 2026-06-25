@@ -252,7 +252,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 // ║  Apps Script: direccion-comercial-apps-script.gs ║
 // ║  Spreadsheet: DIRECCION COMERCIAL 2026          ║
 // ╚══════════════════════════════════════════════════╝
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz67fxBtBMXm8nxgn7l-472MjSkmOT8OgIVUa1VYnTPK3rYolEml8HNylA5x7XOsAcz/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwTMVJBkHEOJp_yVzwc7MQk0dMpePQ1xL3wXLXUnUtXpkLDa5oW3ujKVqnd3dwCkpX4/exec';
 
 // ── GLOBALS ───────────────────────────────────────
 let charts = {};
@@ -458,17 +458,7 @@ function compute(d){
   const prodMap={};
   v.forEach(x=>{if(!prodMap[x.producto])prodMap[x.producto]={ventas:0,monto:0};prodMap[x.producto].ventas++;prodMap[x.producto].monto+=Number(x.monto||0);});
 
-  // DISC agrupado
-  const discMap={};
-  (d.disc||[]).forEach(row=>{
-    const k=String(row.mes||'—');
-    if(!discMap[k])discMap[k]={mes:MESES[parseInt(k)]||k,agendados:0,presentados:Number(row.presentados||0),ventas:Number(row.ventas||0)};
-    else{discMap[k].presentados+=Number(row.presentados||0);discMap[k].ventas+=Number(row.ventas||0);}
-    discMap[k].agendados++;
-  });
-  const discData=Object.values(discMap);
-
-  return{v,vSem,ch,edu,pp,ps,m,vMarcas,vMarcasSem,totalM,totalLegal,totalEdu,totalPriv,total,metaM,metaE,pctM,pctE,names,ad,maxM,diasMap,dias,prodMap,adsClean,adsSem,discData,semanaRango};
+  return{v,vSem,ch,edu,pp,ps,m,vMarcas,vMarcasSem,totalM,totalLegal,totalEdu,totalPriv,total,metaM,metaE,pctM,pctE,names,ad,maxM,diasMap,dias,prodMap,adsClean,adsSem,semanaRango};
 }
 
 function adsInRange(ads, rango) {
@@ -489,7 +479,7 @@ function renderAll(d){
   rKPIs(d,c);rPresupuestos(d,c);rAsesores(d,c);
   rEvolutivo(d);rEmbudos(d,c);
   rConvenio(d.convenio||{}, d.semana_actual||'');rUpsell(d.upsell||{}, d.semana_actual||'');
-  rDisc(c.discData);rPI(d.pi||{});rLegal(d,c);
+  rDisc(d.disc||{},d.semana_actual||'');rPI(d.pi||{});rLegal(d,c);
   if(filterActive()) applyGlobalFilter();
 }
 
@@ -983,35 +973,67 @@ function rUpsell(up, semanaId) {
 }
 
 // ══════════ §10 DISC ═════════════════════════════
-function rDisc(discData){
-  const tot=discData.reduce((s,d)=>s+d.agendados,0);
-  const pres=discData.reduce((s,d)=>s+d.presentados,0);
-  const vts=discData.reduce((s,d)=>s+d.ventas,0);
-  const maxAg=Math.max(...discData.map(d=>d.agendados),1);
-  const convPct=tot>0?(vts/tot*100).toFixed(1):0;
-  const lastMes=discData.length?discData[discData.length-1]:null;
+const DISC_BAR_OP = [0.20, 0.35, 0.50, 0.70];
+function discAgShort(f) {
+  const m = String(f || '').match(/(\d{1,2})\/(\d{1,2})\//);
+  if (!m) return f || '—';
+  return `${String(+m[1]).padStart(2, '0')}/${String(+m[2]).padStart(2, '0')}`;
+}
+function discNotaMes(notas, sem2Ag, mesShort) {
+  if (!notas.length) return '';
+  const items = notas.map(n => {
+    const st = n.se_presento ? 'se presentó' : 'no se presentó';
+    return `${n.nombre} (ag. ${discAgShort(n.fecha_agendamiento)} · ${st})`;
+  }).join(' · ');
+  const sem2 = sem2Ag === 0 ? ' — Sin nuevos agendados en SEM2.' : '';
+  return `<div style="margin-top:10px;font-size:11px;color:var(--text2);background:var(--bg3);padding:10px 13px;border-radius:6px;border:1px solid var(--border);">
+    <strong>${mesShort} (agendados):</strong> ${items}${sem2}</div>`;
+}
+function rDisc(disc, semanaId) {
+  const porMes = disc.por_mes || [];
+  const tot = Number(disc.totales?.agendados ?? porMes.reduce((s, d) => s + d.agendados, 0));
+  const pres = Number(disc.totales?.presentados ?? porMes.reduce((s, d) => s + d.presentados, 0));
+  const vts = Number(disc.totales?.ventas ?? porMes.reduce((s, d) => s + d.ventas, 0));
+  const convPct = tot > 0 ? (vts / tot * 100).toFixed(0) : '0';
+  const maxAg = Math.max(...porMes.map(d => d.agendados), 1);
+  const parts = String(semanaId || '').match(/^(\d+)-(\d+)$/);
+  const curMesNum = parts ? +parts[1] : 0;
+  const curMesShort = MESES[curMesNum] || (disc.mes_actual_label || '').slice(0, 3) || 'Mes';
+  const curMesAg = porMes.find(d => d.mes_num === curMesNum)?.agendados || 0;
+  const notas = disc.notas_mes || [];
+  const sem2Ag = disc.sem2_agendados ?? 0;
+  const asistPct = tot > 0 ? (pres / tot * 100).toFixed(1) : '0.0';
+  const mesRango = porMes.length
+    ? `${porMes[0].mes.slice(0, 3)}–${porMes[porMes.length - 1].mes.slice(0, 3)}`
+    : '';
+  const showFunnelAlert = tot > 0 && porMes.length >= 2 && pres / tot < 0.20;
 
-  $('s-disc').innerHTML=`
+  $('s-disc').innerHTML = `
   <div class="seg-hdr"><span class="seg-num">10</span><span class="seg-dot" style="background:var(--purple);"></span>
-    <span class="seg-title">Taller DISC — Histórico</span><span class="seg-meta">${tot} agendados histórico · ${vts} ventas</span></div>
+    <span class="seg-title">Taller DISC — Histórico</span><span class="seg-meta">${tot} agendados histórico · ${convPct}% conversión</span></div>
   <div class="card">
     <div class="no-date-notice" id="notice-disc"><span class="no-date-notice-icon">📅</span><span class="no-date-notice-text">Esta sección muestra datos históricos sin granularidad de fecha — el filtro activo no aplica aquí.</span></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="card-title" style="margin:0;">Taller DISC · Funnel histórico</div>
-      <span class="chip chip-o">${tot>0?convPct+'% conversión':'0% conversión'}</span></div>
-    ${tot===0?noData('Sin datos en TALLER DISC','Verifica que la hoja tenga columna Mes con el número de mes'):
+      <span class="chip chip-o">${convPct}% conversión histórica</span></div>
+    ${tot === 0 ? noData('Sin datos en TALLER DISC', 'Verifica que la hoja tenga columna Fecha agendamiento con fechas válidas') :
     `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
       <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Agendados total</div><div class="num-lg">${tot}</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">${lastMes?lastMes.mes+' agendados':'Último mes'}</div><div class="num-lg cp">${lastMes?lastMes.agendados:0}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">${curMesShort} agendados</div><div class="num-lg cp">${curMesAg}</div></div>
       <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Se presentaron</div><div class="num-lg cw">${pres}</div><div style="font-size:10px;color:var(--text3);">histórico total</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(255,37,0,.04);"><div class="kpi-label co">Ventas</div><div class="num-lg cs">${vts}</div></div></div>
-    ${discData.map(d=>`<div class="funnel-row"><span class="funnel-label">${d.mes} (${d.agendados} ag.)</span>
-      <div class="funnel-track"><div class="funnel-fill" style="width:${d.agendados/maxAg*100}%;background:rgba(130,59,218,.35);">
-        <span class="cp">${d.agendados}</span></div></div></div>`).join('')}
-    ${pres===0&&tot>0?`<div class="alert-box" style="margin-top:12px;"><div class="a-title" style="color:var(--orange);">⚠ Rotura de funnel — asistencia baja</div>
-      <div class="a-body">Solo ${pres} de ${tot} agendados (${tot>0?(pres/tot*100).toFixed(1):0}%) se presentaron. Revisa el protocolo de confirmación pre-taller.</div></div>`
-    :pres>0&&vts===0?`<div class="warn-box" style="margin-top:12px;"><div class="a-title" style="color:var(--warn);">⚠ Asistencia sin conversión</div>
-      <div class="a-body">${pres} presentados sin ventas registradas. Verifica columna de ventas en TALLER DISC.</div></div>`:''}`
+      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(255,37,0,.04);border-color:rgba(255,37,0,.15);"><div class="kpi-label co">Ventas</div><div class="num-lg cs">${vts}</div></div></div>
+    ${porMes.map((d, i) => {
+      const op = DISC_BAR_OP[Math.min(i, DISC_BAR_OP.length - 1)];
+      return `<div class="funnel-row"><span class="funnel-label">${d.mes} (${d.agendados} ag.)</span>
+      <div class="funnel-track"><div class="funnel-fill" style="width:${d.agendados / maxAg * 100}%;background:rgba(130,59,218,${op});">
+        <span class="cp">${d.agendados}</span></div></div></div>`;
+    }).join('')}
+    ${notas.length ? discNotaMes(notas, sem2Ag, curMesShort) : ''}
+    ${showFunnelAlert ? `<div class="alert-box" style="margin-top:12px;">
+      <div class="a-title" style="color:var(--orange);">⚠ Rotura de funnel persistente en ${porMes.length} meses</div>
+      <div class="a-body">Solo ${pres} de ${tot} agendados (${asistPct}%) se presentaron en todo el histórico ${mesRango}. Cuello de botella crítico entre agendamiento y asistencia. Se requiere revisión del protocolo de confirmación y seguimiento pre-taller.</div></div>`
+    : pres > 0 && vts === 0 ? `<div class="warn-box" style="margin-top:12px;"><div class="a-title" style="color:var(--warn);">⚠ Asistencia sin conversión</div>
+      <div class="a-body">${pres} presentados sin ventas registradas. Verifica columna de ventas en TALLER DISC.</div></div>` : ''}`
     }</div>`;
 }
 

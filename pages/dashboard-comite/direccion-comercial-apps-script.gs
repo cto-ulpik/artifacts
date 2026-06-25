@@ -70,7 +70,8 @@ function buildDebugReport() {
     ads: (data.ads || []).length,
     convenio: data.convenio,
     pi: data.pi,
-    upsell: data.upsell
+    upsell: data.upsell,
+    disc: data.disc
   };
 }
 
@@ -111,7 +112,7 @@ function buildDashboardData(semanaFilter) {
     evolutivo: evolutivo,
     historico_mensual: historico,
     convenio: readConvenio(),
-    disc: readDisc(),
+    disc: readDisc(semanaActual),
     pi: readPI(),
     upsell: readUpsell(semanaActual),
   };
@@ -739,22 +740,80 @@ function readUpsell(semanaId) {
   };
 }
 
-function readDisc() {
+function readDisc(semanaId) {
+  var MESES_FULL = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
   var data = sheetRows(SHEETS.disc);
-  var h = data.headers, map = {};
-  var iMes = col(h, ['mes']);
+  var h = data.headers;
+  var iAg = col(h, ['fecha agendamiento', 'agendamiento']);
+  var iNom = col(h, ['nombre cliente', 'nombre', 'cliente']);
   var iPres = col(h, ['se presento', 'se presentó', 'presento']);
   var iVenta = col(h, ['venta cerrada', 'ventas', 'venta']);
+  var iDet = col(h, ['detalle']);
+  var map = {};
+  var registros = [];
 
   data.rows.forEach(function (r) {
-    var mo = iMes >= 0 ? String(+r[iMes] || r[iMes]) : mesAnioFromRow(h, r).split('-')[0];
-    if (!mo) return;
-    if (!map[mo]) map[mo] = { mes: mo, presentados: 0, ventas: 0 };
-    map[mo].agendados = (map[mo].agendados || 0) + 1;
-    if (iPres >= 0 && isSi(r[iPres])) map[mo].presentados++;
-    if (iVenta >= 0 && isSi(r[iVenta])) map[mo].ventas++;
+    var fd = iAg >= 0 ? parseFechaDDMMYYYY(r[iAg]) : null;
+    if (!fd) return;
+    var mo = fd.getMonth() + 1;
+    var anio = fd.getFullYear();
+    if (!map[mo]) {
+      map[mo] = { mes_num: mo, mes: MESES_FULL[mo], agendados: 0, presentados: 0, ventas: 0 };
+    }
+    map[mo].agendados++;
+    var pres = iPres >= 0 && isSi(r[iPres]);
+    var venta = iVenta >= 0 && isSi(r[iVenta]);
+    if (pres) map[mo].presentados++;
+    if (venta) map[mo].ventas++;
+    registros.push({
+      mes_num: mo,
+      anio: anio,
+      nombre: iNom >= 0 ? String(r[iNom] || '').trim() : '',
+      fecha_agendamiento: iAg >= 0 ? String(r[iAg] || '').trim() : '',
+      se_presento: pres,
+      venta_cerrada: venta,
+      detalle: iDet >= 0 ? String(r[iDet] || '').trim() : ''
+    });
   });
-  return Object.keys(map).map(function (k) { return map[k]; });
+
+  var porMes = Object.keys(map).map(function (k) { return map[k]; })
+    .sort(function (a, b) { return a.mes_num - b.mes_num; });
+
+  var totAg = 0, totPres = 0, totVt = 0;
+  porMes.forEach(function (m) {
+    totAg += m.agendados;
+    totPres += m.presentados;
+    totVt += m.ventas;
+  });
+
+  var curMes = 0, curAnio = 0;
+  if (semanaId) {
+    var parts = String(semanaId).split('-');
+    curMes = +parts[0] || 0;
+    curAnio = +parts[1] || 0;
+  }
+
+  var notasMes = registros.filter(function (r) {
+    return !curMes || (r.mes_num === curMes && (!curAnio || r.anio === curAnio));
+  });
+  var sem2Ag = notasMes.filter(function (r) {
+    var d = parseFechaDDMMYYYY(r.fecha_agendamiento);
+    return d && d.getDate() > 15;
+  }).length;
+
+  return {
+    por_mes: porMes,
+    totales: {
+      agendados: totAg,
+      presentados: totPres,
+      ventas: totVt,
+      conversion: totAg > 0 ? Math.round(totVt / totAg * 1000) / 10 : 0
+    },
+    notas_mes: notasMes,
+    sem2_agendados: sem2Ag,
+    mes_actual: curMes,
+    mes_actual_label: curMes ? (MESES_FULL[curMes] || '') : ''
+  };
 }
 
 function readPI() {
