@@ -113,7 +113,7 @@ function buildDashboardData(semanaFilter) {
     convenio: readConvenio(),
     disc: readDisc(),
     pi: readPI(),
-    upsell: readUpsell()
+    upsell: readUpsell(semanaActual),
   };
 }
 
@@ -679,38 +679,63 @@ function readConvenio() {
   };
 }
 
-function readUpsell() {
+function readUpsell(semanaId) {
   var data = sheetRows(SHEETS.upsell);
   var h = data.headers, rows = data.rows;
-  var iApr = col(h, ['aprobadas', 'aprobada']);
-  var iProc = col(h, ['en proceso', 'proceso']);
-  var iNeg = col(h, ['negadas', 'negada']);
-  var iEst = col(h, ['estado', 'estatus']);
-  var iFecha = col(h, ['fecha', 'ultima gestion']);
+  var iEstado = col(h, ['estado de marca', 'estado marca']);
+  var iFecha = col(h, ['fecha']);
+  if (iFecha < 0) {
+    Object.keys(h).forEach(function (k) {
+      if (k === 'fecha') iFecha = h[k];
+    });
+  }
 
-  if (iApr >= 0 && rows.length && typeof rows[0][iApr] === 'number' && rows.length === 1) {
-    return {
-      aprobadas: numVal(rows[0][iApr]),
-      en_proceso: iProc >= 0 ? numVal(rows[0][iProc]) : 0,
-      negadas: iNeg >= 0 ? numVal(rows[0][iNeg]) : 0,
-      estado: iEst >= 0 ? String(rows[0][iEst] || '—') : '—',
-      ultima_gestion: iFecha >= 0 ? formatFecha(rows[0][iFecha]) : '—'
-    };
+  var mes = 0, anio = 0;
+  if (semanaId) {
+    var sp = semanaId.split('-');
+    mes = +sp[0];
+    anio = +sp[1];
   }
 
   var aprobadas = 0, enProceso = 0, negadas = 0;
-  var iVenta = col(h, ['venta', 'venta cerrada']);
+  var ultimaDate = null;
+  var actividadMes = 0;
+
   rows.forEach(function (r) {
-    if (iVenta >= 0 && String(r[iVenta] || '').toUpperCase().indexOf('VENTA') >= 0) aprobadas++;
-    else if (iProc >= 0 && String(r[iProc] || '').toLowerCase().indexOf('proceso') >= 0) enProceso++;
-    else negadas++;
+    var est = iEstado >= 0 ? String(r[iEstado] || '').trim().toLowerCase() : '';
+    if (est.indexOf('negad') >= 0) negadas++;
+    else if (est.indexOf('proceso') >= 0) enProceso++;
+    else if (est.indexOf('aprobad') >= 0) aprobadas++;
+
+    if (iFecha >= 0 && r[iFecha]) {
+      var fd = parseFechaDDMMYYYY(formatFecha(r[iFecha]));
+      if (fd && !isNaN(fd.getTime())) {
+        if (!ultimaDate || fd > ultimaDate) ultimaDate = fd;
+        if (mes && anio && fd.getMonth() + 1 === mes && fd.getFullYear() === anio) actividadMes++;
+      }
+    }
   });
+
+  var ultima = ultimaDate ? formatFecha(ultimaDate) : '';
+  var pausado = false;
+  var sinActividadMes = '';
+  if (ultimaDate && mes && anio) {
+    var um = ultimaDate.getMonth() + 1;
+    var uy = ultimaDate.getFullYear();
+    pausado = actividadMes === 0 && (uy < anio || (uy === anio && um < mes));
+    if (pausado) sinActividadMes = MN[mes] || String(mes);
+  }
+
   return {
     aprobadas: aprobadas,
     en_proceso: enProceso,
     negadas: negadas,
-    estado: rows.length ? 'Activo' : 'Sin datos',
-    ultima_gestion: '—'
+    estado: pausado ? 'Pausado' : (rows.length ? 'Activo' : 'Sin datos'),
+    ultima_gestion: ultima,
+    pausado: pausado,
+    sin_actividad_mes: sinActividadMes,
+    mes_cartera: ultimaDate ? (MN[ultimaDate.getMonth() + 1] || '').toLowerCase() : '',
+    anio_cartera: ultimaDate ? ultimaDate.getFullYear() : 0
   };
 }
 

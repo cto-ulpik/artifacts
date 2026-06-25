@@ -488,7 +488,7 @@ function renderAll(d){
   const c=compute(d);
   rKPIs(d,c);rPresupuestos(d,c);rAsesores(d,c);
   rEvolutivo(d);rEmbudos(d,c);
-  rConvenio(d.convenio||{}, d.semana_actual||'');rUpsell(d.upsell||{});
+  rConvenio(d.convenio||{}, d.semana_actual||'');rUpsell(d.upsell||{}, d.semana_actual||'');
   rDisc(c.discData);rPI(d.pi||{});rLegal(d,c);
   if(filterActive()) applyGlobalFilter();
 }
@@ -931,36 +931,55 @@ function rConvenio(cv, semanaId) {
 }
 
 // ══════════ §9 Upsell ════════════════════════════
-function rUpsell(up){
-  const{aprobadas:ap=0,en_proceso:ep=0,negadas:ng=0,estado:es='—',ultima_gestion:ug='—'}=up;
-  const empty=ap===0&&ep===0&&ng===0;
-  const paused=/paus/i.test(String(es));
-  const body=empty?noData('Sin datos en GESTION UPSELL','Verifica columnas: Aprobadas, En proceso, Negadas, Estado'):
-    paused?`<div style="display:flex;gap:16px;align-items:flex-start;">
+function rUpsell(up, semanaId) {
+  const ap = Number(up.aprobadas || 0), ep = Number(up.en_proceso || 0), ng = Number(up.negadas || 0);
+  const empty = ap === 0 && ep === 0 && ng === 0;
+  const ultLabel = fechaCorta(up.ultima_gestion);
+  const parts = String(semanaId || '').match(/^(\d+)-(\d+)$/);
+  const mesActivo = parts ? (MESES[+parts[1]] || '').toLowerCase() : '';
+  const anioActivo = parts ? parts[2] : '';
+  const mesInactivo = (up.sin_actividad_mes || mesSinActividadConvenio(up.ultima_gestion, semanaId) || '').toLowerCase();
+  const pausado = !!up.pausado || !!mesInactivo;
+  const mesCartera = up.mes_cartera || (ultLabel.match(/\s([a-z]{3})\s/i) || [])[1] || 'abr';
+
+  const cartera = `
+    <div class="sec-label">Cartera referencia (estado ${mesCartera})</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(130,59,218,.05);border-color:rgba(130,59,218,.15);"><div class="kpi-label">Aprobadas</div><div class="num-md cp">${ap.toLocaleString('es-EC')}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.05);border-color:rgba(0,173,176,.15);"><div class="kpi-label">En proceso</div><div class="num-md ct">${ep.toLocaleString('es-EC')}</div></div>
+      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Negadas</div><div class="num-md cs">${ng.toLocaleString('es-EC')}</div></div>
+    </div>`;
+
+  const body = empty ? noData('Sin datos en GESTION UPSELL', 'Verifica columna Estado de Marca en la hoja') :
+    pausado ? `<div style="display:flex;gap:16px;align-items:flex-start;">
       <div style="display:flex;flex-direction:column;align-items:center;padding:20px;text-align:center;min-width:150px;">
         <div style="width:50px;height:50px;border-radius:50%;background:rgba(255,37,0,.08);border:1px solid rgba(255,37,0,.20);display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:20px;">⏸</div>
-        <div style="font-size:12px;font-weight:600;color:var(--text);">${es}</div>
-        ${ug!=='—'?`<div style="font-size:10px;color:var(--text3);">${ug}</div>`:''}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text);">Sin gestión</div>
+        <div style="font-size:10px;color:var(--text3);">todo ${mesInactivo || mesActivo} ${anioActivo}</div>
+      </div>
       <div style="flex:1;">
-        <div style="font-size:11px;color:var(--text2);margin-bottom:12px;">Cartera de referencia registrada en GESTION UPSELL.</div>
-        <div class="sec-label">Cartera referencia</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-          <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(130,59,218,.05);"><div class="kpi-label">Aprobadas</div><div class="num-md cp">${ap}</div></div>
-          <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.05);"><div class="kpi-label">En proceso</div><div class="num-md ct">${ep}</div></div>
-          <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Negadas</div><div class="num-md cs">${ng}</div></div></div></div></div>`
-    :`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(130,59,218,.05);"><div class="kpi-label">Aprobadas</div><div class="num-lg cp">${ap}</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;background:rgba(0,173,176,.05);"><div class="kpi-label">En proceso</div><div class="num-lg ct">${ep}</div></div>
-      <div class="kpi-card" style="text-align:center;padding:12px;"><div class="kpi-label">Negadas</div><div class="num-lg cs">${ng}</div></div></div>`;
+        <div style="font-size:11px;color:var(--text2);margin-bottom:12px;">Sin actividad registrada en el archivo de gestión Upsell durante todo ${mesInactivo || mesActivo} ${anioActivo}.</div>
+        ${cartera}
+      </div>
+    </div>` : `<div style="font-size:11px;color:var(--text2);margin-bottom:12px;">Cartera activa en GESTION UPSELL${ultLabel !== '—' ? ' · última gestión ' + ultLabel : ''}.</div>${cartera}`;
 
-  $('s-upsell').innerHTML=`
+  const estadoMeta = pausado && ultLabel !== '—'
+    ? `Estado: Pausado desde ${ultLabel}`
+    : `Estado: ${up.estado || 'Activo'}${ultLabel !== '—' ? ' · última gestión ' + ultLabel : ''}`;
+  const chip = pausado && ultLabel !== '—'
+    ? `Pausado desde ${ultLabel}`
+    : (up.estado || 'Activo');
+
+  $('s-upsell').innerHTML = `
   <div class="seg-hdr"><span class="seg-num">09</span><span class="seg-dot" style="background:var(--text3);"></span>
-    <span class="seg-title">Upsell — Histórico</span><span class="seg-meta">Estado: ${es}</span></div>
+    <span class="seg-title">Upsell — Histórico</span><span class="seg-meta">${empty ? 'Sin datos' : estadoMeta}</span></div>
   <div class="card">
     <div class="no-date-notice" id="notice-upsell"><span class="no-date-notice-icon">📅</span><span class="no-date-notice-text">Esta sección muestra datos históricos sin granularidad de fecha — el filtro activo no aplica aquí.</span></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div class="card-title" style="margin:0;">Upsell · Estado actual</div><span class="chip chip-o">${es}</span></div>
-    ${body}</div>`;
+      <div class="card-title" style="margin:0;">Upsell · Estado actual</div>
+      <span class="chip chip-o">${chip}</span></div>
+    ${body}
+  </div>`;
 }
 
 // ══════════ §10 DISC ═════════════════════════════
