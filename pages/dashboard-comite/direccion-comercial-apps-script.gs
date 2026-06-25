@@ -71,7 +71,8 @@ function buildDebugReport() {
     convenio: data.convenio,
     pi: data.pi,
     upsell: data.upsell,
-    disc: data.disc
+    disc: data.disc,
+    disc_rows: data.disc && data.disc.totales ? data.disc.totales.agendados : 0
   };
 }
 
@@ -753,8 +754,10 @@ function readDisc(semanaId) {
   var registros = [];
 
   data.rows.forEach(function (r) {
-    var fd = iAg >= 0 ? parseFechaDDMMYYYY(r[iAg]) : null;
-    if (!fd) return;
+    if (iAg < 0 || !r[iAg]) return;
+    var fechaStr = formatFecha(r[iAg]);
+    var fd = parseFechaDDMMYYYY(fechaStr);
+    if (!fd || isNaN(fd.getTime())) return;
     var mo = fd.getMonth() + 1;
     var anio = fd.getFullYear();
     if (!map[mo]) {
@@ -769,7 +772,7 @@ function readDisc(semanaId) {
       mes_num: mo,
       anio: anio,
       nombre: iNom >= 0 ? String(r[iNom] || '').trim() : '',
-      fecha_agendamiento: iAg >= 0 ? String(r[iAg] || '').trim() : '',
+      fecha_agendamiento: fechaStr,
       se_presento: pres,
       venta_cerrada: venta,
       detalle: iDet >= 0 ? String(r[iDet] || '').trim() : ''
