@@ -526,8 +526,8 @@ body {
       <div class="period" id="headerPeriod">Cargando período…</div>
     </div>
   </div>
-  <div class="header-right" id="headerNpsFilters" style="display:none">
-    <span class="live-badge" id="liveBadge">● NPS en vivo</span>
+  <div class="header-right" id="headerPeriodFilters" style="display:none">
+    <span class="live-badge" id="liveBadge">● En vivo</span>
     <div class="period-filters">
       <select class="month-select" id="monthNumHdr" onchange="onPeriodChange()"></select>
       <select class="month-select" id="yearHdr" onchange="onPeriodChange()"></select>
@@ -545,239 +545,19 @@ body {
 <!-- ════════════════════════════════════════════════════════ -->
 
 <div class="content active" id="tab-inicio">
-
-  <div class="static-note">La encuesta de <strong>inicio de trámite</strong> usa datos estáticos de mayo 2026. La pestaña <strong>NPS — Fin de trámite</strong> se actualiza desde el spreadsheet NPS ULPIK vía Apps Script.</div>
-
-  <div class="kpi-strip">
-    <div class="kpi-card">
-      <div class="kpi-value" style="color:var(--purple)">21</div>
-      <div class="kpi-label">Respuestas</div>
-      <div class="kpi-sub">Mayo 2026</div>
+  <div class="nps-filter-bar" id="inicioFilterBar" style="display:none">
+    <label>📅 Marca temporal</label>
+    <div class="period-filters">
+      <select class="month-select" id="monthNumInicio" onchange="onPeriodChange()"></select>
+      <select class="month-select" id="yearInicio" onchange="onPeriodChange()"></select>
     </div>
-    <div class="kpi-card">
-      <div class="kpi-value" style="color:var(--green)">48.8%</div>
-      <div class="kpi-label">Ratio de respuesta</div>
-      <div class="kpi-sub">21 de 43 clientes</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value" style="color:var(--green)">9.3</div>
-      <div class="kpi-label">Facilidad de contratación</div>
-      <div class="kpi-sub">Promedio /10</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value" style="color:var(--green)">9.0</div>
-      <div class="kpi-label">Claridad del servicio</div>
-      <div class="kpi-sub">Promedio /10</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value" style="color:var(--green)">9.6</div>
-      <div class="kpi-label">Atención del asesor</div>
-      <div class="kpi-sub">Promedio /10</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-value" style="color:var(--green)">9.5</div>
-      <div class="kpi-label">Recomendación (NPS)</div>
-      <div class="kpi-sub">Promedio /10</div>
-    </div>
+    <span class="nps-filter-hint">Encuesta proceso de compra · columna A</span>
+    <span class="nps-filter-count" id="inicioFilterCount"></span>
   </div>
-
-  <div class="semaforo-note"><strong>Semáforo de promedios:</strong> <span class="semaforo-dot" style="background:var(--green)"></span>Verde ≥ 9.0 <span class="semaforo-dot" style="background:var(--yellow)"></span>Amarillo 8.0–8.9 <span class="semaforo-dot" style="background:var(--orange)"></span>Rojo &lt; 8.0. En preguntas categóricas se marca la señal cuando mide fricción o acompañamiento.</div>
-
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-title"><span>Facilidad de contratación del servicio</span><span class="title-metric status-green">Prom. 9.3/10</span></div>
-      <div class="rating-row"><div class="rating-label">10</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:71.4%;background:var(--green)"></div></div><div class="rating-count">15 (71%)</div></div>
-      <div class="rating-row"><div class="rating-label">9</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:14.3%;background:var(--green)"></div></div><div class="rating-count">3 (14%)</div></div>
-      <div class="rating-row"><div class="rating-label">8</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:4.8%;background:var(--purple)"></div></div><div class="rating-count">1 (5%)</div></div>
-      <div class="rating-row"><div class="rating-label">6</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:4.8%;background:var(--orange)"></div></div><div class="rating-count">1 (5%)</div></div>
-      <div class="rating-row"><div class="rating-label">5</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:4.8%;background:var(--orange)"></div></div><div class="rating-count">1 (5%)</div></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title"><span>Claridad del alcance antes del pago</span><span class="title-metric status-green">Prom. 9.0/10</span></div>
-      <div class="rating-row"><div class="rating-label">10</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:71.4%;background:var(--green)"></div></div><div class="rating-count">15 (71%)</div></div>
-      <div class="rating-row"><div class="rating-label">9</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:14.3%;background:var(--green)"></div></div><div class="rating-count">3 (14%)</div></div>
-      <div class="rating-row"><div class="rating-label">5</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.5%;background:var(--orange)"></div></div><div class="rating-count">2 (10%)</div></div>
-      <div class="rating-row"><div class="rating-label">2</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:4.8%;background:var(--orange)"></div></div><div class="rating-count">1 (5%)</div></div>
-    </div>
+  <div id="inicio-mount">
+    <div class="load-box">Cargando respuestas de inicio de trámite desde Google Sheets…</div>
   </div>
-
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-title"><span>Mayor dificultad antes de contratar</span><span class="title-metric status-red">62% con fricción</span></div>
-      <div class="hbar-group">
-        <div class="hbar-label"><span>Ninguna, todo fue claro</span><span>8</span></div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:38.1%;background:var(--green)"></div></div>
-      </div>
-      <div class="hbar-group">
-        <div class="hbar-label"><span>Resolver mis dudas</span><span>6</span></div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:28.6%;background:var(--purple)"></div></div>
-      </div>
-      <div class="hbar-group">
-        <div class="hbar-label"><span>Entender el servicio</span><span>3</span></div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:14.3%;background:var(--orange)"></div></div>
-      </div>
-      <div class="hbar-group">
-        <div class="hbar-label"><span>Tiempo de respuesta</span><span>2</span></div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:9.5%;background:var(--orange)"></div></div>
-      </div>
-      <div class="hbar-group">
-        <div class="hbar-label"><span>Entender el precio</span><span>2</span></div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:9.5%;background:var(--orange)"></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title"><span>¿Se sintió acompañado antes de pagar?</span><span class="title-metric status-green">86% sí totalmente</span></div>
-      <div style="display:flex;align-items:center;gap:28px;padding-top:10px">
-        <svg width="160" height="160" viewBox="0 0 160 160" class="donut-svg">
-          <circle cx="80" cy="80" r="60" fill="none" stroke="var(--cream)" stroke-width="24"/>
-          <circle cx="80" cy="80" r="60" fill="none" stroke="var(--green)" stroke-width="24"
-            stroke-dasharray="323.1 376.99" stroke-dashoffset="0.0" transform="rotate(-90 80 80)"/>
-          <circle cx="80" cy="80" r="60" fill="none" stroke="var(--purple)" stroke-width="24"
-            stroke-dasharray="53.9 376.99" stroke-dashoffset="-323.1" transform="rotate(-90 80 80)"/>
-          <text x="80" y="76" text-anchor="middle" font-family="Fraunces" font-weight="800" font-size="24" fill="var(--black)">86%</text>
-          <text x="80" y="94" text-anchor="middle" font-size="10" fill="#999">Sí</text>
-        </svg>
-        <div class="donut-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span><strong>18</strong> — Sí, totalmente (86%)</span></div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div><span><strong>3</strong> — Más o menos (14%)</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-title"><span>Calificación de atención del asesor</span><span class="title-metric status-green">Prom. 9.6/10</span></div>
-      <div class="rating-row"><div class="rating-label">10</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:76.2%;background:var(--green)"></div></div><div class="rating-count">16 (76%)</div></div>
-      <div class="rating-row"><div class="rating-label">9</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:14.3%;background:var(--green)"></div></div><div class="rating-count">3 (14%)</div></div>
-      <div class="rating-row"><div class="rating-label">7</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.5%;background:var(--purple)"></div></div><div class="rating-count">2 (10%)</div></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title"><span>Probabilidad de recomendar Ulpik</span><span class="title-metric status-green">Prom. 9.5/10</span></div>
-      <div class="rating-row"><div class="rating-label">10</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:81.0%;background:var(--green)"></div></div><div class="rating-count">17 (81%)</div></div>
-      <div class="rating-row"><div class="rating-label">9</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:9.5%;background:var(--green)"></div></div><div class="rating-count">2 (10%)</div></div>
-      <div class="rating-row"><div class="rating-label">7</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:4.8%;background:var(--purple)"></div></div><div class="rating-count">1 (5%)</div></div>
-      <div class="rating-row"><div class="rating-label">4</div><div class="rating-bar-track"><div class="rating-bar-fill" style="width:4.8%;background:var(--orange)"></div></div><div class="rating-count">1 (5%)</div></div>
-    </div>
-  </div>
-
-  <div class="grid-3">
-    <div class="card">
-      <div class="card-title">Servicio contratado</div>
-      <div class="hbar-group">
-        <div class="hbar-label"><span>Registro de marca</span><span>21</span></div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:100%;background:var(--green)"></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">¿Cliente recurrente?</div>
-      <div style="display:flex;align-items:center;gap:20px;padding-top:10px">
-        <svg width="130" height="130" viewBox="0 0 130 130" class="donut-svg">
-          <circle cx="65" cy="65" r="50" fill="none" stroke="var(--cream)" stroke-width="20"/>
-          <circle cx="65" cy="65" r="50" fill="none" stroke="var(--green)" stroke-width="20"
-            stroke-dasharray="284.2 314.16" stroke-dashoffset="0.0" transform="rotate(-90 65 65)"/>
-          <circle cx="65" cy="65" r="50" fill="none" stroke="var(--purple)" stroke-width="20"
-            stroke-dasharray="29.9 314.16" stroke-dashoffset="-284.2" transform="rotate(-90 65 65)"/>
-          <text x="65" y="61" text-anchor="middle" font-family="Fraunces" font-weight="800" font-size="24" fill="var(--black)">90%</text>
-          <text x="65" y="79" text-anchor="middle" font-size="10" fill="#999">nuevos</text>
-        </svg>
-        <div class="donut-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span><strong>19</strong> — Primera vez (90%)</span></div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div><span><strong>2</strong> — Ya clientes (10%)</span></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Facturación anual del negocio</div>
-      <div class="hbar-group">
-        <div class="hbar-label"><span>Prefiero no indicar</span><span>8</span></div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:38.1%;background:#aaa"></div></div>
-      </div>
-      <div class="hbar-group">
-        <div class="hbar-label"><span>Hasta $60K</span><span>6</span></div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:28.6%;background:var(--green)"></div></div>
-      </div>
-      <div class="hbar-group">
-        <div class="hbar-label"><span>Más de $500K</span><span>3</span></div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:14.3%;background:var(--purple)"></div></div>
-      </div>
-      <div class="hbar-group">
-        <div class="hbar-label"><span>$120K — $500K</span><span>3</span></div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:14.3%;background:var(--purple)"></div></div>
-      </div>
-      <div class="hbar-group">
-        <div class="hbar-label"><span>$60K — $120K</span><span>1</span></div>
-        <div class="hbar-track"><div class="hbar-fill" style="width:4.8%;background:rgba(130,59,218,0.4)"></div></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-title">Proceso de inicio por asesor</div>
-      <table class="data-table">
-        <thead><tr><th>Asesor</th><th style="text-align:center">Respuestas</th><th style="text-align:center">%</th></tr></thead>
-        <tbody>
-          <tr><td>Martín Coello</td><td style="text-align:center">21</td><td style="text-align:center"><span class="badge" style="background:var(--green);color:white">100%</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="card">
-      <div class="card-title"><span>Comentarios principales</span><span class="title-metric status-yellow">Incluye los más críticos</span></div>
-      <div style="max-height:330px;overflow-y:auto">
-        <div class="feedback-item critical"><span class="feedback-tag critical">Crítico</span>"Me gustaría que las respuestas por WhatsApp sean más ágiles."</div>
-        <div class="feedback-item critical"><span class="feedback-tag critical">Crítico</span>"Indicar correctamente los precios."</div>
-        <div class="feedback-item warning"><span class="feedback-tag warning">Proceso</span>"Que la compra se pueda dar mediante una reunión o una llamada, para reforzar los mensajes enviados."</div>
-        <div class="feedback-item warning"><span class="feedback-tag warning">Proceso</span>"La primera vez tuve inconvenientes con el pago a través de Datafast, pero ya se solucionó."</div>
-        <div class="feedback-item warning"><span class="feedback-tag warning">Velocidad</span>"Que contesten más rápido."</div>
-        <div class="feedback-item warning"><span class="feedback-tag warning">Respuesta</span>"Tiempo de respuesta del personal. La respuesta del robot es inmediata."</div>
-        <div class="feedback-item warning"><span class="feedback-tag warning">Agilidad</span>"Agilizar."</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card full-width" style="margin-bottom:28px">
-    <div class="card-title">Evolución mensual — Recomendación de inicio de trámite</div>
-    <p style="font-size:13px;color:#999;margin-bottom:16px">La encuesta de inicio de trámite comenzó en marzo 2026. Mayo consolida tres meses consecutivos por encima de 9.3 en intención de recomendación.</p>
-    <div style="display:flex;align-items:flex-end;justify-content:center;gap:42px;padding:20px 0;flex-wrap:wrap">
-
-      <div style="text-align:center">
-        <div style="height:180px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center">
-          <div style="width:72px;height:168px;background:var(--orange);border-radius:12px 12px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:14px">
-            <span style="color:white;font-family:Fraunces;font-weight:800;font-size:24px">9.3</span>
-          </div>
-        </div>
-        <div style="border-top:2px solid var(--cream-dark);margin-top:0;padding-top:8px;font-size:13px;font-weight:600;color:var(--black)">Mar 2026 <span style="color:#aaa;font-weight:400">(27 resp.)</span></div>
-      </div>
-
-      <div style="text-align:center">
-        <div style="height:180px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center">
-          <div style="width:72px;height:167px;background:var(--orange);border-radius:12px 12px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:14px">
-            <span style="color:white;font-family:Fraunces;font-weight:800;font-size:24px">9.3</span>
-          </div>
-        </div>
-        <div style="border-top:2px solid var(--cream-dark);margin-top:0;padding-top:8px;font-size:13px;font-weight:600;color:var(--black)">Abr 2026 <span style="color:#aaa;font-weight:400">(19 resp.)</span></div>
-      </div>
-
-      <div style="text-align:center">
-        <div style="height:180px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center">
-          <div style="width:72px;height:172px;background:var(--green);border-radius:12px 12px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:14px">
-            <span style="color:white;font-family:Fraunces;font-weight:800;font-size:24px">9.5</span>
-          </div>
-        </div>
-        <div style="border-top:2px solid var(--cream-dark);margin-top:0;padding-top:8px;font-size:13px;font-weight:600;color:var(--black)">May 2026 <span style="color:#aaa;font-weight:400">(21 resp.)</span></div>
-      </div>
-    </div>
-  </div>
-
 </div>
-
 
 <!-- ════════════════════════════════════════════════════════ -->
 <!-- TAB 2: NPS — FIN DE TRÁMITE — MAYO 2026                -->
@@ -801,7 +581,8 @@ body {
 
 
 <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz7eBhC_c0S5UXNMewWfVpyl_H-H-dVx-5gjcJYYVmnN1AmAohdOLLoT6WJhn0MigKt/exec';
+const NPS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz7eBhC_c0S5UXNMewWfVpyl_H-H-dVx-5gjcJYYVmnN1AmAohdOLLoT6WJhn0MigKt/exec';
+const INICIO_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwAs8BhXdrX1QSmjZ0xf7HOo_v9FCGi-VoYU4ocQMxRoXAgH35B1WecO81hBushxpf4/exec';
 const MN = {'01':'Ene','02':'Feb','03':'Mar','04':'Abr','05':'May','06':'Jun','07':'Jul','08':'Ago','09':'Sep','10':'Oct','11':'Nov','12':'Dic'};
 const MONTHS_LIST = [
   ['01','Enero'],['02','Febrero'],['03','Marzo'],['04','Abril'],['05','Mayo'],['06','Junio'],
@@ -809,9 +590,15 @@ const MONTHS_LIST = [
 ];
 
 let allRows = [];
+let allInicioRows = [];
 let curYear = '';
 let curMonthNum = '';
 let chartDrawn = false;
+let inicioLoaded = false;
+let npsLoaded = false;
+
+function isNpsTab() { return $('tab-nps').classList.contains('active'); }
+function rowsForActiveTab() { return isNpsTab() ? allRows : allInicioRows; }
 
 function $(id) { return document.getElementById(id); }
 function avg(a) { return a.length ? +(a.reduce((s, v) => s + v, 0) / a.length).toFixed(1) : 0; }
@@ -883,44 +670,49 @@ function normalizeRows(rows) {
     return { ...r, marca: String(r.marca || ''), mes, anio, mesNum, fecha_str };
   });
 }
-function buildYearOptions() {
-  const fromData = [...new Set(allRows.map(r => rowPeriod(r).anio).filter(Boolean))].map(Number);
+function buildYearOptions(rows) {
+  const fromData = [...new Set(rows.map(r => rowPeriod(r).anio).filter(Boolean))].map(Number);
   const y = new Date().getFullYear();
   const range = [];
   for (let i = y; i >= y - 6; i--) range.push(i);
   return [...new Set([...fromData, ...range])].sort((a, b) => b - a);
 }
-function countForPeriod(y, mo) {
+function countForPeriod(y, mo, rows) {
+  const data = rows || rowsForActiveTab();
   const ys = String(y), ms = String(mo).padStart(2, '0');
-  return allRows.filter(r => {
+  return data.filter(r => {
     const p = rowPeriod(r);
     return p.anio === ys && p.mesNum === ms;
   }).length;
 }
-function filterByPeriod() {
-  if (!curYear || !curMonthNum) return allRows;
-  const ys = String(curYear), ms = String(curMonthNum).padStart(2, '0');
-  return allRows.filter(r => {
+function filterRowsByPeriod(rows, year, monthNum) {
+  if (!year || !monthNum) return rows;
+  const ys = String(year), ms = String(monthNum).padStart(2, '0');
+  return rows.filter(r => {
     const p = rowPeriod(r);
     return p.anio === ys && p.mesNum === ms;
   });
 }
+function filterByPeriod() { return filterRowsByPeriod(allRows, curYear, curMonthNum); }
+function filterInicioByPeriod() { return filterRowsByPeriod(allInicioRows, curYear, curMonthNum); }
 function syncPeriodSelects() {
+  const rows = rowsForActiveTab();
   const monthHtml = MONTHS_LIST.map(([v, label]) => {
-    const n = countForPeriod(curYear, v);
+    const n = countForPeriod(curYear, v, rows);
     const extra = curYear && n ? ` (${n})` : '';
     return `<option value="${v}"${v === curMonthNum ? ' selected' : ''}>${label}${extra}</option>`;
   }).join('');
-  const years = buildYearOptions();
+  const years = buildYearOptions(rows);
   const yearHtml = years.map(y => {
-    const n = allRows.filter(r => rowPeriod(r).anio === String(y)).length;
+    const n = rows.filter(r => rowPeriod(r).anio === String(y)).length;
     return `<option value="${y}"${String(y) === String(curYear) ? ' selected' : ''}>${y}${n ? ' (' + n + ')' : ''}</option>`;
   }).join('');
-  ['monthNumHdr', 'monthNumNps'].forEach(id => { const el = $(id); if (el) el.innerHTML = monthHtml; });
-  ['yearHdr', 'yearNps'].forEach(id => { const el = $(id); if (el) el.innerHTML = yearHtml; });
+  ['monthNumHdr', 'monthNumNps', 'monthNumInicio'].forEach(id => { const el = $(id); if (el) el.innerHTML = monthHtml; });
+  ['yearHdr', 'yearNps', 'yearInicio'].forEach(id => { const el = $(id); if (el) el.innerHTML = yearHtml; });
 }
 function pickDefaultPeriod() {
-  const dated = allRows.map(r => ({ r, p: rowPeriod(r) })).filter(x => x.p.anio && x.p.mesNum);
+  const combined = [...allInicioRows, ...allRows];
+  const dated = combined.map(r => ({ r, p: rowPeriod(r) })).filter(x => x.p.anio && x.p.mesNum);
   if (!dated.length) {
     const d = new Date();
     curYear = String(d.getFullYear());
@@ -941,25 +733,35 @@ function updateNpsFilterUi() {
   }
   $('npsFilterBar').style.display = 'flex';
 }
-function updateHeaderForNps() {
-  const n = filterByPeriod().length;
-  $('headerPeriod').textContent = monthRangeFrom(curYear, curMonthNum) + ` · ${n} respuesta${n !== 1 ? 's' : ''} NPS`;
+function updateHeaderForPeriod(tab) {
+  const rows = tab === 'nps' ? filterByPeriod() : filterInicioByPeriod();
+  const n = rows.length;
+  const label = tab === 'nps' ? 'NPS' : 'inicio de trámite';
+  $('headerPeriod').textContent = monthRangeFrom(curYear, curMonthNum) + ` · ${n} respuesta${n !== 1 ? 's' : ''} ${label}`;
 }
 function updatePeriodSelector() {
   if (!curYear || !curMonthNum) pickDefaultPeriod();
   syncPeriodSelects();
-  const onNps = $('tab-nps').classList.contains('active');
-  $('headerNpsFilters').style.display = onNps ? 'flex' : 'none';
-  if (onNps) updateHeaderForNps();
+  const onNps = isNpsTab();
+  $('headerPeriodFilters').style.display = (inicioLoaded || npsLoaded) ? 'flex' : 'none';
+  $('inicioFilterBar').style.display = !onNps && inicioLoaded ? 'flex' : 'none';
+  $('npsFilterBar').style.display = onNps && npsLoaded ? 'flex' : 'none';
+  $('liveBadge').textContent = onNps ? '● NPS en vivo' : '● Inicio en vivo';
+  if (onNps && npsLoaded) updateHeaderForPeriod('nps');
+  else if (!onNps && inicioLoaded) updateHeaderForPeriod('inicio');
 }
 function onPeriodChange() {
-  curMonthNum = $('monthNumNps')?.value || $('monthNumHdr')?.value || curMonthNum;
-  curYear = $('yearNps')?.value || $('yearHdr')?.value || curYear;
+  curMonthNum = $('monthNumNps')?.value || $('monthNumHdr')?.value || $('monthNumInicio')?.value || curMonthNum;
+  curYear = $('yearNps')?.value || $('yearHdr')?.value || $('yearInicio')?.value || curYear;
   syncPeriodSelects();
-  if ($('tab-nps').classList.contains('active')) {
-    updateHeaderForNps();
+  if (isNpsTab()) {
+    updateHeaderForPeriod('nps');
     updateNpsFilterUi();
     renderNps(filterByPeriod());
+  } else {
+    updateHeaderForPeriod('inicio');
+    updateInicioFilterUi();
+    renderInicio(filterInicioByPeriod());
   }
 }
 
@@ -1156,17 +958,299 @@ function renderNps(rows) {
   if ($('tab-nps').classList.contains('active')) setTimeout(drawChart, 50);
 }
 
+function catCount(rows, field) {
+  const map = {};
+  rows.forEach(r => {
+    const k = (r[field] || '—').trim() || '—';
+    map[k] = (map[k] || 0) + 1;
+  });
+  return Object.entries(map).sort((a, b) => b[1] - a[1]).map(([label, count]) => ({ label, count }));
+}
+
+function shortFacturacion(s) {
+  const map = {
+    'Prefiero no indicarlo': 'Prefiero no indicar',
+    'Hasta $60.000': 'Hasta $60K',
+    'Entre $60.000 y $120.000': '$60K — $120K',
+    'Entre $120.000 y $500.000': '$120K — $500K',
+    'Más de $500.000': 'Más de $500K'
+  };
+  return map[s] || s;
+}
+
+function donutSvg(segments, centerMain, centerSub, size) {
+  size = size || 160;
+  const r = size === 160 ? 60 : 50;
+  const stroke = size === 160 ? 24 : 20;
+  const cx = size / 2, cy = size / 2;
+  const circ = 2 * Math.PI * r;
+  let offset = 0;
+  const arcs = segments.map(seg => {
+    const dash = circ * seg.pct / 100;
+    const el = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${seg.color}" stroke-width="${stroke}" stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(1)}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    offset += dash;
+    return el;
+  }).join('');
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="donut-svg">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--cream)" stroke-width="${stroke}"/>
+    ${arcs}
+    <text x="${cx}" y="${cy - 4}" text-anchor="middle" font-family="Fraunces" font-weight="800" font-size="${size === 160 ? 24 : 22}" fill="var(--black)">${centerMain}</text>
+    <text x="${cx}" y="${cy + 14}" text-anchor="middle" font-size="10" fill="#999">${centerSub}</text>
+  </svg>`;
+}
+
+function inicioFeedbackHtml(rows) {
+  const items = rows
+    .filter(r => (r.comentario || '').trim().length > 8)
+    .map(r => {
+      const crit = r.recomendacion <= 6 || r.facilidad <= 6;
+      const warn = !crit && (r.recomendacion <= 8 || r.facilidad <= 8);
+      const tag = crit ? 'critical' : warn ? 'warning' : 'neutral';
+      const label = crit ? 'Crítico' : warn ? 'Proceso' : 'Comentario';
+      return { tag, label, text: r.comentario, score: r.recomendacion };
+    })
+    .sort((a, b) => {
+      const rank = { critical: 0, warning: 1, neutral: 2 };
+      return rank[a.tag] - rank[b.tag] || a.score - b.score;
+    })
+    .slice(0, 8);
+  if (!items.length) return '<div style="font-size:13px;color:#999;padding:12px 0">Sin comentarios en este período.</div>';
+  const hasCrit = items.some(i => i.tag === 'critical' || i.tag === 'warning');
+  return items.map(i => `<div class="feedback-item ${i.tag}"><span class="feedback-tag ${i.tag}">${i.label}</span>"${i.text.replace(/"/g, '&quot;')}"</div>`).join('');
+}
+
+function inicioEvolutionHtml() {
+  const monthMap = {};
+  allInicioRows.forEach(r => {
+    if (!r.mes) return;
+    if (!monthMap[r.mes]) monthMap[r.mes] = [];
+    if (r.recomendacion > 0) monthMap[r.mes].push(r.recomendacion);
+  });
+  const months = Object.keys(monthMap).sort();
+  if (!months.length) return '<div style="font-size:13px;color:#999;padding:12px 0">Sin datos históricos aún.</div>';
+  const avgs = months.map(m => avg(monthMap[m]));
+  const maxVal = Math.max(...avgs, 10);
+  const minVal = Math.min(...avgs, 8);
+  const range = Math.max(maxVal - minVal, 0.5);
+  return months.map((m, i) => {
+    const val = avgs[i];
+    const cnt = monthMap[m].length;
+    const p = m.split('-');
+    const label = (MN[p[1]] || p[1]) + ' ' + p[0];
+    const h = 80 + ((val - minVal) / range) * 100;
+    const color = val >= 9.3 ? 'var(--green)' : 'var(--orange)';
+    const isLatest = i === months.length - 1;
+    return `<div style="text-align:center">
+      <div style="height:180px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center">
+        <div style="width:72px;height:${h.toFixed(0)}px;background:${color};border-radius:12px 12px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:14px">
+          <span style="color:white;font-family:Fraunces;font-weight:800;font-size:24px">${val.toFixed(1)}</span>
+        </div>
+      </div>
+      <div style="border-top:2px solid var(--cream-dark);margin-top:0;padding-top:8px;font-size:13px;font-weight:600;color:var(--black)">${label}${isLatest ? ' <span style="color:var(--orange)">●</span>' : ''} <span style="color:#aaa;font-weight:400">(${cnt} resp.)</span></div>
+    </div>`;
+  }).join('');
+}
+
+function normalizeInicioRows(rows) {
+  return normalizeRows(rows).map(r => ({
+    ...r,
+    servicio: r.servicio || '',
+    facilidad: Number(r.facilidad) || 0,
+    claridad: Number(r.claridad) || 0,
+    dificultad: r.dificultad || '',
+    atencion: Number(r.atencion) || 0,
+    acompanado: r.acompanado || '',
+    recomendacion: Number(r.recomendacion) || 0,
+    cliente_recurrente: r.cliente_recurrente || '',
+    facturacion: r.facturacion || '',
+    comentario: r.comentario || ''
+  }));
+}
+
+function updateInicioFilterUi() {
+  const n = filterInicioByPeriod().length;
+  const countEl = $('inicioFilterCount');
+  if (countEl) {
+    countEl.textContent = n
+      ? `${n} respuesta${n !== 1 ? 's' : ''} · ${monthLabel(curYear, curMonthNum)}`
+      : `0 respuestas en ${monthLabel(curYear, curMonthNum)}`;
+  }
+}
+
+function renderInicio(rows) {
+  const mount = $('inicio-mount');
+  updateInicioFilterUi();
+
+  if (!rows.length) {
+    mount.innerHTML = `<div class="err-box"><strong>Sin respuestas en ${monthLabel(curYear, curMonthNum)}</strong><br>
+      <span style="font-size:13px;color:#666">Prueba otro mes o año. Total en historial: ${allInicioRows.length} encuesta${allInicioRows.length !== 1 ? 's' : ''}.</span></div>`;
+    return;
+  }
+
+  const n = rows.length;
+  const aFac = avg(rows.map(r => r.facilidad).filter(v => v > 0));
+  const aCla = avg(rows.map(r => r.claridad).filter(v => v > 0));
+  const aAte = avg(rows.map(r => r.atencion).filter(v => v > 0));
+  const aRec = avg(rows.map(r => r.recomendacion).filter(v => v > 0));
+
+  const sinFriccion = 'Ninguna, todo fue claro';
+  const friccion = rows.filter(r => r.dificultad && r.dificultad !== sinFriccion).length;
+  const friccionPct = n ? Math.round(friccion / n * 100) : 0;
+
+  const siTotal = rows.filter(r => /^Sí/i.test(r.acompanado) && !/más o menos/i.test(r.acompanado)).length;
+  const masOMenos = rows.filter(r => /más o menos/i.test(r.acompanado)).length;
+  const siPct = n ? Math.round(siTotal / n * 100) : 0;
+
+  const nuevos = rows.filter(r => /primera vez/i.test(r.cliente_recurrente)).length;
+  const nuevosPct = n ? Math.round(nuevos / n * 100) : 0;
+
+  const dificultadItems = catCount(rows, 'dificultad').map((x, i) => ({
+    ...x,
+    color: x.label === sinFriccion ? 'var(--green)' : i === 1 ? 'var(--purple)' : 'var(--orange)'
+  }));
+  const servicioItems = catCount(rows, 'servicio').map((x, i) => ({
+    ...x, color: i === 0 ? 'var(--green)' : 'var(--purple)'
+  }));
+  const factItems = catCount(rows, 'facturacion').map((x, i) => ({
+    label: shortFacturacion(x.label), count: x.count,
+    color: x.label.includes('Prefiero') ? '#aaa' : i < 2 ? 'var(--green)' : 'var(--purple)'
+  }));
+
+  const acompanadoLegend = [
+    { n: siTotal, label: 'Sí, totalmente', color: 'var(--green)' },
+    { n: masOMenos, label: 'Más o menos', color: 'var(--purple)' }
+  ].filter(x => x.n > 0);
+  const acompanadoSegs = acompanadoLegend.map(x => ({ pct: n ? x.n / n * 100 : 0, color: x.color }));
+
+  const clienteSegs = [
+    { pct: nuevosPct, color: 'var(--green)' },
+    { pct: 100 - nuevosPct, color: 'var(--purple)' }
+  ].filter(s => s.pct > 0);
+
+  mount.innerHTML = `
+  <div class="kpi-strip">
+    <div class="kpi-card"><div class="kpi-value" style="color:var(--purple)">${n}</div><div class="kpi-label">Respuestas</div><div class="kpi-sub">${monthLabel(curYear, curMonthNum)}</div></div>
+    <div class="kpi-card"><div class="kpi-value" style="color:${aFac >= 9 ? 'var(--green)' : 'var(--yellow)'}">${aFac}</div><div class="kpi-label">Facilidad de contratación</div><div class="kpi-sub">Promedio /10</div></div>
+    <div class="kpi-card"><div class="kpi-value" style="color:${semaClass(aCla) === 'status-green' ? 'var(--green)' : 'var(--yellow)'}">${aCla}</div><div class="kpi-label">Claridad del servicio</div><div class="kpi-sub">Promedio /10</div></div>
+    <div class="kpi-card"><div class="kpi-value" style="color:var(--green)">${aAte}</div><div class="kpi-label">Atención del asesor</div><div class="kpi-sub">Promedio /10</div></div>
+    <div class="kpi-card"><div class="kpi-value" style="color:var(--green)">${aRec}</div><div class="kpi-label">Recomendación</div><div class="kpi-sub">Promedio /10</div></div>
+  </div>
+
+  <div class="semaforo-note"><strong>Semáforo de promedios:</strong> <span class="semaforo-dot" style="background:var(--green)"></span>Verde ≥ 9.0 <span class="semaforo-dot" style="background:var(--yellow)"></span>Amarillo 8.0–8.9 <span class="semaforo-dot" style="background:var(--orange)"></span>Rojo &lt; 8.0.</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span>Facilidad de contratación del servicio</span><span class="title-metric ${semaClass(aFac)}">Prom. ${aFac}/10</span></div>
+      ${ratingRowsHtml(ratingDist(rows.map(r => r.facilidad).filter(v => v > 0)), n)}
+    </div>
+    <div class="card">
+      <div class="card-title"><span>Claridad del alcance antes del pago</span><span class="title-metric ${semaClass(aCla)}">Prom. ${aCla}/10</span></div>
+      ${ratingRowsHtml(ratingDist(rows.map(r => r.claridad).filter(v => v > 0)), n)}
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span>Mayor dificultad antes de contratar</span><span class="title-metric ${friccionPct >= 50 ? 'status-red' : 'status-yellow'}">${friccionPct}% con fricción</span></div>
+      ${hbarHtml(dificultadItems)}
+    </div>
+    <div class="card">
+      <div class="card-title"><span>¿Se sintió acompañado antes de pagar?</span><span class="title-metric ${siPct >= 80 ? 'status-green' : 'status-yellow'}">${siPct}% sí totalmente</span></div>
+      <div style="display:flex;align-items:center;gap:28px;padding-top:10px">
+        ${donutSvg(acompanadoSegs, siPct + '%', 'Sí', 160)}
+        <div class="donut-legend">
+          ${acompanadoLegend.map(x => `<div class="legend-item"><div class="legend-dot" style="background:${x.color}"></div><span><strong>${x.n}</strong> — ${x.label} (${n ? Math.round(x.n / n * 100) : 0}%)</span></div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><span>Calificación de atención del asesor</span><span class="title-metric ${semaClass(aAte)}">Prom. ${aAte}/10</span></div>
+      ${ratingRowsHtml(ratingDist(rows.map(r => r.atencion).filter(v => v > 0)), n)}
+    </div>
+    <div class="card">
+      <div class="card-title"><span>Probabilidad de recomendar Ulpik</span><span class="title-metric ${semaClass(aRec)}">Prom. ${aRec}/10</span></div>
+      ${ratingRowsHtml(ratingDist(rows.map(r => r.recomendacion).filter(v => v > 0)), n)}
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card"><div class="card-title">Servicio contratado</div>${hbarHtml(servicioItems)}</div>
+    <div class="card">
+      <div class="card-title">¿Cliente recurrente?</div>
+      <div style="display:flex;align-items:center;gap:20px;padding-top:10px">
+        ${donutSvg(clienteSegs, nuevosPct + '%', 'nuevos', 130)}
+        <div class="donut-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span><strong>${nuevos}</strong> — Primera vez (${nuevosPct}%)</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div><span><strong>${n - nuevos}</strong> — Ya clientes (${100 - nuevosPct}%)</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">Facturación anual del negocio</div>${hbarHtml(factItems)}</div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Proceso de inicio por asesor</div>
+      <table class="data-table">
+        <thead><tr><th>Asesor</th><th style="text-align:center">Respuestas</th><th style="text-align:center">%</th></tr></thead>
+        <tbody>${asesorTable(rows)}</tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>Comentarios principales</span><span class="title-metric status-yellow">Incluye los más críticos</span></div>
+      <div style="max-height:330px;overflow-y:auto">${inicioFeedbackHtml(rows)}</div>
+    </div>
+  </div>
+
+  <div class="card full-width" style="margin-bottom:28px">
+    <div class="card-title">Evolución mensual — Recomendación de inicio de trámite</div>
+    <div style="display:flex;align-items:flex-end;justify-content:center;gap:42px;padding:20px 0;flex-wrap:wrap">${inicioEvolutionHtml()}</div>
+  </div>`;
+}
+
+async function loadInicioData() {
+  const mount = $('inicio-mount');
+  if (!INICIO_APPS_SCRIPT_URL) {
+    mount.innerHTML = `<div class="err-box"><strong>Falta URL de Apps Script</strong><br>
+      <span style="font-size:13px;color:#666">Despliega <code>inicio-tramite-apps-script.gs</code> en el spreadsheet de proceso de compra y pega la URL en <code>INICIO_APPS_SCRIPT_URL</code>.</span></div>`;
+    return;
+  }
+  try {
+    const raw = await fetchJsonp(INICIO_APPS_SCRIPT_URL);
+    if (!raw.ok) throw new Error(raw.error || 'Error al leer datos');
+    allInicioRows = normalizeInicioRows(raw.rows || []).filter(r => {
+      const p = rowPeriod(r);
+      return p.anio || r.asesor || r.marca || r.facilidad > 0 || r.recomendacion > 0;
+    });
+    inicioLoaded = true;
+    if (!npsLoaded) pickDefaultPeriod();
+    updatePeriodSelector();
+    if (!isNpsTab()) {
+      updateHeaderForPeriod('inicio');
+      renderInicio(filterInicioByPeriod());
+    }
+  } catch (e) {
+    mount.innerHTML = `<div class="err-box"><strong>Error al cargar inicio de trámite</strong><br>
+      <span style="font-size:13px;color:#666">${e.message}</span><br><br>
+      <span style="font-size:12px;color:#888">Verifica <code>action=read</code> en <code>inicio-tramite-apps-script.gs</code>. Prueba: <code>?action=debug</code></span></div>`;
+  }
+}
+
 async function loadNpsData() {
   loadBar(true);
   const mount = $('nps-mount');
   try {
-    const raw = await fetchJsonp(APPS_SCRIPT_URL);
+    const raw = await fetchJsonp(NPS_APPS_SCRIPT_URL);
     if (!raw.ok) throw new Error(raw.error || 'Error al leer datos');
     allRows = normalizeRows(raw.rows || []).filter(r => {
       const p = rowPeriod(r);
       return p.anio || r.asesor || r.marca || Number(r.nps) > 0;
     });
-    pickDefaultPeriod();
+    npsLoaded = true;
+    if (!inicioLoaded) pickDefaultPeriod();
     updatePeriodSelector();
     renderNps(filterByPeriod());
   } catch (e) {
@@ -1185,8 +1269,9 @@ function switchTab(tab) {
   if (tab === 'inicio') {
     document.querySelectorAll('.tab')[0].classList.add('active');
     $('tab-inicio').classList.add('active');
-    $('headerPeriod').textContent = '1 de mayo — 31 de mayo 2026 · Inicio de trámite (estático)';
-    $('headerNpsFilters').style.display = 'none';
+    updatePeriodSelector();
+    updateInicioFilterUi();
+    renderInicio(filterInicioByPeriod());
   } else {
     document.querySelectorAll('.tab')[1].classList.add('active');
     $('tab-nps').classList.add('active');
@@ -1285,7 +1370,8 @@ function drawChart() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  $('headerPeriod').textContent = '1 de mayo — 31 de mayo 2026 · Inicio de trámite (estático)';
+  $('headerPeriod').textContent = 'Cargando datos…';
+  loadInicioData();
   loadNpsData();
 });
 </script>
