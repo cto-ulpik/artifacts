@@ -249,8 +249,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 <script>
 // ╔══════════════════════════════════════════════════╗
 // ║  ⚙  CONFIGURACIÓN                              ║
+// ║  Apps Script: direccion-comercial-apps-script.gs ║
+// ║  Spreadsheet: DIRECCION COMERCIAL 2026          ║
 // ╚══════════════════════════════════════════════════╝
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwe_GxKmo6K5MYbf8Oy92KEfILhMvQUyOStMPlu6fOeNuhTStTQIgEKX3wJ1RLz3WHY/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwrpEz-6FyFeDMjB7l0s-WMJ6JCkk4MTnOvbDYY76rmpMAQ8pe2Sfs-uHlXDCqPJlj7/exec';
 
 // ── GLOBALS ───────────────────────────────────────
 let charts = {};
@@ -304,22 +306,82 @@ window.addEventListener('scroll',()=>{
 },{passive:true});
 
 // ── FETCH (JSONP — evita CORS desde GitHub Pages) ─
+let _jsonpSeq = 0;
 function fetchJsonp(url) {
   return new Promise((resolve, reject) => {
-    const cb = '_ulpikCom_' + Date.now();
-    const timer = setTimeout(() => { cleanup(); reject(new Error('Timeout cargando datos')); }, 45000);
+    const cb = '_ulpikCom_' + (++_jsonpSeq) + '_' + Math.random().toString(36).slice(2, 9);
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('Timeout cargando datos'));
+    }, 60000);
     const script = document.createElement('script');
     function cleanup() {
       clearTimeout(timer);
-      delete window[cb];
+      window[cb] = function () {};
       if (script.parentNode) script.parentNode.removeChild(script);
     }
-    window[cb] = (data) => { cleanup(); resolve(data); };
-    script.onerror = () => { cleanup(); reject(new Error('No se pudo conectar con Apps Script')); };
+    window[cb] = (data) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(data);
+    };
+    script.onerror = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('No se pudo conectar con Apps Script'));
+    };
     const sep = url.includes('?') ? '&' : '?';
     script.src = url + sep + 'callback=' + encodeURIComponent(cb);
     document.head.appendChild(script);
   });
+}
+
+function acumuladoText(d, c) {
+  const hist = d.historico_mensual || [];
+  const sid = String(d.semana_actual || '');
+  const parts = sid.split('-');
+  if (parts.length < 2) return '';
+  const mes = +parts[0], anio = +parts[1];
+  let acumLegal = 0, acumPriv = 0;
+  hist.forEach(h => {
+    const m = (h.label || '').match(/(\w+)\s+(\d{4})/);
+    if (!m || +m[2] !== anio) return;
+    const mo = Object.entries(MESES).find(([, v]) => v === m[1]);
+    const moNum = mo ? +mo[0] : 0;
+    if (moNum && moNum <= mes) {
+      acumLegal += Number(h.legal || 0);
+      acumPriv += Number(h.priv || 0);
+    }
+  });
+  const prev = hist.length > 1 ? hist[hist.length - 2] : null;
+  const prevTot = prev ? Number(prev.legal || 0) + Number(prev.edu || 0) + Number(prev.priv || 0) : 0;
+  const mesName = MESES[mes] || mes;
+  let s = `Acum. ${mesName.toLowerCase()} legal: ${fmt(acumLegal)}`;
+  if (acumPriv > 0) s += ` · Priv ${mesName.toLowerCase()}: ${fmt(acumPriv)}`;
+  if (prevTot > 0) s += ` · vs ${prev.label} cierre: ${fmt(prevTot)}`;
+  return s;
+}
+
+function comparativoNote(hist, sid) {
+  if (!hist.length) return 'Evolución histórica de ingresos legales y educación';
+  const parts = sid.split('-');
+  const mes = parts[0] ? +parts[0] : 0;
+  const anio = parts[1] ? +parts[1] : 0;
+  const cur = hist[hist.length - 1];
+  const prev = hist.length > 1 ? hist[hist.length - 2] : null;
+  const yoy = hist.find(h => {
+    const m = (h.label || '').match(/(\w+)\s+(\d{4})/);
+    if (!m || +m[2] !== anio - 1) return false;
+    const mo = Object.entries(MESES).find(([, v]) => v === m[1]);
+    return mo && +mo[0] === mes;
+  });
+  const labels = [cur?.label + ' (actual)', prev?.label, yoy?.label].filter(Boolean);
+  return labels.length ? labels.join(' vs ') : 'Evolución histórica de ingresos legales y educación';
 }
 
 function filterDataForWeek(d, semanaId) {
@@ -457,7 +519,7 @@ function rKPIs(d,c){
       <div class="kpi-4-label">Gran total período</div>
       <div class="kpi-4-val ct">${fmt(total)}</div>
       <div class="kpi-4-sub">Legal ${fmt(totalLegal)}${totalEdu>0?' + Edu '+fmt(totalEdu):''}${totalPriv>0?' + Priv '+fmt(totalPriv):''}</div>
-      <div class="kpi-4-sub2">Priv activos: ${ps.activos||'—'} · churn: ${ps.churn||0}</div>
+      <div class="kpi-4-sub2">${acumuladoText(d,c)||`Priv activos: ${ps.activos||'—'} · churn: ${ps.churn||0}`}</div>
       <div style="margin-top:10px;"><div class="pbar"><div class="pbar-fill" style="width:100%;background:var(--teal);"></div></div></div></div>
   </div>`;
 }
@@ -481,7 +543,7 @@ function rPresupuestos(d,c){
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
         <div class="card-title">Comparativo mensual</div>
         <span class="chip chip-d" style="font-size:9px;">Marcas + Educación</span></div>
-      <div class="card-note">Evolución histórica de ingresos legales y educación</div>
+      <div class="card-note">${comparativoNote(d.historico_mensual||[], d.semana_actual||'')}</div>
       <div style="position:relative;height:200px;"><canvas id="compChart"></canvas></div>
       <div class="divider"></div><div id="compLegend" style="display:flex;flex-direction:column;gap:6px;"></div></div>
     <div class="card">
@@ -538,12 +600,13 @@ function rPresupuestos(d,c){
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:x=>' '+fmt(x.raw)}}},
         scales:{x:{grid:{display:false},ticks:{font:{size:9},color:'#9e9e9e'}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#9e9e9e',callback:v=>'$'+v.toLocaleString()}}}}});
     const legColors=['rgba(22,163,74,0.75)','rgba(190,188,184,0.65)','rgba(190,188,184,0.35)'];
+    const legChips=['<span class="chip chip-w" style="font-size:9px;">actual</span>','<span class="chip chip-g" style="font-size:9px;">cerrado</span>',''];
     $('compLegend').innerHTML=hist.slice(-3).reverse().map((h,i)=>{
       const tot=Number(h.legal||0)+Number(h.edu||0)+Number(h.priv||0);
       return `<div style="display:flex;justify-content:space-between;align-items:center;">
         <div style="display:flex;align-items:center;gap:6px;font-size:11px;">
           <span style="width:8px;height:8px;border-radius:2px;background:${legColors[i]||legColors[2]};display:inline-block;"></span>
-          <span>${h.label}</span></div>
+          <span>${h.label}</span>${legChips[i]||''}</div>
         <span style="font-size:12px;font-weight:${i===0?700:600};font-family:'DM Mono',monospace;color:${i===0?'var(--warn)':'var(--text2)'};">${fmt(tot)}</span></div>
         ${i===0?`<div style="display:flex;gap:16px;padding-left:14px;">
           <span style="font-size:10px;color:var(--text3);">Legal ${fmt(Number(h.legal||0))}</span>
