@@ -420,37 +420,41 @@ function updateSelector(semanas,actual){
 
 // ── CÓMPUTOS ──────────────────────────────────────
 function compute(d){
-  const v=d.ventas||[], ch=d.chats||{}, edu=d.educacion||{}, pp=d.priv_pagos||[], ps=d.priv_stats||{}, m=d.metas||{};
+  const v=d.ventas||[], vSem=d.ventas_semana||v, ch=d.chats||{}, edu=d.educacion||{}, pp=d.priv_pagos||[], ps=d.priv_stats||{}, m=d.metas||{};
   const vMarcas=v.filter(x=>x.categoria==='Marcas');
-  const totalM=sumF(vMarcas,'monto'), totalLegal=sumF(v,'monto');
+  const vMarcasSem=vSem.filter(x=>x.categoria==='Marcas');
+  const totalM=sumF(vMarcasSem,'monto');
+  const totalLegal=sumF(v,'monto');
   const totalEdu=Number(edu.monto||0), totalPriv=sumF(pp,'monto');
   const total=totalLegal+totalEdu+totalPriv;
   const metaM=Number(m.meta_marcas||0), metaE=Number(m.meta_edu||0);
   const pctM=metaM>0?totalM/metaM*100:null;
   const pctE=metaE>0?totalEdu/metaE*100:null;
+  const semanaRango=d.semana_rango||'';
 
-  // Ads — filter zero rows
+  // Ads — filter zero rows; gasto semanal si hay rango
   const adsClean=(d.ads||[]).filter(a=>a.gasto>0||a.conv_wpp>0||a.clics>0);
+  const adsSem=semanaRango?adsInRange(adsClean,semanaRango):adsClean;
 
-  // Per asesor
-  const names=[...new Set([...v.map(x=>x.asesor).filter(Boolean)])];
+  // Per asesor (semana en curso)
+  const names=[...new Set([...vSem.map(x=>x.asesor).filter(Boolean)])];
   const ad={};
   names.forEach(a=>{
-    const av=v.filter(x=>x.asesor===a), avm=av.filter(x=>x.categoria==='Marcas');
+    const av=vSem.filter(x=>x.asesor===a), avm=av.filter(x=>x.categoria==='Marcas');
     const monto=sumF(av,'monto'), nc=Number(ch[a]||0);
     ad[a]={monto,ventas:av.length,ventasMarcas:avm.length,chats:nc,
       conv:nc>0?(avm.length/nc*100).toFixed(2):null,
       ticket:av.length>0?(monto/av.length).toFixed(2):0,
-      pct:totalLegal>0?(monto/totalLegal*100).toFixed(1):0};
+      pct:totalM>0?(monto/totalM*100).toFixed(1):0};
   });
   const maxM=Math.max(...names.map(a=>ad[a].monto),1);
 
-  // Días
+  // Días de la semana en curso (marcas)
   const diasMap={};
-  v.forEach(x=>{diasMap[x.fecha]=(diasMap[x.fecha]||0)+Number(x.monto||0);});
+  vMarcasSem.forEach(x=>{diasMap[x.fecha]=(diasMap[x.fecha]||0)+Number(x.monto||0);});
   const dias=Object.keys(diasMap).sort((a,b)=>new Date(a.split('/').reverse().join('-'))-new Date(b.split('/').reverse().join('-')));
 
-  // Productos
+  // Productos (mes completo para tabla legal)
   const prodMap={};
   v.forEach(x=>{if(!prodMap[x.producto])prodMap[x.producto]={ventas:0,monto:0};prodMap[x.producto].ventas++;prodMap[x.producto].monto+=Number(x.monto||0);});
 
@@ -464,7 +468,19 @@ function compute(d){
   });
   const discData=Object.values(discMap);
 
-  return{v,ch,edu,pp,ps,m,vMarcas,totalM,totalLegal,totalEdu,totalPriv,total,metaM,metaE,pctM,pctE,names,ad,maxM,diasMap,dias,prodMap,adsClean,discData};
+  return{v,vSem,ch,edu,pp,ps,m,vMarcas,vMarcasSem,totalM,totalLegal,totalEdu,totalPriv,total,metaM,metaE,pctM,pctE,names,ad,maxM,diasMap,dias,prodMap,adsClean,adsSem,discData,semanaRango};
+}
+
+function adsInRange(ads, rango) {
+  const parts = String(rango).split('–').map(s => s.trim());
+  if (parts.length < 2) return ads;
+  const desde = tfParseDate(parts[0]);
+  const hasta = tfParseDate(parts[1]);
+  if (!desde || !hasta) return ads;
+  return ads.filter(a => {
+    const d = tfParseDate(a.fecha);
+    return d && d >= desde && d <= hasta;
+  });
 }
 
 function renderAll(d){
@@ -479,7 +495,7 @@ function renderAll(d){
 
 // ══════════ §1 KPIs ══════════════════════════════
 function rKPIs(d,c){
-  const{totalM,pctM,metaM,totalEdu,pctE,metaE,totalPriv,total,totalLegal,v,edu,ps}=c;
+  const{totalM,pctM,metaM,totalEdu,pctE,metaE,totalPriv,total,totalLegal,v,vMarcasSem,edu,ps,semanaRango}=c;
   const hasMeta=metaM>0;
   const diff=totalM-metaM;
   const wC=!hasMeta?'var(--teal)':pctM>=100?'var(--green)':pctM>=80?'var(--warn)':'var(--orange)';
@@ -506,8 +522,8 @@ function rKPIs(d,c){
     <div class="kpi-4-card ${kC}">
       <div class="kpi-4-label">${hasMeta?'% Meta semanal — Marcas':'Total facturado — Marcas'}</div>
       <div class="kpi-4-val" style="color:${wC};">${hasMeta?Number(pctM).toFixed(1)+'%':fmt(totalM)}</div>
-      <div class="kpi-4-sub">${hasMeta?fmt(totalM)+' / meta '+fmt(metaM):c.vMarcas.length+' ventas · '+fmt(totalM)}</div>
-      <div class="kpi-4-sub2">${hasMeta&&diff<0?'–'+fmt(Math.abs(diff))+' · ':''}${c.vMarcas.length} ventas marcas · ${[...new Set(c.vMarcas.map(x=>x.asesor))].length} asesores</div>
+      <div class="kpi-4-sub">${hasMeta?fmt(totalM)+' / meta '+fmt(metaM):vMarcasSem.length+' ventas sem. · '+fmt(totalM)}</div>
+      <div class="kpi-4-sub2">${hasMeta&&diff<0?'–'+fmt(Math.abs(diff))+' · ':''}${vMarcasSem.length} ventas marcas sem. · ${[...new Set(vMarcasSem.map(x=>x.asesor))].length} asesores${semanaRango?' · '+semanaRango:''}</div>
       ${marcasBar}</div>
     <div class="kpi-4-card c-purple">
       <div class="kpi-4-label">Educación — Mes en curso</div>
@@ -526,18 +542,18 @@ function rKPIs(d,c){
 
 // ══════════ §2-4 Presupuestos ════════════════════
 function rPresupuestos(d,c){
-  const{totalM,metaM,pctM,totalEdu,pctE,metaE,totalPriv,dias,diasMap,v,vMarcas,edu,ps,pp}=c;
+  const{totalM,metaM,pctM,totalEdu,pctE,metaE,totalPriv,dias,diasMap,v,vMarcasSem,edu,ps,pp,semanaRango}=c;
   const yr=yearFromData(d);
   const diasVals=dias.map(f=>diasMap[f]);
   const maxD=Math.max(...diasVals,1);
   const diasColors=diasVals.map(v=>v===0?'rgba(190,188,184,.25)':v===maxD?'rgba(255,37,0,.65)':'rgba(22,163,74,.55)');
-  const diasList=dias.map(dia=>{const val=diasMap[dia];const vtas=v.filter(x=>x.fecha===dia).length;
+  const diasList=dias.map(dia=>{const val=diasMap[dia];const vtas=vMarcasSem.filter(x=>x.fecha===dia).length;
     const fa=fechaAttr(dia,yr);
     return `<div class="si" data-fecha="${fa}"><span class="si-l">${dia}</span><span class="si-r ${val===0?'cs':val===maxD?'cw':'cg'}">${val===0?'$0.00':fmt(val)+' · '+vtas+' venta'+(vtas!==1?'s':'')}</span></div>`;}).join('');
 
   $('s-budgets').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">02 – 04</span><span class="seg-dot" style="background:var(--text3);"></span>
-    <span class="seg-title">Cumplimiento de presupuesto — Comparativo · Marcas · Educación</span><span class="seg-meta">Período cargado</span></div>
+    <span class="seg-title">Cumplimiento de presupuesto — Comparativo · Marcas · Educación</span><span class="seg-meta">${semanaRango?'Semana '+semanaRango:'Período cargado'}</span></div>
   <div class="triple-row">
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
@@ -548,13 +564,13 @@ function rPresupuestos(d,c){
       <div class="divider"></div><div id="compLegend" style="display:flex;flex-direction:column;gap:6px;"></div></div>
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-        <div class="card-title">Marcas — Período</div>
+        <div class="card-title">Marcas — Semana en curso</div>
         <span class="chip ${pctM!==null?(pctM>=100?'chip-g':'chip-w'):'chip-t'}">${pctM!==null?Number(pctM).toFixed(1)+'% meta sem.':'Sin meta'}</span></div>
-      <div class="card-note">Propiedad intelectual · ${vMarcas.length} ventas · ${pctM!==null?'meta semanal '+fmt(metaM):'Configura meta en PRESUPUESTOS'}</div>
+      <div class="card-note">Propiedad intelectual · ${vMarcasSem.length} ventas${semanaRango?' · '+semanaRango:''} · ${pctM!==null?'meta semanal '+fmt(metaM):'Configura meta en PRESUPUESTOS'}</div>
       <div style="background:rgba(255,37,0,.04);border:1px solid rgba(255,37,0,.15);border-radius:8px;padding:14px 16px;margin-bottom:12px;">
-        <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Total facturado período</div>
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text3);margin-bottom:4px;">Total facturado semana</div>
         <div style="font-size:28px;font-weight:700;color:var(--orange);letter-spacing:-1.5px;font-family:'DM Mono',monospace;">${fmt(totalM)}</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:4px;">${vMarcas.length} ventas marcas · ticket ${fmt(vMarcas.length>0?totalM/vMarcas.length:0)}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">${vMarcasSem.length} ventas marcas · ticket ${fmt(vMarcasSem.length>0?totalM/vMarcasSem.length:0)}</div>
         ${pctM!==null?`<div class="pbar" style="margin-top:8px;"><div class="pbar-fill" style="width:${clamp(pctM,0,100)}%;background:var(--warn);"></div></div>
         <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:2px;"><span>Meta sem. ${fmt(metaM)}</span><span style="color:var(--warn);font-weight:600;">${Number(pctM).toFixed(1)}%${pctM<100?' — '+fmt(metaM-totalM)+' bajo':''}</span></div>`:''}</div>
       <div style="position:relative;height:90px;margin-bottom:10px;"><canvas id="marcasMiniChart"></canvas></div>
@@ -747,10 +763,10 @@ function rEvolutivo(d){
 
 // ══════════ §7 Embudos ═══════════════════════════
 function rEmbudos(d,c){
-  const{adsClean,vMarcas,totalM,pp,ps,totalPriv}=c;
+  const{adsSem,vMarcasSem,totalM,pp,ps,totalPriv}=c;
   const yr=yearFromData(d);
-  const hasAds=adsClean.length>0;
-  const gasto=sumF(adsClean,'gasto'),conv=sumF(adsClean,'conv_wpp'),clics=sumF(adsClean,'clics'),alc=sumF(adsClean,'alcance');
+  const hasAds=adsSem.length>0;
+  const gasto=sumF(adsSem,'gasto'),conv=sumF(adsSem,'conv_wpp'),clics=sumF(adsSem,'clics'),alc=sumF(adsSem,'alcance');
   const cpr=conv>0?(gasto/conv).toFixed(2):0;
   const roas=gasto>0?(totalM/gasto).toFixed(1):0;
   const privG=Number(ps.gasto||0),privC=Number(ps.conv_wpp||0);
@@ -764,7 +780,7 @@ function rEmbudos(d,c){
 
   const marcasFunnel=hasAds
     ?`<div class="kpi-strip">
-        <div class="d-kpi-card"><div class="d-kpi-label">Gasto período</div><div class="d-kpi-value accent">${fmt(gasto)}</div><div class="d-kpi-sub">${adsClean.length} días</div></div>
+        <div class="d-kpi-card"><div class="d-kpi-label">Gasto semana</div><div class="d-kpi-value accent">${fmt(gasto)}</div><div class="d-kpi-sub">${adsSem.length} días</div></div>
         <div class="d-kpi-card"><div class="d-kpi-label">CPR período</div><div class="d-kpi-value">$${cpr}</div><div class="d-kpi-sub">${conv} conv. WPP</div></div>
         <div class="d-kpi-card"><div class="d-kpi-label">ROAS período</div><div class="d-kpi-value accent">${roas}×</div><div class="d-kpi-sub">${fmt(totalM)} / ${fmt(gasto)}</div></div></div>
       <div class="roas-banner">
@@ -786,17 +802,17 @@ function rEmbudos(d,c){
       <div style="margin-top:16px;background:var(--d-card);border:1px solid var(--d-border);border-radius:10px;padding:14px 16px;">
         <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--d-muted);margin-bottom:8px;">Ventas Marcas — período</div>
         <div style="font-size:22px;font-weight:700;color:var(--orange);font-family:'DM Mono',monospace;">${fmt(totalM)}</div>
-        <div style="font-size:11px;color:var(--d-muted);margin-top:4px;">${vMarcas.length} ventas cerradas</div></div>`;
+        <div style="font-size:11px;color:var(--d-muted);margin-top:4px;">${vMarcasSem.length} ventas cerradas (semana)</div></div>`;
 
   $('s-embudos').innerHTML=`
   <div class="seg-hdr"><span class="seg-num">07</span><span class="seg-dot" style="background:#ff2500;"></span>
     <span class="seg-title">Embudos — Marcas &amp; Ulpik Priv · Ads período</span>
-    <span class="seg-meta">${hasAds?adsClean.length+' días con datos':'Sin datos de Ads'}</span></div>
+    <span class="seg-meta">${hasAds?adsSem.length+' días con datos':'Sin datos de Ads'}</span></div>
   <div class="emb-section"><div class="emb-inner">
     <div class="funnel-panel marcas">
       <div class="campaign-tag"><span class="dot"></span>Marcas</div>
       <div class="emb-title">Marcas – Leads a WPP</div>
-      <div class="emb-sub">${hasAds?adsClean.length+' días activos · '+fmt(gasto)+' gasto':'Datos pendientes en RESULTADOS ADS'}</div>
+      <div class="emb-sub">${hasAds?adsSem.length+' días activos · '+fmt(gasto)+' gasto':'Datos pendientes en RESULTADOS ADS'}</div>
       ${marcasFunnel}</div>
     <div class="funnel-panel priv">
       <div class="campaign-tag"><span class="dot"></span>Ulpik Priv</div>
@@ -825,13 +841,13 @@ function rEmbudos(d,c){
       {name:'Alcance',sub:'',label:Number(alc).toLocaleString(),val:alc,conv:'↓ clics'},
       {name:'Clics enlace',sub:'a WPP',label:Number(clics).toLocaleString(),val:clics,conv:'↓ conv. WPP'},
       {name:'Conv. WPP',sub:'leads',label:String(conv),val:conv,conv:'↓ venta'},
-      {name:'Ventas',sub:'cerradas',label:String(vMarcas.length),val:vMarcas.length,conv:null}]);
+      {name:'Ventas',sub:'cerradas',label:String(vMarcasSem.length),val:vMarcasSem.length,conv:null}]);
     killChart('ads');
     charts['ads']=new Chart($('adsChart').getContext('2d'),{
-      data:{labels:adsClean.map(a=>a.fecha||''),
-        datasets:[{type:'bar',label:'Conv.WPP',data:adsClean.map(a=>a.conv_wpp),backgroundColor:'rgba(255,37,0,.75)',borderRadius:3,yAxisID:'y',order:2},
-                  {type:'bar',label:'Clics',data:adsClean.map(a=>a.clics),backgroundColor:'rgba(130,59,218,.35)',borderRadius:3,yAxisID:'y',order:3},
-                  {type:'line',label:'Gasto',data:adsClean.map(a=>a.gasto),borderColor:'rgba(248,237,226,.7)',borderWidth:1.5,borderDash:[4,3],pointRadius:3,pointBackgroundColor:'rgba(248,237,226,.9)',yAxisID:'y2',fill:false,order:1}]},
+      data:{labels:adsSem.map(a=>a.fecha||''),
+        datasets:[{type:'bar',label:'Conv.WPP',data:adsSem.map(a=>a.conv_wpp),backgroundColor:'rgba(255,37,0,.75)',borderRadius:3,yAxisID:'y',order:2},
+                  {type:'bar',label:'Clics',data:adsSem.map(a=>a.clics),backgroundColor:'rgba(130,59,218,.35)',borderRadius:3,yAxisID:'y',order:3},
+                  {type:'line',label:'Gasto',data:adsSem.map(a=>a.gasto),borderColor:'rgba(248,237,226,.7)',borderWidth:1.5,borderDash:[4,3],pointRadius:3,pointBackgroundColor:'rgba(248,237,226,.9)',yAxisID:'y2',fill:false,order:1}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
         scales:{y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{font:{size:9},color:'#7a7068'}},
           y2:{position:'right',grid:{display:false},ticks:{font:{size:9},color:'rgba(248,237,226,.5)',callback:v=>'$'+v}}}}});

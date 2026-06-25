@@ -58,6 +58,10 @@ function buildDebugReport() {
     spreadsheet: ss.getName(),
     semana_actual: data.semana_actual,
     ventas: (data.ventas || []).length,
+    ventas_semana: (data.ventas_semana || []).length,
+    ventas_semana_monto: (data.ventas_semana || []).reduce(function (s, v) {
+      return s + (v.categoria === 'Marcas' ? v.monto : 0);
+    }, 0),
     chats: data.chats,
     metas: data.metas,
     educacion: data.educacion,
@@ -80,6 +84,8 @@ function buildDashboardData(semanaFilter) {
   var ventas = ventasAll.filter(function (v) {
     return !semanaActual || v.semana_id === semanaActual;
   });
+  var ventasSemana = filterVentasSemana(ventas, mes, anio);
+  var rangoSemana = weekRangeLabel(mes, anio);
 
   var metas = readPresupuestos(mes, anio);
   var chats = readContactados(mes, anio);
@@ -95,6 +101,8 @@ function buildDashboardData(semanaFilter) {
     semana_actual: semanaActual,
     metas: metas,
     ventas: ventas,
+    ventas_semana: ventasSemana,
+    semana_rango: rangoSemana,
     chats: chats,
     ads: ads,
     educacion: educacion,
@@ -158,13 +166,55 @@ function numVal(v) {
   if (typeof v === 'number') return isNaN(v) ? 0 : v;
   var s = String(v || '').replace(/\$/g, '').replace(/\s/g, '').trim();
   if (!s) return 0;
-  if (/\d,\d{1,2}$/.test(s) && s.indexOf('.') === -1) {
+  if (/\d,\d{3}/.test(s) && /\.\d{1,2}$/.test(s)) {
+    s = s.replace(/,/g, '');
+  } else if (/\d\.\d{3}/.test(s) && /,\d{1,2}$/.test(s)) {
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (/\d,\d{1,2}$/.test(s) && s.indexOf('.') === -1) {
     s = s.replace(/\./g, '').replace(',', '.');
   } else {
     s = s.replace(/,/g, '');
   }
   var n = parseFloat(s);
   return isNaN(n) ? 0 : n;
+}
+
+function parseFechaDDMMYYYY(s) {
+  var m = String(s || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (!m) return null;
+  return new Date(+m[3], +m[2] - 1, +m[1]);
+}
+
+function currentWeekRange(mes, anio) {
+  var tz = Session.getScriptTimeZone() || 'America/Guayaquil';
+  var now = new Date();
+  var todayMo = +Utilities.formatDate(now, tz, 'M');
+  var todayY = +Utilities.formatDate(now, tz, 'yyyy');
+  var ref = now;
+  if (mes && anio && (mes !== todayMo || anio !== todayY)) {
+    ref = new Date(anio, mes, 0);
+  }
+  var dow = ref.getDay();
+  var monday = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate() - ((dow + 6) % 7));
+  var sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6, 23, 59, 59, 999);
+  return { desde: monday, hasta: sunday };
+}
+
+function weekRangeLabel(mes, anio) {
+  var range = currentWeekRange(mes, anio);
+  var tz = Session.getScriptTimeZone() || 'America/Guayaquil';
+  var d1 = Utilities.formatDate(range.desde, tz, 'dd/MM/yyyy');
+  var d2 = Utilities.formatDate(range.hasta, tz, 'dd/MM/yyyy');
+  return d1 + ' – ' + d2;
+}
+
+function filterVentasSemana(ventas, mes, anio) {
+  var range = currentWeekRange(mes, anio);
+  return ventas.filter(function (v) {
+    var d = parseFechaDDMMYYYY(v.fecha);
+    if (!d) return false;
+    return d >= range.desde && d <= range.hasta;
+  });
 }
 
 function mesAnioFromRow(h, r) {
@@ -239,10 +289,12 @@ function readVentas() {
   var iAsesor = col(h, ['asesor', 'responsable', 'vendedor', 'responsable producci']);
   var iCat = col(h, ['categoria', 'categoría', 'categoria venta', 'tipo']);
   var iProd = col(h, ['producto', 'servicio', 'detalle producto', 'detalle']);
-  var iMonto = col(h, ['monto', 'valor', 'total', 'precio', 'facturacion', 'facturación']);
+  var iMonto = col(h, ['monto', 'valor', 'total', 'precio', 'facturacion', 'facturación', 'importe', 'valor venta', 'monto venta', 'facturado', 'subtotal', 'venta neta', 'venta total']);
+  if (iMonto < 0 && iProd >= 0) iMonto = iProd + 1;
+  if (iMonto < 0) iMonto = 8;
 
   data.rows.forEach(function (r) {
-    var monto = iMonto >= 0 ? numVal(r[iMonto]) : 0;
+    var monto = numVal(r[iMonto]);
     var asesor = iAsesor >= 0 ? normAsesor(r[iAsesor]) : '';
     if (!monto && !asesor) return;
     var key = mesAnioFromRow(h, r);
@@ -257,7 +309,7 @@ function readVentas() {
       asesor: asesor,
       categoria: iCat >= 0 ? String(r[iCat] || '').trim() : 'Marcas',
       producto: iProd >= 0 ? String(r[iProd] || '').trim() : '—',
-      monto: monto
+      monto: Math.round(monto * 100) / 100
     });
   });
   return out;
