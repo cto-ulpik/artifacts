@@ -133,6 +133,9 @@ function readSurveyData() {
     if (!r[2] && !r[1] && (r[3] === '' || r[3] === null || r[3] === undefined)) continue;
 
     var marcaRaw = r[0];
+    if (typeof marcaRaw === 'number' && marcaRaw > 0) {
+      marcaRaw = new Date(Math.round((marcaRaw - 25569) * 86400 * 1000));
+    }
     var marca = marcaRaw instanceof Date
       ? Utilities.formatDate(marcaRaw, tz, 'dd/MM/yyyy HH:mm:ss')
       : String(marcaRaw || '');
@@ -140,10 +143,10 @@ function readSurveyData() {
 
     rows.push({
       marca: marca,
-      fecha_str: parsed.iso,
-      mes: parsed.mes,
-      anio: parsed.anio,
-      mes_num: parsed.mesNum,
+      fecha_str: String(parsed.iso || ''),
+      mes: String(parsed.mes || ''),
+      anio: String(parsed.anio || ''),
+      mes_num: String(parsed.mesNum || ''),
       email: String(r[1] || ''),
       asesor: String(r[2] || ''),
       nps: numCol(r[3]),

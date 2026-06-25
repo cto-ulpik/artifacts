@@ -801,7 +801,7 @@ body {
 
 
 <script>
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhjl6xNIdHMLOs8xR-AcRQYSwXyq4Z_A57VbOI3CLZh_x-BLI79fLOJT2PmSlS7vqs/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwTbkkT_EHv6C1O-WKXRDtvG_Np2136lH0Yis5YDucwFE3DdMoQv-EpljQNjcq3eCdi/exec';
 const MN = {'01':'Ene','02':'Feb','03':'Mar','04':'Abr','05':'May','06':'Jun','07':'Jul','08':'Ago','09':'Sep','10':'Oct','11':'Nov','12':'Dic'};
 const MONTHS_LIST = [
   ['01','Enero'],['02','Febrero'],['03','Marzo'],['04','Abril'],['05','Mayo'],['06','Junio'],
@@ -844,31 +844,54 @@ function parseMarcaParts(s) {
   if (m) return { y: m[1], mo: m[2], d: +m[3] };
   return null;
 }
+function rowPeriod(r) {
+  let y = String(r.anio ?? '').trim();
+  let mo = String(r.mes_num ?? r.mesNum ?? '').trim();
+  if ((!y || !mo) && r.mes && /^\d{4}-\d{1,2}$/.test(String(r.mes))) {
+    const [yy, mm] = String(r.mes).split('-');
+    y = y || yy;
+    mo = mo || mm;
+  }
+  if (!y || !mo) {
+    const parts = parseMarcaParts(r.marca) || parseMarcaParts(r.fecha_str);
+    if (parts) { y = parts.y; mo = parts.mo; }
+  }
+  if (mo) mo = String(parseInt(mo, 10)).padStart(2, '0');
+  if (y) y = String(parseInt(y, 10));
+  return { anio: y, mesNum: mo };
+}
 function normalizeRows(rows) {
   return rows.map(r => {
-    const parts = parseMarcaParts(r.marca) || parseMarcaParts(r.fecha_str);
-    const anio = r.anio || parts?.y || '';
-    const mesNum = r.mes_num || parts?.mo || '';
+    const { anio, mesNum } = rowPeriod(r);
     const mes = anio && mesNum ? anio + '-' + mesNum : (r.mes || '');
+    const parts = parseMarcaParts(r.marca) || parseMarcaParts(r.fecha_str);
     const fecha_str = parts
       ? parts.y + '-' + parts.mo + '-' + String(parts.d).padStart(2, '0')
       : (r.fecha_str || '');
-    return { ...r, marca: r.marca || '', mes, anio, mesNum, fecha_str };
+    return { ...r, marca: String(r.marca || ''), mes, anio, mesNum, fecha_str };
   });
 }
 function buildYearOptions() {
-  const fromData = [...new Set(allRows.map(r => r.anio).filter(Boolean))].map(Number);
+  const fromData = [...new Set(allRows.map(r => rowPeriod(r).anio).filter(Boolean))].map(Number);
   const y = new Date().getFullYear();
   const range = [];
   for (let i = y; i >= y - 6; i--) range.push(i);
   return [...new Set([...fromData, ...range])].sort((a, b) => b - a);
 }
 function countForPeriod(y, mo) {
-  return allRows.filter(r => r.anio === String(y) && r.mesNum === mo).length;
+  const ys = String(y), ms = String(mo).padStart(2, '0');
+  return allRows.filter(r => {
+    const p = rowPeriod(r);
+    return p.anio === ys && p.mesNum === ms;
+  }).length;
 }
 function filterByPeriod() {
   if (!curYear || !curMonthNum) return allRows;
-  return allRows.filter(r => r.anio === String(curYear) && r.mesNum === curMonthNum);
+  const ys = String(curYear), ms = String(curMonthNum).padStart(2, '0');
+  return allRows.filter(r => {
+    const p = rowPeriod(r);
+    return p.anio === ys && p.mesNum === ms;
+  });
 }
 function syncPeriodSelects() {
   const monthHtml = MONTHS_LIST.map(([v, label]) => {
@@ -878,23 +901,23 @@ function syncPeriodSelects() {
   }).join('');
   const years = buildYearOptions();
   const yearHtml = years.map(y => {
-    const n = allRows.filter(r => r.anio === String(y)).length;
+    const n = allRows.filter(r => rowPeriod(r).anio === String(y)).length;
     return `<option value="${y}"${String(y) === String(curYear) ? ' selected' : ''}>${y}${n ? ' (' + n + ')' : ''}</option>`;
   }).join('');
   ['monthNumHdr', 'monthNumNps'].forEach(id => { const el = $(id); if (el) el.innerHTML = monthHtml; });
   ['yearHdr', 'yearNps'].forEach(id => { const el = $(id); if (el) el.innerHTML = yearHtml; });
 }
 function pickDefaultPeriod() {
-  const dated = allRows.filter(r => r.anio && r.mesNum);
+  const dated = allRows.map(r => ({ r, p: rowPeriod(r) })).filter(x => x.p.anio && x.p.mesNum);
   if (!dated.length) {
     const d = new Date();
     curYear = String(d.getFullYear());
     curMonthNum = String(d.getMonth() + 1).padStart(2, '0');
     return;
   }
-  dated.sort((a, b) => (b.fecha_str || b.marca || '').localeCompare(a.fecha_str || a.marca || ''));
-  curYear = dated[0].anio;
-  curMonthNum = dated[0].mesNum;
+  dated.sort((a, b) => (b.r.fecha_str || b.r.marca || '').localeCompare(a.r.fecha_str || a.r.marca || ''));
+  curYear = dated[0].p.anio;
+  curMonthNum = dated[0].p.mesNum;
 }
 function updateNpsFilterUi() {
   const n = filterByPeriod().length;
@@ -1127,9 +1150,10 @@ async function loadNpsData() {
   try {
     const raw = await fetchJsonp(APPS_SCRIPT_URL);
     if (!raw.ok) throw new Error(raw.error || 'Error al leer datos');
-    allRows = normalizeRows((raw.rows || []).filter(r =>
-      Number(r.nps) > 0 || Number(r.satisfaccion) > 0 || Number(r.claridad) > 0 || r.asesor || r.marca
-    ));
+    allRows = normalizeRows(raw.rows || []).filter(r => {
+      const p = rowPeriod(r);
+      return p.anio || r.asesor || r.marca || Number(r.nps) > 0;
+    });
     pickDefaultPeriod();
     updatePeriodSelector();
     renderNps(filterByPeriod());
