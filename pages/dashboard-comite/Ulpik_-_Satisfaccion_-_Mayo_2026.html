@@ -120,6 +120,36 @@ body {
   padding: 10px 14px;
   margin-bottom: 20px;
 }
+.nps-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--white);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 22px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.nps-filter-bar label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+}
+.nps-filter-count {
+  font-size: 13px;
+  color: #666;
+  margin-left: auto;
+}
+.nps-filter-bar .month-select {
+  background: var(--cream);
+  color: var(--black);
+  border-color: var(--cream-dark);
+  min-width: 160px;
+}
 
 /* ─── TABS ─── */
 .tabs {
@@ -492,7 +522,7 @@ body {
   </div>
   <div class="header-right">
     <span class="live-badge" id="liveBadge" style="display:none">● NPS en vivo</span>
-    <select class="month-select" id="monthSelect" onchange="onMonthChange()" style="display:none">
+    <select class="month-select" id="monthSelect" onchange="onMonthChange(this.value)" style="display:none">
       <option value="">Cargando…</option>
     </select>
   </div>
@@ -747,6 +777,11 @@ body {
 <!-- ════════════════════════════════════════════════════════ -->
 
 <div class="content" id="tab-nps">
+  <div class="nps-filter-bar" id="npsFilterBar" style="display:none">
+    <label for="monthSelectNps">📅 Mes</label>
+    <select class="month-select" id="monthSelectNps" onchange="onMonthChange(this.value)"></select>
+    <span class="nps-filter-count" id="npsFilterCount"></span>
+  </div>
   <div id="nps-mount">
     <div class="load-box">Cargando respuestas NPS desde Google Sheets…</div>
   </div>
@@ -783,6 +818,76 @@ function monthRange(m) {
   const last = new Date(y, mo, 0).getDate();
   const names = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   return '1 de ' + names[mo - 1] + ' — ' + last + ' de ' + names[mo - 1] + ' ' + y;
+}
+function currentMonthKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+function parseDateToMonth(s) {
+  if (!s) return '';
+  const str = String(s).trim();
+  let m = str.match(/^(\d{4})-(\d{2})/);
+  if (m) return m[1] + '-' + m[2];
+  m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return m[3] + '-' + String(+m[2]).padStart(2, '0');
+  return '';
+}
+function parseDateToIso(s) {
+  if (!s) return '';
+  const str = String(s).trim();
+  let m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return m[1] + '-' + m[2] + '-' + m[3];
+  m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return m[3] + '-' + String(+m[2]).padStart(2, '0') + '-' + String(+m[1]).padStart(2, '0');
+  return '';
+}
+function normalizeRows(rows) {
+  return rows.map(r => {
+    const mes = (r.mes && /^\d{4}-\d{2}$/.test(r.mes)) ? r.mes : parseDateToMonth(r.fecha_str) || parseDateToMonth(r.marca);
+    const fecha_str = r.fecha_str || parseDateToIso(r.marca) || '';
+    return { ...r, mes, fecha_str };
+  });
+}
+function buildMonthOptions() {
+  const fromData = [...new Set(allRows.map(r => r.mes).filter(Boolean))];
+  const recent = [];
+  const now = new Date();
+  for (let i = 0; i < 24; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    recent.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
+  }
+  return [...new Set([...fromData, ...recent])].sort().reverse();
+}
+function filterByMonth(month) {
+  if (!month) return allRows;
+  return allRows.filter(r => r.mes === month);
+}
+function syncMonthSelects() {
+  const months = buildMonthOptions();
+  const html = months.map(m => {
+    const n = filterByMonth(m).length;
+    const label = monthLabel(m) + (n ? ` (${n})` : ' — sin datos');
+    return `<option value="${m}"${m === curMonth ? ' selected' : ''}>${label}</option>`;
+  }).join('');
+  ['monthSelect', 'monthSelectNps'].forEach(id => {
+    const el = $(id);
+    if (el) el.innerHTML = html;
+  });
+}
+function updateNpsFilterUi() {
+  const n = filterByMonth(curMonth).length;
+  const countEl = $('npsFilterCount');
+  if (countEl) {
+    countEl.textContent = n
+      ? `${n} respuesta${n !== 1 ? 's' : ''} en ${monthLabel(curMonth)}`
+      : `0 respuestas en ${monthLabel(curMonth)} — prueba otro mes`;
+  }
+  const bar = $('npsFilterBar');
+  if (bar) bar.style.display = 'flex';
+}
+function updateHeaderForNps() {
+  const n = filterByMonth(curMonth).length;
+  $('headerPeriod').textContent = monthRange(curMonth) + ` · ${n} respuesta${n !== 1 ? 's' : ''} NPS`;
 }
 
 function loadBar(on) {
@@ -867,8 +972,11 @@ function asesorTable(rows) {
 
 function renderNps(rows, month) {
   const mount = $('nps-mount');
+  updateNpsFilterUi();
+
   if (!rows.length) {
-    mount.innerHTML = `<div class="err-box"><strong>Sin respuestas</strong><br><span style="font-size:13px;color:#666">No hay encuestas NPS para ${monthLabel(month)}.</span></div>`;
+    mount.innerHTML = `<div class="err-box"><strong>Sin respuestas en ${monthLabel(month)}</strong><br>
+      <span style="font-size:13px;color:#666">Elige otro mes arriba. Total cargado: ${allRows.length} encuesta${allRows.length !== 1 ? 's' : ''} en el historial.</span></div>`;
     return;
   }
 
@@ -976,24 +1084,28 @@ function renderNps(rows, month) {
 }
 
 function updateMonthSelector() {
-  const months = [...new Set(allRows.map(r => r.mes).filter(Boolean))].sort();
-  const sel = $('monthSelect');
-  if (!months.length) {
-    sel.style.display = 'none';
-    $('headerPeriod').textContent = 'Sin datos NPS';
-    return;
+  const months = buildMonthOptions();
+  const withData = months.filter(m => filterByMonth(m).length > 0);
+
+  if (!curMonth || !months.includes(curMonth)) {
+    curMonth = withData[0] || months[0] || currentMonthKey();
   }
-  if (!curMonth || !months.includes(curMonth)) curMonth = months[months.length - 1];
-  sel.innerHTML = months.map(m => `<option value="${m}"${m === curMonth ? ' selected' : ''}>${monthLabel(m)}</option>`).join('');
-  sel.style.display = 'block';
+
+  syncMonthSelects();
   $('liveBadge').style.display = 'inline';
-  $('headerPeriod').textContent = monthRange(curMonth) + ' · NPS fin de trámite';
+
+  const onNps = $('tab-nps').classList.contains('active');
+  $('monthSelect').style.display = onNps ? 'block' : 'none';
+  if (onNps) updateHeaderForNps();
 }
 
-function onMonthChange() {
-  curMonth = $('monthSelect').value;
-  $('headerPeriod').textContent = monthRange(curMonth) + ' · NPS fin de trámite';
-  renderNps(allRows.filter(r => r.mes === curMonth), curMonth);
+function onMonthChange(month) {
+  curMonth = month || $('monthSelectNps')?.value || $('monthSelect')?.value || curMonth;
+  syncMonthSelects();
+  if ($('tab-nps').classList.contains('active')) {
+    updateHeaderForNps();
+    renderNps(filterByMonth(curMonth), curMonth);
+  }
 }
 
 async function loadNpsData() {
@@ -1002,9 +1114,11 @@ async function loadNpsData() {
   try {
     const raw = await fetchJsonp(APPS_SCRIPT_URL);
     if (!raw.ok) throw new Error(raw.error || 'Error al leer datos');
-    allRows = (raw.rows || []).filter(r => r.nps > 0 || r.satisfaccion > 0);
+    allRows = normalizeRows((raw.rows || []).filter(r =>
+      Number(r.nps) > 0 || Number(r.satisfaccion) > 0 || Number(r.claridad) > 0 || Number(r.asesor)
+    ));
     updateMonthSelector();
-    renderNps(allRows.filter(r => r.mes === curMonth), curMonth);
+    renderNps(filterByMonth(curMonth), curMonth);
   } catch (e) {
     mount.innerHTML = `<div class="err-box"><strong>Error de conexión</strong><br>
       <span style="font-size:13px;color:#666">${e.message}</span><br><br>
@@ -1028,6 +1142,8 @@ function switchTab(tab) {
     document.querySelectorAll('.tab')[1].classList.add('active');
     $('tab-nps').classList.add('active');
     updateMonthSelector();
+    updateNpsFilterUi();
+    renderNps(filterByMonth(curMonth), curMonth);
     if (!chartDrawn) setTimeout(drawChart, 50);
   }
 }

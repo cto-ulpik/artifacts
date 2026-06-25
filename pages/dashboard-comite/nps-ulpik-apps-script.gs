@@ -125,13 +125,17 @@ function readSurveyData() {
   var values = sheet.getDataRange().getValues();
   if (values.length < 2) return [];
 
+  var tz = Session.getScriptTimeZone() || 'America/Guayaquil';
   var rows = [];
   for (var i = 1; i < values.length; i++) {
     var r = values[i];
-    if (!r[2] && !r[1] && !r[3]) continue;
+    if (!r[2] && !r[1] && (r[3] === '' || r[3] === null || r[3] === undefined)) continue;
 
-    var marca = String(r[0] || '');
-    var parsed = parseMarcaTemporal(marca);
+    var marcaRaw = r[0];
+    var marca = marcaRaw instanceof Date
+      ? Utilities.formatDate(marcaRaw, tz, 'dd/MM/yyyy HH:mm:ss')
+      : String(marcaRaw || '');
+    var parsed = parseMarcaTemporal(marcaRaw instanceof Date ? marcaRaw : marca);
 
     rows.push({
       marca: marca,
@@ -153,7 +157,17 @@ function readSurveyData() {
 }
 
 function parseMarcaTemporal(marca) {
-  var m = String(marca || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (marca instanceof Date) {
+    var tz = Session.getScriptTimeZone() || 'America/Guayaquil';
+    var iso = Utilities.formatDate(marca, tz, 'yyyy-MM-dd');
+    return { iso: iso, mes: iso.substring(0, 7) };
+  }
+  var s = String(marca || '').trim();
+  var isoM = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoM) {
+    return { iso: isoM[1] + '-' + isoM[2] + '-' + isoM[3], mes: isoM[1] + '-' + isoM[2] };
+  }
+  var m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if (!m) {
     return { iso: '', mes: '' };
   }
