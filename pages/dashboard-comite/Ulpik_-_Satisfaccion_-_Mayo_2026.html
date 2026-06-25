@@ -838,23 +838,30 @@ function periodKey() {
 function parseMarcaParts(s) {
   if (!s) return null;
   const str = String(s).trim();
-  let m = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (m) return { y: String(+m[3]), mo: String(+m[2]).padStart(2, '0'), d: +m[1] };
-  m = str.match(/(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return { y: m[1], mo: m[2], d: +m[3] };
+  // "23/5/2026 8:19:07" → fecha = split espacio [0] → split "/" → día, mes, año
+  const datePart = str.split(/\s+/)[0];
+  if (datePart && datePart.includes('/')) {
+    const bits = datePart.split('/');
+    if (bits.length >= 3) {
+      const d = +bits[0], mo = +bits[1], y = +bits[2];
+      if (d && mo && y) return { y: String(y), mo: String(mo).padStart(2, '0'), d };
+    }
+  }
+  const iso = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (iso) return { y: iso[1], mo: String(+iso[2]).padStart(2, '0'), d: +iso[3] };
   return null;
 }
 function rowPeriod(r) {
+  const fromMarca = parseMarcaParts(r.marca) || parseMarcaParts(r.fecha_str);
+  if (fromMarca) {
+    return { anio: fromMarca.y, mesNum: fromMarca.mo };
+  }
   let y = String(r.anio ?? '').trim();
   let mo = String(r.mes_num ?? r.mesNum ?? '').trim();
   if ((!y || !mo) && r.mes && /^\d{4}-\d{1,2}$/.test(String(r.mes))) {
     const [yy, mm] = String(r.mes).split('-');
     y = y || yy;
     mo = mo || mm;
-  }
-  if (!y || !mo) {
-    const parts = parseMarcaParts(r.marca) || parseMarcaParts(r.fecha_str);
-    if (parts) { y = parts.y; mo = parts.mo; }
   }
   if (mo) mo = String(parseInt(mo, 10)).padStart(2, '0');
   if (y) y = String(parseInt(y, 10));

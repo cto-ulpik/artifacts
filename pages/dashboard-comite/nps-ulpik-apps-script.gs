@@ -171,6 +171,19 @@ function parseMarcaTemporal(marca) {
     return { iso: iso, mes: anio + '-' + mesNum, anio: anio, mesNum: mesNum };
   }
   var s = String(marca || '').trim();
+  // "23/5/2026 8:19:07" → split espacio → split "/" → [día, mes, año]
+  var datePart = s.split(/\s+/)[0];
+  if (datePart && datePart.indexOf('/') !== -1) {
+    var bits = datePart.split('/');
+    if (bits.length >= 3) {
+      var d = +bits[0], mo = +bits[1], y = +bits[2];
+      if (d && mo && y) {
+        var mesNum = ('0' + mo).slice(-2);
+        var iso = y + '-' + mesNum + '-' + ('0' + d).slice(-2);
+        return { iso: iso, mes: y + '-' + mesNum, anio: String(y), mesNum: mesNum };
+      }
+    }
+  }
   var isoM = s.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (isoM) {
     return {
@@ -180,14 +193,7 @@ function parseMarcaTemporal(marca) {
       mesNum: isoM[2]
     };
   }
-  var m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (!m) {
-    return { iso: '', mes: '', anio: '', mesNum: '' };
-  }
-  var d = +m[1], mo = +m[2], y = +m[3];
-  var mesNum = ('0' + mo).slice(-2);
-  var iso = y + '-' + mesNum + '-' + ('0' + d).slice(-2);
-  return { iso: iso, mes: y + '-' + mesNum, anio: String(y), mesNum: mesNum };
+  return { iso: '', mes: '', anio: '', mesNum: '' };
 }
 
 function numCol(v) {
