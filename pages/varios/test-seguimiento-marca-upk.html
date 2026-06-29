@@ -44,6 +44,7 @@
   </div>
   <script>
     const API_URL = 'https://pi.ulpik.com/api/brand/upk';
+    const PROXY_URL = 'https://script.google.com/macros/s/AKfycbyinFr21fJ84vVo6hhpc3MNfUuptRdu3pysx3pwvbNydcmmosVNI3ak_-pOlQLyI4McxQ/exec';
     const LOGO_CDN = 'https://imagedelivery.net/TyoaKSszdYgjylRv6IzBsw';
     const STAGES = ['Presentación de solicitud','Asignación de funcionario','Examen de forma','Publicación en gaceta y oposiciones','Examen de fondo','Resolución','Título de la marca'];
 
@@ -106,6 +107,48 @@
         return `<li class="${cls}">${mark}${i + 1}. ${name}</li>`;
       }).join('');
     }
+    function fetchJsonp(baseUrl, signal) {
+      return new Promise((resolve, reject) => {
+        const cb = '_upkCb' + Date.now();
+        let timer;
+        const cleanup = () => {
+          try { delete window[cb]; } catch (e) {}
+          if (script && script.parentNode) script.parentNode.removeChild(script);
+          if (timer) clearTimeout(timer);
+        };
+        window[cb] = (d) => { cleanup(); resolve(d); };
+        const script = document.createElement('script');
+        const sep = baseUrl.indexOf('?') >= 0 ? '&' : '?';
+        script.src = baseUrl + sep + 'callback=' + cb;
+        script.onerror = () => { cleanup(); reject(new Error('JSONP falló — redespliega Apps Script')); };
+        if (signal?.aborted) return reject(new Error('Abortado'));
+        signal?.addEventListener('abort', () => { cleanup(); reject(new Error('Abortado')); });
+        timer = setTimeout(() => { cleanup(); reject(new Error('Timeout JSONP')); }, 20000);
+        document.head.appendChild(script);
+      });
+    }
+
+    async function fetchBrandApi(code) {
+      const codeUp = code.toUpperCase();
+      const directUrl = API_URL + '/' + encodeURIComponent(codeUp);
+      const proxyUrl = PROXY_URL + '?action=brand&upk=' + encodeURIComponent(codeUp);
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 20000);
+      try {
+        const res = await fetch(proxyUrl, { signal: ctrl.signal });
+        const rawText = await res.text();
+        return { via: 'proxy-fetch', url: proxyUrl, directUrl, res, data: JSON.parse(rawText), rawText };
+      } catch (err) {
+        if (err.message === 'Load failed' || err.name === 'TypeError') {
+          const data = await fetchJsonp(proxyUrl, ctrl.signal);
+          return { via: 'jsonp', url: proxyUrl, directUrl, res: { ok: true, status: 200 }, data, rawText: JSON.stringify(data) };
+        }
+        throw err;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
     function testLogo(url) {
       return new Promise(resolve => {
         if (!url) return resolve({ ok: false, error: 'Sin URL de logo' });
@@ -122,84 +165,57 @@
       const input = document.getElementById('upkInput').value;
       const resultsDiv = document.getElementById('results');
       const code = normalizeUpkCode(input);
-      const url = API_URL + '/' + encodeURIComponent(code.toUpperCase());
       const log = [];
       const t0 = performance.now();
-      const debug = { input, code, url, steps: [] };
+      const debug = { input, code };
 
       resultsDiv.innerHTML = '<div class="section"><h3>⏳ Ejecutando diagnóstico...</h3></div>';
 
-      stepLog(log, 'Input recibido', { input, code, url });
+      stepLog(log, 'Input recibido', { input, code });
       if (!code) {
         resultsDiv.innerHTML = `<div class="section error"><h3>❌ Código inválido</h3><pre>${renderSteps(log, t0)}</pre></div>`;
         return;
       }
 
-      let res, data, rawText;
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 20000);
-
+      let res, data, rawText, via, proxyUrl, directUrl;
       try {
-        stepLog(log, 'Enviando fetch GET', url);
-        res = await fetch(url, { signal: ctrl.signal });
-        stepLog(log, 'Respuesta HTTP', { status: res.status, statusText: res.statusText }, res.ok);
-        debug.httpStatus = res.status;
-        debug.headers = {};
-        res.headers.forEach((v, k) => { debug.headers[k] = v; });
-        stepLog(log, 'CORS Allow-Origin', res.headers.get('Access-Control-Allow-Origin') || 'NO CONFIGURADO', !!res.headers.get('Access-Control-Allow-Origin'));
-        stepLog(log, 'Cache-Control', res.headers.get('Cache-Control') || 'N/A');
-
-        rawText = await res.text();
-        stepLog(log, 'Body recibido', { bytes: rawText.length, preview: rawText.slice(0, 200) });
-
-        try {
-          data = JSON.parse(rawText);
-          stepLog(log, 'JSON parseado OK', null, true);
-        } catch (parseErr) {
-          stepLog(log, 'JSON parse FALLÓ', parseErr.message, false);
-          debug.parseError = parseErr.message;
-          debug.rawBody = rawText.slice(0, 2000);
-          throw new Error('Respuesta no es JSON: ' + parseErr.message);
-        }
+        stepLog(log, 'Consultando vía proxy Apps Script (evita CORS)', PROXY_URL);
+        const out = await fetchBrandApi(code);
+        via = out.via; proxyUrl = out.url; directUrl = out.directUrl;
+        res = out.res; data = out.data; rawText = out.rawText;
+        debug.via = via; debug.proxyUrl = proxyUrl; debug.directUrl = directUrl;
+        stepLog(log, 'Respuesta vía ' + via, { status: res.status || 200 }, true);
       } catch (err) {
-        clearTimeout(timer);
-        const isAbort = err.name === 'AbortError';
-        stepLog(log, isAbort ? 'TIMEOUT (20s)' : 'Error de red', { name: err.name, message: err.message }, false);
-        debug.networkError = { name: err.name, message: err.message };
+        stepLog(log, 'Error', { name: err.name, message: err.message }, false);
         resultsDiv.innerHTML = `
-          <div class="section error"><h3>❌ ${isAbort ? 'Timeout' : 'Error de conexión'}</h3>
+          <div class="section error"><h3>❌ Error de conexión</h3>
             <div class="metric">Mensaje: <span>${esc(err.message)}</span></div>
-            <div class="metric">URL: <span>${esc(url)}</span></div>
-            <div class="metric">Tiempo: <span>${((performance.now()-t0).toFixed(2))}ms</span></div>
+            <p style="margin-top:10px;color:#888">Redespliega <code>seguimiento-marca-apps-script.gs</code> o actualiza <code>analizador-bf-openai.gs</code> con action=brand.</p>
           </div>
-          <div class="section"><h3>📋 Log paso a paso</h3>${renderSteps(log, t0)}</div>
-          <div class="section"><h3>🔍 Debug completo</h3><pre>${esc(JSON.stringify(debug, null, 2))}</pre></div>`;
-        console.error('[TEST UPK]', debug);
+          <div class="section"><h3>📋 Log</h3>${renderSteps(log, t0)}</div>`;
         return;
-      } finally {
-        clearTimeout(timer);
       }
 
       debug.durationMs = (performance.now() - t0).toFixed(2);
       debug.data = data;
 
       if (!res.ok) {
-        stepLog(log, 'HTTP error', res.status + ' ' + res.statusText, false);
+        stepLog(log, 'HTTP error', res.status + ' ' + (res.statusText || ''), false);
         resultsDiv.innerHTML = `
           <div class="section error"><h3>❌ HTTP ${res.status}</h3>
             <div class="metric">Mensaje API: <span>${esc(data?.message || res.statusText)}</span></div>
           </div>
-          <div class="section"><h3>📨 Headers</h3><pre>${renderHeaders(res.headers)}</pre></div>
           <div class="section"><h3>📋 Log</h3>${renderSteps(log, t0)}</div>
           <div class="section"><h3>📄 JSON</h3><pre>${esc(JSON.stringify(data, null, 2))}</pre></div>`;
         return;
       }
 
       if (!data.ok) {
-        stepLog(log, 'API ok=false', data.message, false);
+        stepLog(log, 'API ok=false', data.message || data.status, false);
         resultsDiv.innerHTML = `
           <div class="section error"><h3>❌ API rechazó la consulta</h3>
-            <div class="metric">Mensaje: <span>${esc(data.message)}</span></div>
+            <div class="metric">Mensaje: <span>${esc(data.message || JSON.stringify(data))}</span></div>
+            <p style="margin-top:10px;color:#888">Si ves "Analizador BF activo", redespliega Apps Script con action=brand.</p>
           </div>
           <div class="section"><h3>📋 Log</h3>${renderSteps(log, t0)}</div>
           <div class="section"><h3>📄 JSON</h3><pre>${esc(JSON.stringify(data, null, 2))}</pre></div>`;
@@ -237,10 +253,11 @@
         </div>
         ${warnings.length ? `<div class="section warning"><h3>⚠️ Advertencias</h3><pre>${esc(warnings.join('\n'))}</pre></div>` : ''}
         <div class="section"><h3>📋 Petición</h3>
-          <div class="metric">URL: <span>${esc(url)}</span></div>
+          <div class="metric">Proxy: <span>${esc(proxyUrl)}</span></div>
+          <div class="metric">Directo (bloqueado CORS): <span>${esc(directUrl)}</span></div>
+          <div class="metric">Vía: <span>${esc(via)}</span></div>
           <div class="metric">Tiempo: <span>${debug.durationMs}ms (${perfMsg})</span></div>
         </div>
-        <div class="section"><h3>📨 Headers respuesta</h3><pre>${renderHeaders(res.headers)}</pre></div>
         <div class="section"><h3>📋 Log paso a paso</h3>${renderSteps(log, t0)}</div>
         <div class="section"><h3>📄 JSON crudo API</h3><pre>${esc(JSON.stringify(data, null, 2))}</pre></div>
         <div class="section"><h3>🗂️ Marca mapeada (artefacto)</h3><pre>${esc(JSON.stringify(brand, null, 2))}</pre></div>`;
