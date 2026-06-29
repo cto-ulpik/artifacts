@@ -44,7 +44,6 @@
   </div>
   <script>
     const API_URL = 'https://pi.ulpik.com/api/brand/upk';
-    const PROXY_URL = 'https://script.google.com/macros/s/AKfycbyinFr21fJ84vVo6hhpc3MNfUuptRdu3pysx3pwvbNydcmmosVNI3ak_-pOlQLyI4McxQ/exec';
     const LOGO_CDN = 'https://imagedelivery.net/TyoaKSszdYgjylRv6IzBsw';
     const STAGES = ['Presentación de solicitud','Asignación de funcionario','Examen de forma','Publicación en gaceta y oposiciones','Examen de fondo','Resolución','Título de la marca'];
 
@@ -107,41 +106,18 @@
         return `<li class="${cls}">${mark}${i + 1}. ${name}</li>`;
       }).join('');
     }
-    function fetchJsonp(baseUrl, signal) {
-      return new Promise((resolve, reject) => {
-        const cb = '_upkCb' + Date.now();
-        let timer;
-        const cleanup = () => {
-          try { delete window[cb]; } catch (e) {}
-          if (script && script.parentNode) script.parentNode.removeChild(script);
-          if (timer) clearTimeout(timer);
-        };
-        window[cb] = (d) => { cleanup(); resolve(d); };
-        const script = document.createElement('script');
-        const sep = baseUrl.indexOf('?') >= 0 ? '&' : '?';
-        script.src = baseUrl + sep + 'callback=' + cb;
-        script.onerror = () => { cleanup(); reject(new Error('JSONP falló — redespliega Apps Script')); };
-        if (signal?.aborted) return reject(new Error('Abortado'));
-        signal?.addEventListener('abort', () => { cleanup(); reject(new Error('Abortado')); });
-        timer = setTimeout(() => { cleanup(); reject(new Error('Timeout JSONP')); }, 20000);
-        document.head.appendChild(script);
-      });
-    }
-
     async function fetchBrandApi(code) {
       const codeUp = code.toUpperCase();
-      const directUrl = API_URL + '/' + encodeURIComponent(codeUp);
-      const proxyUrl = PROXY_URL + '?action=brand&upk=' + encodeURIComponent(codeUp);
+      const url = API_URL + '/' + encodeURIComponent(codeUp);
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 20000);
       try {
-        const res = await fetch(proxyUrl, { signal: ctrl.signal });
+        const res = await fetch(url, { signal: ctrl.signal });
         const rawText = await res.text();
-        return { via: 'proxy-fetch', url: proxyUrl, directUrl, res, data: JSON.parse(rawText), rawText };
+        return { url, res, data: JSON.parse(rawText), rawText };
       } catch (err) {
-        if (err.message === 'Load failed' || err.name === 'TypeError') {
-          const data = await fetchJsonp(proxyUrl, ctrl.signal);
-          return { via: 'jsonp', url: proxyUrl, directUrl, res: { ok: true, status: 200 }, data, rawText: JSON.stringify(data) };
+        if (err.message === 'Load failed') {
+          throw new Error('CORS bloqueó pi.ulpik.com desde este dominio. Corregir header: Access-Control-Allow-Origin: *');
         }
         throw err;
       } finally {
@@ -177,20 +153,20 @@
         return;
       }
 
-      let res, data, rawText, via, proxyUrl, directUrl;
+      let res, data, rawText, url;
       try {
-        stepLog(log, 'Consultando vía proxy Apps Script (evita CORS)', PROXY_URL);
+        stepLog(log, 'GET directo a pi.ulpik.com', API_URL);
         const out = await fetchBrandApi(code);
-        via = out.via; proxyUrl = out.url; directUrl = out.directUrl;
-        res = out.res; data = out.data; rawText = out.rawText;
-        debug.via = via; debug.proxyUrl = proxyUrl; debug.directUrl = directUrl;
-        stepLog(log, 'Respuesta vía ' + via, { status: res.status || 200 }, true);
+        url = out.url; res = out.res; data = out.data; rawText = out.rawText;
+        debug.url = url;
+        debug.cors = res.headers?.get?.('Access-Control-Allow-Origin') || 'N/A';
+        stepLog(log, 'Respuesta HTTP', { status: res.status, cors: debug.cors }, res.ok);
       } catch (err) {
         stepLog(log, 'Error', { name: err.name, message: err.message }, false);
         resultsDiv.innerHTML = `
           <div class="section error"><h3>❌ Error de conexión</h3>
             <div class="metric">Mensaje: <span>${esc(err.message)}</span></div>
-            <p style="margin-top:10px;color:#888">Redespliega <code>seguimiento-marca-apps-script.gs</code> o actualiza <code>analizador-bf-openai.gs</code> con action=brand.</p>
+            <p style="margin-top:10px;color:#888">La API funciona al abrir la URL en el navegador, pero CORS bloquea fetch desde otro dominio. Pide al backend corregir <code>Access-Control-Allow-Origin</code> en pi.ulpik.com.</p>
           </div>
           <div class="section"><h3>📋 Log</h3>${renderSteps(log, t0)}</div>`;
         return;
@@ -215,7 +191,7 @@
         resultsDiv.innerHTML = `
           <div class="section error"><h3>❌ API rechazó la consulta</h3>
             <div class="metric">Mensaje: <span>${esc(data.message || JSON.stringify(data))}</span></div>
-            <p style="margin-top:10px;color:#888">Si ves "Analizador BF activo", redespliega Apps Script con action=brand.</p>
+            <p style="margin-top:10px;color:#888">Respuesta inesperada de la API.</p>
           </div>
           <div class="section"><h3>📋 Log</h3>${renderSteps(log, t0)}</div>
           <div class="section"><h3>📄 JSON</h3><pre>${esc(JSON.stringify(data, null, 2))}</pre></div>`;
@@ -253,9 +229,8 @@
         </div>
         ${warnings.length ? `<div class="section warning"><h3>⚠️ Advertencias</h3><pre>${esc(warnings.join('\n'))}</pre></div>` : ''}
         <div class="section"><h3>📋 Petición</h3>
-          <div class="metric">Proxy: <span>${esc(proxyUrl)}</span></div>
-          <div class="metric">Directo (bloqueado CORS): <span>${esc(directUrl)}</span></div>
-          <div class="metric">Vía: <span>${esc(via)}</span></div>
+          <div class="metric">URL: <span>${esc(url)}</span></div>
+          <div class="metric">CORS header: <span>${esc(debug.cors || 'N/A')}</span></div>
           <div class="metric">Tiempo: <span>${debug.durationMs}ms (${perfMsg})</span></div>
         </div>
         <div class="section"><h3>📋 Log paso a paso</h3>${renderSteps(log, t0)}</div>

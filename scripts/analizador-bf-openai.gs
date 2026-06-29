@@ -24,9 +24,6 @@ const MAX_PAYLOAD_CHARS = 8000;
 
 function doGet(e) {
   try {
-    if (e && e.parameter && e.parameter.action === 'brand') {
-      return fetchBrandUpk_(e.parameter.upk);
-    }
     if (e && e.parameter && e.parameter.action === 'analyze') {
       return analizarSigno_(parsePayload_(e));
     }
@@ -37,25 +34,6 @@ function doGet(e) {
   } catch (err) {
     return jsonResponse_({ status: 'error', message: err.toString() });
   }
-}
-
-/** Proxy Seguimiento de Marca → pi.ulpik.com (evita CORS en GitHub Pages) */
-function fetchBrandUpk_(upk) {
-  var code = String(upk || '').trim().toUpperCase().replace(/^UPK[-_\s]*/i, '');
-  if (!code) {
-    return jsonResponse_({ ok: false, message: 'Código UPK requerido' });
-  }
-  var url = 'https://pi.ulpik.com/api/brand/upk/' + encodeURIComponent(code);
-  var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
-  var text = res.getContentText() || '';
-  if (res.getResponseCode() >= 400) {
-    try {
-      return ContentService.createTextOutput(text).setMimeType(ContentService.MimeType.JSON);
-    } catch (e) {
-      return jsonResponse_({ ok: false, message: 'HTTP ' + res.getResponseCode() });
-    }
-  }
-  return ContentService.createTextOutput(text).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
