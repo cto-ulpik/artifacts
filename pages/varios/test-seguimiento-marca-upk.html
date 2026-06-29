@@ -35,9 +35,9 @@
 <body>
   <div class="container">
     <h1>Test Seguimiento de Marca</h1>
-    <p class="subtitle">Diagnóstico completo — código por defecto: <strong>8n66ly</strong>. Misma lógica que el artefacto.</p>
+    <p class="subtitle">Diagnóstico completo — código por defecto: <strong>8N66LY</strong>. Misma lógica que el artefacto.</p>
     <div class="row">
-      <input id="upkInput" type="text" value="8n66ly" placeholder="Código UPK">
+      <input id="upkInput" type="text" value="8N66LY" placeholder="Código UPK (ej. 8N66LY)">
       <button onclick="runTest()">Ejecutar test</button>
     </div>
     <div id="results"></div>
@@ -76,7 +76,7 @@
       let start = b.startDate || b.fechaInicio || '';
       if (start && String(start).includes('T')) start = String(start).split('T')[0];
       return {
-        id: displayUpkCode(upk), name: b.nameBrand || b.name || 'Marca registrada',
+        id: (b.upkCode || displayUpkCode(upk)).toUpperCase(), name: b.nameBrand || b.name || 'Marca registrada',
         expediente: b.expediente || b.numeroExpediente || '—', start: start || new Date().toISOString().slice(0, 10),
         logoUrl: buildLogoUrl(b.logoUrl), logoRaw: b.logoUrl || '', etapaIndex: etapaIdx,
         etapaLabel: b.etapaTramite || '', upkFromApi: b.upkCode || '',
@@ -122,7 +122,7 @@
       const input = document.getElementById('upkInput').value;
       const resultsDiv = document.getElementById('results');
       const code = normalizeUpkCode(input);
-      const url = API_URL + '/' + encodeURIComponent(code);
+      const url = API_URL + '/' + encodeURIComponent(code.toUpperCase());
       const log = [];
       const t0 = performance.now();
       const debug = { input, code, url, steps: [] };
@@ -251,7 +251,7 @@
     // Auto-run 8n66ly al abrir; ?upk= para otro código
     (function init() {
       const p = new URLSearchParams(location.search);
-      const upk = p.get('upk') || '8n66ly';
+      const upk = (p.get('upk') || '8N66LY').toUpperCase();
       document.getElementById('upkInput').value = upk;
       runTest();
     })();
