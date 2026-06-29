@@ -3,355 +3,258 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Test Seguimiento de Marca — API UPK</title>
+  <title>Test Seguimiento de Marca — API UPK 8n66ly</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Consolas', 'Monaco', monospace;
-      padding: 20px;
-      background: #1e1e1e;
-      color: #d4d4d4;
-      line-height: 1.5;
-    }
-    .container { max-width: 920px; margin: 0 auto; }
+    body { font-family: Consolas, Monaco, monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; line-height: 1.5; }
+    .container { max-width: 960px; margin: 0 auto; }
     h1 { color: #5B2A86; margin-bottom: 8px; font-family: system-ui, sans-serif; }
-    .subtitle { color: #888; margin-bottom: 20px; font-size: 14px; }
+    .subtitle { color: #888; margin-bottom: 20px; font-size: 14px; font-family: system-ui, sans-serif; }
     .row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
-    input {
-      flex: 1;
-      min-width: 200px;
-      padding: 10px 14px;
-      font-size: 15px;
-      border: 1px solid #444;
-      border-radius: 6px;
-      background: #252526;
-      color: #fff;
-    }
-    button {
-      background: #5B2A86;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      font-size: 15px;
-      cursor: pointer;
-      border-radius: 6px;
-    }
+    input { flex: 1; min-width: 200px; padding: 10px 14px; font-size: 15px; border: 1px solid #444; border-radius: 6px; background: #252526; color: #fff; }
+    button { background: #5B2A86; color: white; border: none; padding: 10px 20px; font-size: 15px; cursor: pointer; border-radius: 6px; }
     button:hover { background: #6d349e; }
-    button.secondary { background: #119C95; }
-    button.secondary:hover { background: #14b3aa; }
-    .section {
-      background: #252526;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 6px;
-      border-left: 3px solid #5B2A86;
-    }
+    .section { background: #252526; padding: 15px; margin: 10px 0; border-radius: 6px; border-left: 3px solid #5B2A86; }
     .section h3 { color: #119C95; margin-bottom: 10px; font-size: 14px; }
     .success { border-left-color: #119C95; }
     .error { border-left-color: #f48771; }
     .warning { border-left-color: #dcdcaa; }
-    pre {
-      background: #1e1e1e;
-      padding: 12px;
-      border-radius: 4px;
-      overflow-x: auto;
-      color: #ce9178;
-      font-size: 12px;
-    }
+    pre { background: #1e1e1e; padding: 12px; border-radius: 4px; overflow-x: auto; color: #ce9178; font-size: 11px; white-space: pre-wrap; word-break: break-all; }
     .metric { margin: 5px 0; font-size: 13px; }
     .metric span { color: #4ec9b0; font-weight: bold; }
-    img {
-      max-width: 120px;
-      max-height: 120px;
-      border-radius: 14px;
-      margin: 10px 0;
-      background: #FAF9F7;
-      border: 1px solid #E7E3DD;
-      object-fit: contain;
-    }
-    .stages { list-style: none; margin-top: 8px; }
+    .step { padding: 4px 0; border-bottom: 1px solid #333; font-size: 12px; }
+    .step.err { color: #f48771; }
+    .step.ok { color: #98c379; }
+    img { max-width: 120px; max-height: 120px; border-radius: 14px; margin: 10px 0; background: #FAF9F7; border: 1px solid #E7E3DD; object-fit: contain; }
+    .stages { list-style: none; margin-top: 8px; font-family: system-ui, sans-serif; }
     .stages li { padding: 4px 0; font-size: 13px; }
     .stages li.active { color: #119C95; font-weight: bold; }
     .stages li.done { color: #888; }
-    code { color: #9cdcfe; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Test Seguimiento de Marca</h1>
-    <p class="subtitle">Replica la misma lógica del artefacto: normalización UPK, GET a la API, mapeo de etapa y URL del logo.</p>
-
+    <p class="subtitle">Diagnóstico completo — código por defecto: <strong>8n66ly</strong>. Misma lógica que el artefacto.</p>
     <div class="row">
-      <input id="upkInput" type="text" value="8n66ly" placeholder="Código UPK (ej. 8n66ly o UPK-8N66LY)">
-      <button onclick="runTest()">Ejecutar test API</button>
-      <button class="secondary" onclick="copyConsoleScript()">Copiar script consola</button>
+      <input id="upkInput" type="text" value="8n66ly" placeholder="Código UPK">
+      <button onclick="runTest()">Ejecutar test</button>
     </div>
-
     <div id="results"></div>
   </div>
-
   <script>
-    // ── Misma lógica que Seguimiento de Marca.html ──
     const API_URL = 'https://api.ulpik.com/api/brand/upk';
     const LOGO_CDN = 'https://imagedelivery.net/TyoaKSszdYgjylRv6IzBsw';
+    const STAGES = ['Presentación de solicitud','Asignación de funcionario','Examen de forma','Publicación en gaceta y oposiciones','Examen de fondo','Resolución','Título de la marca'];
 
-    const STAGES = [
-      'Presentación de solicitud',
-      'Asignación de funcionario',
-      'Examen de forma',
-      'Publicación en gaceta y oposiciones',
-      'Examen de fondo',
-      'Resolución',
-      'Título de la marca',
-    ];
+    const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
     function normalizeUpkCode(raw) {
       const q = String(raw || '').trim().toUpperCase();
-      if (!q) return '';
-      return q.replace(/^UPK[-_\s]*/i, '');
+      return q ? q.replace(/^UPK[-_\s]*/i, '') : '';
     }
-
     function displayUpkCode(raw) {
       const core = normalizeUpkCode(raw);
-      if (!core) return '';
-      return core.indexOf('UPK') === 0 ? core : ('UPK-' + core);
+      return core ? (core.indexOf('UPK') === 0 ? core : 'UPK-' + core) : '';
     }
-
     function buildLogoUrl(logoUrl) {
       const v = String(logoUrl || '').trim();
       if (!v) return '';
-      if (/^https?:\/\//i.test(v)) return v;
-      return LOGO_CDN + '/' + v + '/public';
+      return /^https?:\/\//i.test(v) ? v : LOGO_CDN + '/' + v + '/public';
     }
-
     function stageIndexFromEtapa(etapa) {
       if (etapa == null || etapa === '') return null;
       const e = String(etapa).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const maps = [
-        ['presentacion', 'solicitud', 'ingreso'],
-        ['asignacion', 'funcionario', 'turno'],
-        ['examen de forma', 'forma'],
-        ['publicacion', 'gaceta', 'oposicion'],
-        ['examen de fondo', 'fondo'],
-        ['resolucion'],
-        ['titulo', 'conced'],
-      ];
-      for (let i = 0; i < maps.length; i++) {
-        if (maps[i].some(k => e.includes(k))) return i;
-      }
+      const maps = [['presentacion','solicitud','ingreso'],['asignacion','funcionario','turno'],['examen de forma','forma'],['publicacion','gaceta','oposicion'],['examen de fondo','fondo'],['resolucion'],['titulo','conced']];
+      for (let i = 0; i < maps.length; i++) if (maps[i].some(k => e.includes(k))) return i;
       const n = parseInt(etapa, 10);
-      if (!isNaN(n) && n >= 1 && n <= 7) return n - 1;
-      return null;
+      return (!isNaN(n) && n >= 1 && n <= 7) ? n - 1 : null;
     }
-
     function normalizeApiBrand(data, upk) {
       const b = data.brand || {};
       const etapaIdx = stageIndexFromEtapa(b.etapaTramite);
       let start = b.startDate || b.fechaInicio || '';
       if (start && String(start).includes('T')) start = String(start).split('T')[0];
-      if (start && !/^\d{4}-\d{2}-\d{2}$/.test(start)) {
-        const m = String(start).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-        if (m) start = m[3] + '-' + String(m[2]).padStart(2, '0') + '-' + String(m[1]).padStart(2, '0');
-      }
       return {
-        id: displayUpkCode(upk),
-        name: b.nameBrand || b.name || 'Marca registrada',
-        expediente: b.expediente || b.numeroExpediente || '—',
-        start: start || new Date().toISOString().slice(0, 10),
-        logoUrl: buildLogoUrl(b.logoUrl),
-        logoRaw: b.logoUrl || '',
-        etapaIndex: etapaIdx,
-        etapaLabel: b.etapaTramite || '',
-        upkFromApi: b.upkCode || '',
+        id: displayUpkCode(upk), name: b.nameBrand || b.name || 'Marca registrada',
+        expediente: b.expediente || b.numeroExpediente || '—', start: start || new Date().toISOString().slice(0, 10),
+        logoUrl: buildLogoUrl(b.logoUrl), logoRaw: b.logoUrl || '', etapaIndex: etapaIdx,
+        etapaLabel: b.etapaTramite || '', upkFromApi: b.upkCode || '',
       };
     }
-
-    async function fetchBrand(upk) {
-      const code = normalizeUpkCode(upk);
-      if (!code) throw new Error('Ingresa un código UPK válido.');
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 20000);
-      let res, data;
-      try {
-        res = await fetch(API_URL + '/' + encodeURIComponent(code), { signal: ctrl.signal });
-        data = await res.json();
-      } catch (err) {
-        if (err && err.name === 'AbortError') throw new Error('La consulta tardó demasiado. Intenta de nuevo.');
-        throw new Error('No pudimos conectar con el servidor. Revisa tu conexión e intenta otra vez.');
-      } finally {
-        clearTimeout(timer);
-      }
-      if (!res.ok) throw new Error((data && data.message) || 'No pudimos consultar el trámite. Intenta de nuevo.');
-      if (!data.ok) throw new Error(data.message || 'No encontramos ninguna marca con ese código.');
-      return { brand: normalizeApiBrand(data, upk), raw: data, httpStatus: res.status };
+    function stepLog(log, msg, extra, ok) {
+      log.push({ ms: performance.now(), msg, extra, ok });
     }
-
-    function perfLabel(ms) {
-      if (ms < 100) return { cls: 'success', msg: 'EXCELENTE (<100ms)' };
-      if (ms < 500) return { cls: 'success', msg: 'BUENO (100-500ms)' };
-      if (ms < 2000) return { cls: 'warning', msg: 'ACEPTABLE (500-2000ms)' };
-      return { cls: 'error', msg: 'LENTO (>2000ms)' };
+    function renderSteps(log, t0) {
+      return log.map(s => {
+        const cls = s.ok === false ? 'err' : (s.ok === true ? 'ok' : '');
+        const t = ((s.ms - t0)).toFixed(0);
+        const ex = s.extra ? ' — ' + esc(typeof s.extra === 'string' ? s.extra : JSON.stringify(s.extra)) : '';
+        return `<div class="step ${cls}">[+${t}ms] ${esc(s.msg)}${ex}</div>`;
+      }).join('');
     }
-
+    function renderHeaders(headers) {
+      if (!headers || !headers.forEach) return '(sin headers)';
+      const rows = [];
+      headers.forEach((v, k) => rows.push(`${k}: ${v}`));
+      return esc(rows.join('\n') || '(vacío)');
+    }
     function renderStages(etapaIndex) {
       return STAGES.map((name, i) => {
-        let cls = '';
-        if (etapaIndex != null) {
-          if (i < etapaIndex) cls = 'done';
-          else if (i === etapaIndex) cls = 'active';
-        }
+        let cls = etapaIndex != null ? (i < etapaIndex ? 'done' : (i === etapaIndex ? 'active' : '')) : '';
         const mark = i === etapaIndex ? '→ ' : i < etapaIndex ? '✓ ' : '  ';
         return `<li class="${cls}">${mark}${i + 1}. ${name}</li>`;
       }).join('');
+    }
+    function testLogo(url) {
+      return new Promise(resolve => {
+        if (!url) return resolve({ ok: false, error: 'Sin URL de logo' });
+        const img = new Image();
+        const t0 = performance.now();
+        const timer = setTimeout(() => resolve({ ok: false, error: 'Timeout cargando logo (10s)', url }), 10000);
+        img.onload = () => { clearTimeout(timer); resolve({ ok: true, ms: (performance.now() - t0).toFixed(0), w: img.naturalWidth, h: img.naturalHeight, url }); };
+        img.onerror = () => { clearTimeout(timer); resolve({ ok: false, error: 'Error al cargar imagen (404/CORS/bloqueado)', url }); };
+        img.src = url;
+      });
     }
 
     async function runTest() {
       const input = document.getElementById('upkInput').value;
       const resultsDiv = document.getElementById('results');
       const code = normalizeUpkCode(input);
-      const apiUrl = API_URL + '/' + encodeURIComponent(code);
-      resultsDiv.innerHTML = '<div class="section"><h3>⏳ Ejecutando...</h3></div>';
-      const startTime = performance.now();
+      const url = API_URL + '/' + encodeURIComponent(code);
+      const log = [];
+      const t0 = performance.now();
+      const debug = { input, code, url, steps: [] };
+
+      resultsDiv.innerHTML = '<div class="section"><h3>⏳ Ejecutando diagnóstico...</h3></div>';
+
+      stepLog(log, 'Input recibido', { input, code, url });
+      if (!code) {
+        resultsDiv.innerHTML = `<div class="section error"><h3>❌ Código inválido</h3><pre>${renderSteps(log, t0)}</pre></div>`;
+        return;
+      }
+
+      let res, data, rawText;
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 20000);
 
       try {
-        const { brand, raw, httpStatus } = await fetchBrand(input);
-        const duration = (performance.now() - startTime).toFixed(2);
-        const perf = perfLabel(parseFloat(duration));
+        stepLog(log, 'Enviando fetch GET', url);
+        res = await fetch(url, { signal: ctrl.signal });
+        stepLog(log, 'Respuesta HTTP', { status: res.status, statusText: res.statusText }, res.ok);
+        debug.httpStatus = res.status;
+        debug.headers = {};
+        res.headers.forEach((v, k) => { debug.headers[k] = v; });
+        stepLog(log, 'CORS Allow-Origin', res.headers.get('Access-Control-Allow-Origin') || 'NO CONFIGURADO', !!res.headers.get('Access-Control-Allow-Origin'));
+        stepLog(log, 'Cache-Control', res.headers.get('Cache-Control') || 'N/A');
 
-        resultsDiv.innerHTML = `
-          <div class="section">
-            <h3>📋 Petición (como Seguimiento de Marca)</h3>
-            <div class="metric">Input usuario: <span>${input}</span></div>
-            <div class="metric">Código normalizado: <span>${code}</span></div>
-            <div class="metric">URL GET: <span>${apiUrl}</span></div>
-            <div class="metric">HTTP: <span>${httpStatus}</span></div>
-            <div class="metric">Tiempo: <span>${duration}ms</span></div>
-          </div>
+        rawText = await res.text();
+        stepLog(log, 'Body recibido', { bytes: rawText.length, preview: rawText.slice(0, 200) });
 
-          <div class="section success">
-            <h3>✅ Marca mapeada (lo que vería el artefacto)</h3>
-            <div class="metric">Código mostrado: <span>${brand.id}</span></div>
-            <div class="metric">Nombre: <span>${brand.name}</span></div>
-            <div class="metric">Expediente: <span>${brand.expediente}</span></div>
-            <div class="metric">Fecha inicio: <span>${brand.start}</span></div>
-            <div class="metric">Etapa API: <span>${brand.etapaLabel}</span></div>
-            <div class="metric">Índice timeline: <span>${brand.etapaIndex != null ? brand.etapaIndex + ' → paso ' + (brand.etapaIndex + 1) : 'no mapeado'}</span></div>
-            <div class="metric">logoUrl raw API: <span>${brand.logoRaw || '(vacío)'}</span></div>
-            <div class="metric">Logo URL final: <span>${brand.logoUrl || '(sin logo)'}</span></div>
-            ${brand.logoUrl ? `<img src="${brand.logoUrl}" alt="Logo" onerror="this.alt='Error cargando logo'">` : ''}
-            <h3 style="margin-top:12px">📍 Timeline</h3>
-            <ul class="stages">${renderStages(brand.etapaIndex)}</ul>
-          </div>
-
-          <div class="section ${perf.cls}">
-            <h3>⚡ Rendimiento</h3>
-            <div class="metric">${perf.msg}: <span>${duration}ms</span></div>
-          </div>
-
-          <div class="section">
-            <h3>📄 JSON crudo de la API</h3>
-            <pre>${JSON.stringify(raw, null, 2)}</pre>
-          </div>
-        `;
+        try {
+          data = JSON.parse(rawText);
+          stepLog(log, 'JSON parseado OK', null, true);
+        } catch (parseErr) {
+          stepLog(log, 'JSON parse FALLÓ', parseErr.message, false);
+          debug.parseError = parseErr.message;
+          debug.rawBody = rawText.slice(0, 2000);
+          throw new Error('Respuesta no es JSON: ' + parseErr.message);
+        }
       } catch (err) {
-        const duration = (performance.now() - startTime).toFixed(2);
+        clearTimeout(timer);
+        const isAbort = err.name === 'AbortError';
+        stepLog(log, isAbort ? 'TIMEOUT (20s)' : 'Error de red', { name: err.name, message: err.message }, false);
+        debug.networkError = { name: err.name, message: err.message };
         resultsDiv.innerHTML = `
-          <div class="section error">
-            <h3>❌ Error</h3>
-            <div class="metric">Mensaje: <span>${err.message}</span></div>
-            <div class="metric">Tiempo: <span>${duration}ms</span></div>
-            <div class="metric">URL intentada: <span>${apiUrl}</span></div>
-            <p style="margin-top:12px;color:#888">Mismo error que mostraría Seguimiento de Marca en pantalla.</p>
+          <div class="section error"><h3>❌ ${isAbort ? 'Timeout' : 'Error de conexión'}</h3>
+            <div class="metric">Mensaje: <span>${esc(err.message)}</span></div>
+            <div class="metric">URL: <span>${esc(url)}</span></div>
+            <div class="metric">Tiempo: <span>${((performance.now()-t0).toFixed(2))}ms</span></div>
           </div>
-        `;
+          <div class="section"><h3>📋 Log paso a paso</h3>${renderSteps(log, t0)}</div>
+          <div class="section"><h3>🔍 Debug completo</h3><pre>${esc(JSON.stringify(debug, null, 2))}</pre></div>`;
+        console.error('[TEST UPK]', debug);
+        return;
+      } finally {
+        clearTimeout(timer);
       }
+
+      debug.durationMs = (performance.now() - t0).toFixed(2);
+      debug.data = data;
+
+      if (!res.ok) {
+        stepLog(log, 'HTTP error', res.status + ' ' + res.statusText, false);
+        resultsDiv.innerHTML = `
+          <div class="section error"><h3>❌ HTTP ${res.status}</h3>
+            <div class="metric">Mensaje API: <span>${esc(data?.message || res.statusText)}</span></div>
+          </div>
+          <div class="section"><h3>📨 Headers</h3><pre>${renderHeaders(res.headers)}</pre></div>
+          <div class="section"><h3>📋 Log</h3>${renderSteps(log, t0)}</div>
+          <div class="section"><h3>📄 JSON</h3><pre>${esc(JSON.stringify(data, null, 2))}</pre></div>`;
+        return;
+      }
+
+      if (!data.ok) {
+        stepLog(log, 'API ok=false', data.message, false);
+        resultsDiv.innerHTML = `
+          <div class="section error"><h3>❌ API rechazó la consulta</h3>
+            <div class="metric">Mensaje: <span>${esc(data.message)}</span></div>
+          </div>
+          <div class="section"><h3>📋 Log</h3>${renderSteps(log, t0)}</div>
+          <div class="section"><h3>📄 JSON</h3><pre>${esc(JSON.stringify(data, null, 2))}</pre></div>`;
+        return;
+      }
+
+      const brand = normalizeApiBrand(data, input);
+      const warnings = [];
+      if (!data.brand?.nameBrand) warnings.push('Falta nameBrand');
+      if (!data.brand?.logoUrl) warnings.push('Falta logoUrl');
+      if (!data.brand?.etapaTramite) warnings.push('Falta etapaTramite');
+      if (!data.brand?.startDate) warnings.push('Falta startDate');
+      if (brand.etapaIndex == null) warnings.push('etapaTramite no mapea a timeline: "' + (data.brand?.etapaTramite || '') + '"');
+
+      stepLog(log, 'Marca mapeada', brand, true);
+      const logoTest = await testLogo(brand.logoUrl);
+      stepLog(log, logoTest.ok ? 'Logo cargó OK' : 'Logo FALLÓ', logoTest, logoTest.ok);
+
+      if (warnings.length) stepLog(log, 'Advertencias', warnings.join('; '), false);
+
+      const perf = parseFloat(debug.durationMs);
+      const perfMsg = perf < 100 ? 'EXCELENTE' : perf < 500 ? 'BUENO' : perf < 2000 ? 'ACEPTABLE' : 'LENTO';
+
+      resultsDiv.innerHTML = `
+        <div class="section success"><h3>✅ Marca encontrada — ${esc(brand.name)}</h3>
+          <div class="metric">Código mostrado: <span>${esc(brand.id)}</span></div>
+          <div class="metric">UPK API: <span>${esc(brand.upkFromApi)}</span></div>
+          <div class="metric">Etapa: <span>${esc(brand.etapaLabel)} → paso ${brand.etapaIndex != null ? brand.etapaIndex + 1 : '?'}</span></div>
+          <div class="metric">Fecha: <span>${esc(brand.start)}</span></div>
+          <div class="metric">Logo raw: <span>${esc(brand.logoRaw)}</span></div>
+          <div class="metric">Logo URL: <span>${esc(brand.logoUrl)}</span></div>
+          <div class="metric">Logo carga: <span>${logoTest.ok ? 'OK ' + logoTest.w + 'x' + logoTest.h + ' (' + logoTest.ms + 'ms)' : esc(logoTest.error)}</span></div>
+          ${brand.logoUrl ? `<img src="${esc(brand.logoUrl)}" alt="logo">` : ''}
+          <ul class="stages">${renderStages(brand.etapaIndex)}</ul>
+        </div>
+        ${warnings.length ? `<div class="section warning"><h3>⚠️ Advertencias</h3><pre>${esc(warnings.join('\n'))}</pre></div>` : ''}
+        <div class="section"><h3>📋 Petición</h3>
+          <div class="metric">URL: <span>${esc(url)}</span></div>
+          <div class="metric">Tiempo: <span>${debug.durationMs}ms (${perfMsg})</span></div>
+        </div>
+        <div class="section"><h3>📨 Headers respuesta</h3><pre>${renderHeaders(res.headers)}</pre></div>
+        <div class="section"><h3>📋 Log paso a paso</h3>${renderSteps(log, t0)}</div>
+        <div class="section"><h3>📄 JSON crudo API</h3><pre>${esc(JSON.stringify(data, null, 2))}</pre></div>
+        <div class="section"><h3>🗂️ Marca mapeada (artefacto)</h3><pre>${esc(JSON.stringify(brand, null, 2))}</pre></div>`;
+
+      console.log('[TEST UPK OK]', { brand, data, debug });
     }
 
-    function getConsoleScript() {
-      return `// Pegar en consola (Seguimiento de Marca o cualquier página)
-(async function testSeguimientoMarca() {
-  const API_URL = 'https://api.ulpik.com/api/brand/upk';
-  const LOGO_CDN = 'https://imagedelivery.net/TyoaKSszdYgjylRv6IzBsw';
-  const STAGES = ['Presentación de solicitud','Asignación de funcionario','Examen de forma','Publicación en gaceta y oposiciones','Examen de fondo','Resolución','Título de la marca'];
-  const input = prompt('Código UPK:', '8n66ly') || '8n66ly';
-
-  function normalizeUpkCode(raw) {
-    const q = String(raw || '').trim().toUpperCase();
-    return q ? q.replace(/^UPK[-_\\s]*/i, '') : '';
-  }
-  function displayUpkCode(raw) {
-    const core = normalizeUpkCode(raw);
-    return core ? (core.indexOf('UPK') === 0 ? core : 'UPK-' + core) : '';
-  }
-  function buildLogoUrl(logoUrl) {
-    const v = String(logoUrl || '').trim();
-    if (!v) return '';
-    return /^https?:\\/\\//i.test(v) ? v : LOGO_CDN + '/' + v + '/public';
-  }
-  function stageIndexFromEtapa(etapa) {
-    if (etapa == null || etapa === '') return null;
-    const e = String(etapa).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
-    const maps = [['presentacion','solicitud','ingreso'],['asignacion','funcionario','turno'],['examen de forma','forma'],['publicacion','gaceta','oposicion'],['examen de fondo','fondo'],['resolucion'],['titulo','conced']];
-    for (let i = 0; i < maps.length; i++) if (maps[i].some(k => e.includes(k))) return i;
-    const n = parseInt(etapa, 10);
-    return (!isNaN(n) && n >= 1 && n <= 7) ? n - 1 : null;
-  }
-
-  const code = normalizeUpkCode(input);
-  const url = API_URL + '/' + encodeURIComponent(code);
-  console.clear();
-  console.log('TEST SEGUIMIENTO DE MARCA — código:', input, '→', code);
-  console.log('GET', url);
-  const t0 = performance.now();
-
-  try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 20000);
-    const res = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(timer);
-    const data = await res.json();
-    const ms = (performance.now() - t0).toFixed(2);
-
-    console.log('HTTP', res.status, res.statusText, '(' + ms + 'ms)');
-    console.log('CORS Allow-Origin:', res.headers.get('Access-Control-Allow-Origin') || 'N/A');
-
-    if (!data.ok) {
-      console.error('ERROR API:', data.message);
-      return;
-    }
-
-    const b = data.brand;
-    const etapaIdx = stageIndexFromEtapa(b.etapaTramite);
-    const brand = {
-      id: displayUpkCode(input),
-      name: b.nameBrand,
-      logoRaw: b.logoUrl,
-      logoUrl: buildLogoUrl(b.logoUrl),
-      etapaLabel: b.etapaTramite,
-      etapaIndex: etapaIdx,
-      etapaNombre: etapaIdx != null ? STAGES[etapaIdx] : null,
-      start: b.startDate,
-      upkApi: b.upkCode,
-    };
-
-    console.log('MARCA MAPEADA (como el artefacto):');
-    console.table(brand);
-    console.log('JSON crudo:', data);
-    if (brand.logoUrl) console.log('Preview logo:', brand.logoUrl);
-  } catch (e) {
-    console.error('ERROR:', e.message);
-  }
-})();`;
-    }
-
-    function copyConsoleScript() {
-      navigator.clipboard.writeText(getConsoleScript()).then(() => {
-        alert('Script copiado. Pégalo en la consola del navegador.');
-      });
-    }
-
-    // Auto-run on load with default code
-    runTest();
+    // Auto-run 8n66ly al abrir; ?upk= para otro código
+    (function init() {
+      const p = new URLSearchParams(location.search);
+      const upk = p.get('upk') || '8n66ly';
+      document.getElementById('upkInput').value = upk;
+      runTest();
+    })();
   </script>
 </body>
 </html>
