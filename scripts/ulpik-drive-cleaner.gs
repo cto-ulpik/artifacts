@@ -37,7 +37,7 @@ var ALLOWED_REDIRECT_HOSTS = [
   '127.0.0.1'
 ];
 
-var CACHE_TTL = 600; // 10 min
+var CACHE_TTL = 1800; // 30 min (el payload se lee en segundos; margen por si tarda el redirect)
 
 function doGet(e) {
   try {
@@ -104,7 +104,11 @@ function handleScanRedirect_(e) {
   var payload = buildScan_(user, minMb);
 
   var token = Utilities.getUuid();
-  CacheService.getScriptCache().put('scan:' + token, JSON.stringify(payload), CACHE_TTL);
+  var cacheKey = 'scan:' + token;
+  var stored = cachePutJson_(cacheKey, payload, CACHE_TTL);
+  if (!stored) {
+    throw new Error('No se pudo guardar el escaneo. Intenta de nuevo.');
+  }
 
   var sep = redirect.indexOf('?') >= 0 ? '&' : '?';
   var target = redirect + sep +
@@ -118,11 +122,68 @@ function handlePayload_(e) {
   var token = (e.parameter && e.parameter.token) || '';
   if (!token) throw new Error('Falta token de escaneo');
 
-  var raw = CacheService.getScriptCache().get('scan:' + token);
-  if (!raw) throw new Error('Escaneo expirado. Pulsa «Volver a escanear».');
+  var cacheKey = 'scan:' + token;
+  var raw = cacheGetJson_(cacheKey);
+  if (!raw) {
+    throw new Error('Escaneo expirado o incompleto. Pulsa Reintentar para volver a escanear.');
+  }
 
-  CacheService.getScriptCache().remove('scan:' + token);
+  cacheRemoveJson_(cacheKey);
   return jsonResponse(JSON.parse(raw), e);
+}
+
+/** Script Cache: máx ~100 KB por entrada → partir JSON grande en trozos */
+function cachePutJson_(prefix, obj, ttl) {
+  var json = JSON.stringify(obj);
+  var cache = CacheService.getScriptCache();
+  var chunkSize = 90000;
+
+  if (json.length <= chunkSize) {
+    cache.put(prefix, json, ttl);
+    cache.put(prefix + ':meta', '1', ttl);
+    return cache.get(prefix) === json;
+  }
+
+  var parts = Math.ceil(json.length / chunkSize);
+  for (var i = 0; i < parts; i++) {
+    cache.put(prefix + ':p' + i, json.substring(i * chunkSize, (i + 1) * chunkSize), ttl);
+  }
+  cache.put(prefix + ':meta', 'n:' + parts, ttl);
+  return cacheGetJson_(prefix) !== null;
+}
+
+function cacheGetJson_(prefix) {
+  var cache = CacheService.getScriptCache();
+  var meta = cache.get(prefix + ':meta');
+  if (!meta) return null;
+  if (meta === '1') return cache.get(prefix);
+  if (meta.indexOf('n:') !== 0) return null;
+
+  var parts = parseInt(meta.slice(2), 10);
+  if (!parts || parts < 1) return null;
+
+  var json = '';
+  for (var i = 0; i < parts; i++) {
+    var chunk = cache.get(prefix + ':p' + i);
+    if (chunk === null) return null;
+    json += chunk;
+  }
+  return json;
+}
+
+function cacheRemoveJson_(prefix) {
+  var cache = CacheService.getScriptCache();
+  var meta = cache.get(prefix + ':meta');
+  cache.remove(prefix + ':meta');
+  if (!meta) return;
+  if (meta === '1') {
+    cache.remove(prefix);
+    return;
+  }
+  if (meta.indexOf('n:') === 0) {
+    var parts = parseInt(meta.slice(2), 10) || 0;
+    for (var i = 0; i < parts; i++) cache.remove(prefix + ':p' + i);
+  }
 }
 
 function htmlRedirect_(target, message) {
@@ -235,8 +296,8 @@ function scanDriveFiles_(minMb) {
   var minBytes = Math.max(1, (minMb || 5)) * 1024 * 1024;
   var files = [];
   var seen = {};
-  var maxFiles = 300;
-  var maxIter = 5000;
+  var maxFiles = 200;
+  var maxIter = 1200;
 
   var it = DriveApp.searchFiles('trashed = false and mimeType != "application/vnd.google-apps.folder"');
   var n = 0;
@@ -254,7 +315,7 @@ function scanDriveFiles_(minMb) {
 
     if (size >= minBytes || months >= 6 || size >= 5 * 1024 * 1024 || isGoogleNative) {
       seen[id] = true;
-      files.push(fileToDto_(file, isGoogleNative));
+      files.push(fileToDto_(file, isGoogleNative, false));
     }
   }
 
@@ -262,7 +323,7 @@ function scanDriveFiles_(minMb) {
   return files;
 }
 
-function fileToDto_(file, isGoogleNative) {
+function fileToDto_(file, isGoogleNative, includePath) {
   var name = file.getName();
   var ext = name.indexOf('.') >= 0 ? name.split('.').pop().toUpperCase() : 'FILE';
   if (isGoogleNative) {
@@ -273,9 +334,11 @@ function fileToDto_(file, isGoogleNative) {
     else ext = 'FILE';
   }
   var path = 'Mi unidad';
-  var parents = file.getParents();
-  if (parents.hasNext()) {
-    try { path = 'Mi unidad / ' + parents.next().getName(); } catch (err) {}
+  if (includePath) {
+    var parents = file.getParents();
+    if (parents.hasNext()) {
+      try { path = 'Mi unidad / ' + parents.next().getName(); } catch (err) {}
+    }
   }
   var size = file.getSize();
   if (isGoogleNative && size === 0) size = 2 * 1024 * 1024;
