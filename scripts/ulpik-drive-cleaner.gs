@@ -49,7 +49,8 @@ var SCAN_STEPS = [
 
 var SCAN_MAX_FILES = 200;
 var SCAN_MAX_PER_QUERY = 80;
-var DRIVE_V3_BASE_Q = "trashed = false and mimeType != 'application/vnd.google-apps.folder'";
+/** Query mínima válida en Drive API v3 (sin mimeType!= ni size) */
+var DRIVE_V3_BASE_Q = 'trashed = false';
 
 function doGet(e) {
   try {
@@ -352,7 +353,11 @@ function mbToBytes_(mb) {
 function sixMonthsAgoIso_() {
   var d = new Date();
   d.setMonth(d.getMonth() - 6);
-  return d.toISOString().split('T')[0] + 'T00:00:00';
+  return Utilities.formatDate(d, 'GMT', "yyyy-MM-dd'T'HH:mm:ss");
+}
+
+function isDriveFolder_(mime) {
+  return mime === 'application/vnd.google-apps.folder';
 }
 
 /** Drive API v3 — DriveApp.searchFiles no admite `size` en la query (error: Argumento no válido: q) */
@@ -361,8 +366,8 @@ function driveV3List_(q, pageToken, pageSize, orderBy) {
     'q=' + encodeURIComponent(q),
     'pageSize=' + String(pageSize || 100),
     'fields=' + encodeURIComponent('nextPageToken,files(id,name,mimeType,size,modifiedTime)'),
-    'supportsAllDrives=true',
-    'includeItemsFromAllDrives=true'
+    'corpora=user',
+    'spaces=drive'
   ];
   if (pageToken) params.push('pageToken=' + encodeURIComponent(pageToken));
   if (orderBy) params.push('orderBy=' + encodeURIComponent(orderBy));
@@ -372,7 +377,13 @@ function driveV3List_(q, pageToken, pageSize, orderBy) {
     muteHttpExceptions: true
   });
   if (resp.getResponseCode() !== 200) {
-    throw new Error('Drive API: ' + resp.getContentText().slice(0, 200));
+    var errBody = resp.getContentText();
+    var detail = errBody;
+    try {
+      var errJson = JSON.parse(errBody);
+      detail = (errJson.error && errJson.error.message) || errBody;
+    } catch (ignore) {}
+    throw new Error('Drive API: ' + detail + ' [q=' + q + ']');
   }
   return JSON.parse(resp.getContentText());
 }
@@ -428,6 +439,7 @@ function collectSizeBandsV3_(session, bands, floorMb) {
     var allBelowStep = true;
     for (var i = 0; i < items.length; i++) {
       var f = items[i];
+      if (isDriveFolder_(f.mimeType || '')) continue;
       var size = parseInt(f.size || '0', 10);
       if (size >= lowestMinBytes) allBelowStep = false;
       if (!matchesSizeBand_(size, bands, floorMb)) continue;
@@ -443,18 +455,26 @@ function collectSizeBandsV3_(session, bands, floorMb) {
 }
 
 function collectOldFilesV3_(seen, files) {
-  var q = DRIVE_V3_BASE_Q + " and modifiedTime < '" + sixMonthsAgoIso_() + "'";
+  var cutoff = sixMonthsAgoIso_();
+  var q = "trashed = false and modifiedTime < '" + cutoff + "'";
   var pageToken = null;
   var n = 0;
   var pages = 0;
 
   while (n < SCAN_MAX_PER_QUERY && files.length < SCAN_MAX_FILES && pages < 10) {
-    var res = driveV3List_(q, pageToken, 100, 'modifiedTime asc');
+    var res;
+    try {
+      res = driveV3List_(q, pageToken, 100, 'modifiedTime asc');
+    } catch (err) {
+      // Si la query de fecha falla, omitir antiguos en este escaneo
+      return;
+    }
     pages++;
     pageToken = res.nextPageToken || null;
     var items = res.files || [];
     for (var i = 0; i < items.length; i++) {
       var f = items[i];
+      if (isDriveFolder_(f.mimeType || '')) continue;
       if (seen[f.id]) continue;
       seen[f.id] = true;
       files.push(v3ToDto_(f));
