@@ -14,6 +14,14 @@
 //    Ejecutar como: Usuario que accede a la aplicación web
 //    Acceso: Cualquier usuario de ulpik.com
 //    URL App web /exec → APPS_SCRIPT_URL en el HTML
+//
+//  AUTORIZAR DRIVE (obligatorio la primera vez):
+//    1. En el editor, ejecutar authorizeDrive() → Aceptar permisos de Drive
+//    2. Implementar → Nueva versión de la App web
+//    3. Abrir la URL /exec con cuenta @ulpik.com y aceptar permisos otra vez
+//
+//  Si ves "You do not have permission to call DriveApp.getStorageUsed":
+//    → Falta el paso 1 y/o 2 arriba.
 // ════════════════════════════════════════════════════════════
 
 var ALLOWED_REDIRECT_HOSTS = [
@@ -156,14 +164,31 @@ function assertAllowedRedirect_(url) {
   }
 }
 
+function safeStorageInfo_() {
+  try {
+    return {
+      used: DriveApp.getStorageUsed(),
+      quota: normalizeQuota_(DriveApp.getStorageLimit())
+    };
+  } catch (err) {
+    var msg = String(err.message || err);
+    if (/permission|authorization|permiso/i.test(msg)) {
+      throw new Error(
+        'Faltan permisos de Google Drive. En Apps Script ejecuta authorizeDrive(), ' +
+        'acepta los permisos, crea una nueva versión del despliegue y vuelve a abrir la App web.'
+      );
+    }
+    throw err;
+  }
+}
+
 function buildStatus_(user) {
-  var used = DriveApp.getStorageUsed();
-  var quota = normalizeQuota_(DriveApp.getStorageLimit());
+  var storage = safeStorageInfo_();
   return {
     ok: true,
     email: user.email,
-    used: used,
-    quota: quota,
+    used: storage.used,
+    quota: storage.quota,
     scanned: 0
   };
 }
@@ -315,11 +340,28 @@ function jsonResponse(obj, e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+/**
+ * Ejecutar UNA VEZ desde el editor (▶) para solicitar permisos de Google Drive.
+ * Acepta el diálogo de Google → luego Implementar → Nueva versión.
+ */
+function authorizeDrive() {
+  var storage = safeStorageInfo_();
+  var n = 0;
+  var it = DriveApp.searchFiles('trashed = false');
+  while (it.hasNext() && n < 5) {
+    it.next();
+    n++;
+  }
+  Logger.log('Drive autorizado para ' + Session.getActiveUser().getEmail());
+  Logger.log('Uso: ' + storage.used + ' bytes | Muestra de archivos: ' + n);
+}
+
 function testStatus() {
   Logger.log(doGet({ parameter: { action: 'status', callback: 'cb' } }).getContent());
 }
 
 function testScan() {
+  authorizeDrive();
   Logger.log(doGet({ parameter: { action: 'scan', minMb: '10', callback: 'cb' } }).getContent().slice(0, 800));
 }
 
