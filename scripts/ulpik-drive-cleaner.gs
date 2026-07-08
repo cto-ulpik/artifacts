@@ -126,12 +126,28 @@ function handlePayload_(e) {
 }
 
 function htmlRedirect_(target, message) {
+  var safe = JSON.stringify(target);
   var html = [
     '<!DOCTYPE html><html><head><meta charset="utf-8">',
+    '<base target="_top">',
     '<title>', message, '</title>',
-    '<style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f0f2ef;color:#1c211e}</style>',
-    '</head><body><p>', message, '</p>',
-    '<script>location.replace(', JSON.stringify(target), ');</script>',
+    '<style>',
+    'body{font-family:system-ui,sans-serif;display:flex;flex-direction:column;',
+    'align-items:center;justify-content:center;min-height:100vh;margin:0;',
+    'background:#f0f2ef;color:#1c211e;gap:14px;text-align:center;padding:24px}',
+    'a{color:#0f766e;font-weight:600}',
+    '</style>',
+    '</head><body>',
+    '<p>', message, '</p>',
+    '<p><a href="', target.replace(/&/g, '&amp;').replace(/"/g, '&quot;'), '" target="_top" rel="noopener">Continuar →</a></p>',
+    '<script>',
+    '(function(){',
+    'var u=', safe, ';',
+    'function go(){try{(window.top||window).location.replace(u);}catch(e){window.open(u,"_blank");}}',
+    'go();',
+    'setTimeout(go,400);',
+    '})();',
+    '</script>',
     '</body></html>'
   ].join('');
   return HtmlService.createHtmlOutput(html)
