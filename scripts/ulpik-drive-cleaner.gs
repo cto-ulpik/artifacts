@@ -238,7 +238,6 @@ function cacheRemoveJson_(prefix) {
 }
 
 function htmlRedirect_(target, message) {
-  var safe = JSON.stringify(target);
   var html = [
     '<!DOCTYPE html><html><head><meta charset="utf-8">',
     '<base target="_top">',
@@ -251,14 +250,8 @@ function htmlRedirect_(target, message) {
     '</style>',
     '</head><body>',
     '<p>', message, '</p>',
-    '<p><a href="', target.replace(/&/g, '&amp;').replace(/"/g, '&quot;'), '" target="_top" rel="noopener">Continuar →</a></p>',
-    '<script>',
-    '(function(){',
-    'var u=', safe, ';',
-    'function go(){try{(window.top||window).location.replace(u);}catch(e){window.location.replace(u);}}',
-    'go();',
-    '})();',
-    '</script>',
+    '<p><a id="go" href="', target.replace(/&/g, '&amp;').replace(/"/g, '&quot;'), '" target="_top" rel="noopener">Continuar →</a></p>',
+    '<p style="font-size:13px;color:#5b625d;max-width:420px">Si no avanza solo, pulsa <strong>Continuar</strong> (requerido en algunos navegadores).</p>',
     '</body></html>'
   ].join('');
   return HtmlService.createHtmlOutput(html)
