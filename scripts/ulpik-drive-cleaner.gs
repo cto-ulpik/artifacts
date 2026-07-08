@@ -3,23 +3,17 @@
 //  Frontend: pages/varios/Ulpik Drive Cleaner (standalone).html
 //
 //  Acciones (?action=):
-//    auth     → OAuth Google + redirige al HTML con ?auth=ok&email=...
-//    status   → { ok, email, used, quota }
-//    scan     → { ok, email, used, quota, files: [...] }
-//    delete   → { ok, deleted }  (ids en JSON via ?ids=[...])
+//    auth          → OAuth + redirige con ?auth=ok&email=...
+//    scan_redirect → escanea Drive y redirige con ?scanToken=... (evita JSONP sin cookies)
+//    payload       → devuelve resultado del escaneo por token (JSONP OK)
+//    status        → { ok, email, used, quota }
+//    scan          → { ok, files, ... } (JSONP; puede fallar fuera de script.google.com)
+//    delete        → { ok, deleted }
 //
-//  DESPLIEGUE (obligatorio):
-//  1. script.google.com → pegar este código
-//  2. Implementar → Nueva implementación → Aplicación web
-//       Ejecutar como: Usuario que accede a la aplicación web  ← imprescindible
-//       Acceso: Cualquier usuario (o solo tu organización @ulpik.com)
-//  3. Copiar la URL /exec de la App web (NO la de biblioteca) al HTML:
-//     https://script.google.com/a/macros/ulpik.com/s/.../exec
-//  4. Autorizar: abrir la URL /exec en el navegador con cuenta @ulpik.com
-//     y aceptar permisos de Google Drive
-//
-//  NOTA: Solo emails @ulpik.com. El admin de Workspace puede restringir
-//  la app en Admin Console → Seguridad → Controles de API → Apps Script.
+//  DESPLIEGUE:
+//    Ejecutar como: Usuario que accede a la aplicación web
+//    Acceso: Cualquier usuario de ulpik.com
+//    URL App web /exec → APPS_SCRIPT_URL en el HTML
 // ════════════════════════════════════════════════════════════
 
 var ALLOWED_REDIRECT_HOSTS = [
@@ -29,9 +23,7 @@ var ALLOWED_REDIRECT_HOSTS = [
   '127.0.0.1'
 ];
 
-// ────────────────────────────────────────────────────────────
-//  HTTP
-// ────────────────────────────────────────────────────────────
+var CACHE_TTL = 600; // 10 min
 
 function doGet(e) {
   try {
@@ -41,6 +33,14 @@ function doGet(e) {
       return handleAuth_(e);
     }
 
+    if (action === 'scan_redirect') {
+      return handleScanRedirect_(e);
+    }
+
+    if (action === 'payload') {
+      return handlePayload_(e);
+    }
+
     var user = requireUlpikUser_();
 
     if (action === 'status') {
@@ -48,7 +48,7 @@ function doGet(e) {
     }
 
     if (action === 'scan') {
-      var minMb = parseInt((e.parameter && e.parameter.minMb) || '500', 10);
+      var minMb = parseInt((e.parameter && e.parameter.minMb) || '50', 10);
       return jsonResponse(buildScan_(user, minMb), e);
     }
 
@@ -70,24 +70,56 @@ function doPost(e) {
 
 function handleAuth_(e) {
   var redirect = (e.parameter && e.parameter.redirect) || '';
-  if (!redirect) {
-    throw new Error('Falta el parámetro redirect');
-  }
+  if (!redirect) throw new Error('Falta el parámetro redirect');
   assertAllowedRedirect_(redirect);
 
   var user = requireUlpikUser_();
   var sep = redirect.indexOf('?') >= 0 ? '&' : '?';
   var target = redirect + sep + 'auth=ok&email=' + encodeURIComponent(user.email);
 
+  return htmlRedirect_(target, 'Conectando ' + user.email + '…');
+}
+
+function handleScanRedirect_(e) {
+  var redirect = (e.parameter && e.parameter.redirect) || '';
+  if (!redirect) throw new Error('Falta el parámetro redirect');
+  assertAllowedRedirect_(redirect);
+
+  var user = requireUlpikUser_();
+  var minMb = parseInt((e.parameter && e.parameter.minMb) || '50', 10);
+  var payload = buildScan_(user, minMb);
+
+  var token = Utilities.getUuid();
+  CacheService.getScriptCache().put('scan:' + token, JSON.stringify(payload), CACHE_TTL);
+
+  var sep = redirect.indexOf('?') >= 0 ? '&' : '?';
+  var target = redirect + sep +
+    'scanToken=' + encodeURIComponent(token) +
+    '&email=' + encodeURIComponent(user.email);
+
+  return htmlRedirect_(target, 'Escaneando tu Drive…');
+}
+
+function handlePayload_(e) {
+  var token = (e.parameter && e.parameter.token) || '';
+  if (!token) throw new Error('Falta token de escaneo');
+
+  var raw = CacheService.getScriptCache().get('scan:' + token);
+  if (!raw) throw new Error('Escaneo expirado. Pulsa «Volver a escanear».');
+
+  CacheService.getScriptCache().remove('scan:' + token);
+  return jsonResponse(JSON.parse(raw), e);
+}
+
+function htmlRedirect_(target, message) {
   var html = [
     '<!DOCTYPE html><html><head><meta charset="utf-8">',
-    '<title>Conectando Drive…</title>',
+    '<title>', message, '</title>',
     '<style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f0f2ef;color:#1c211e}</style>',
-    '</head><body><p>Conectando <strong>', user.email, '</strong>…</p>',
+    '</head><body><p>', message, '</p>',
     '<script>location.replace(', JSON.stringify(target), ');</script>',
     '</body></html>'
   ].join('');
-
   return HtmlService.createHtmlOutput(html)
     .setTitle('Ulpik Drive Cleaner')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -126,12 +158,13 @@ function assertAllowedRedirect_(url) {
 
 function buildStatus_(user) {
   var used = DriveApp.getStorageUsed();
-  var quota = DriveApp.getStorageLimit();
+  var quota = normalizeQuota_(DriveApp.getStorageLimit());
   return {
     ok: true,
     email: user.email,
     used: used,
-    quota: quota
+    quota: quota,
+    scanned: 0
   };
 }
 
@@ -140,44 +173,70 @@ function buildScan_(user, minMb) {
   var files = scanDriveFiles_(minMb);
   markDuplicates_(files);
   status.files = files;
+  status.scanned = files.length;
   return status;
 }
 
-function scanDriveFiles_(minMb) {
-  var minBytes = (minMb || 500) * 1024 * 1024;
-  var files = [];
-  var seen = 0;
-  var max = 400;
+function normalizeQuota_(quota) {
+  if (!quota || quota <= 0) {
+    return 100 * 1024 * 1024 * 1024;
+  }
+  return quota;
+}
 
-  // Archivos grandes
-  var largeIt = DriveApp.searchFiles('trashed = false and mimeType != "application/vnd.google-apps.folder"');
-  while (largeIt.hasNext() && seen < max) {
-    var file = largeIt.next();
-    seen++;
+function scanDriveFiles_(minMb) {
+  var minBytes = Math.max(1, (minMb || 50)) * 1024 * 1024;
+  var files = [];
+  var seen = {};
+  var maxFiles = 300;
+  var maxIter = 5000;
+
+  var it = DriveApp.searchFiles('trashed = false and mimeType != "application/vnd.google-apps.folder"');
+  var n = 0;
+
+  while (it.hasNext() && n < maxIter && files.length < maxFiles) {
+    n++;
+    var file = it.next();
+    var id = file.getId();
+    if (seen[id]) continue;
+
     var size = file.getSize();
-    if (size < minBytes && monthsSince_(file.getLastUpdated()) < 12) {
-      continue;
+    var months = monthsSince_(file.getLastUpdated());
+    var mime = file.getMimeType() || '';
+    var isGoogleNative = mime.indexOf('application/vnd.google-apps.') === 0 && mime !== 'application/vnd.google-apps.folder';
+
+    if (size >= minBytes || months >= 6 || size >= 5 * 1024 * 1024 || isGoogleNative) {
+      seen[id] = true;
+      files.push(fileToDto_(file, isGoogleNative));
     }
-    files.push(fileToDto_(file));
   }
 
   files.sort(function(a, b) { return b.size - a.size; });
-  return files.slice(0, 200);
+  return files;
 }
 
-function fileToDto_(file) {
+function fileToDto_(file, isGoogleNative) {
   var name = file.getName();
   var ext = name.indexOf('.') >= 0 ? name.split('.').pop().toUpperCase() : 'FILE';
+  if (isGoogleNative) {
+    var mime = file.getMimeType() || '';
+    if (mime.indexOf('document') >= 0) ext = 'DOC';
+    else if (mime.indexOf('spreadsheet') >= 0) ext = 'XLSX';
+    else if (mime.indexOf('presentation') >= 0) ext = 'KEY';
+    else ext = 'FILE';
+  }
   var path = 'Mi unidad';
   var parents = file.getParents();
   if (parents.hasNext()) {
     try { path = 'Mi unidad / ' + parents.next().getName(); } catch (err) {}
   }
+  var size = file.getSize();
+  if (isGoogleNative && size === 0) size = 2 * 1024 * 1024;
   return {
     id: file.getId(),
     name: name,
     ext: ext,
-    size: file.getSize(),
+    size: size,
     months: monthsSince_(file.getLastUpdated()),
     path: path
   };
@@ -218,13 +277,13 @@ function parseIds_(raw) {
 }
 
 function deleteFiles_(user, ids) {
-  if (!ids.length) {
-    throw new Error('No hay archivos para eliminar');
-  }
+  if (!ids.length) throw new Error('No hay archivos para eliminar');
   var deleted = 0;
   ids.forEach(function(id) {
     var file = DriveApp.getFileById(id);
-    if (file.getOwner().getEmail() !== user.email && !isSharedWithUser_(file, user.email)) {
+    var ownerEmail = '';
+    try { ownerEmail = file.getOwner().getEmail(); } catch (err) {}
+    if (ownerEmail && ownerEmail !== user.email && !isSharedWithUser_(file, user.email)) {
       throw new Error('No puedes eliminar: ' + file.getName());
     }
     file.setTrashed(true);
@@ -256,26 +315,20 @@ function jsonResponse(obj, e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// ────────────────────────────────────────────────────────────
-//  Pruebas (ejecutar desde el editor con tu cuenta @ulpik.com)
-// ────────────────────────────────────────────────────────────
-
 function testStatus() {
-  var res = doGet({ parameter: { action: 'status', callback: 'cb' } });
-  Logger.log(res.getContent());
+  Logger.log(doGet({ parameter: { action: 'status', callback: 'cb' } }).getContent());
 }
 
 function testScan() {
-  var res = doGet({ parameter: { action: 'scan', minMb: '100', callback: 'cb' } });
-  Logger.log(res.getContent().slice(0, 500) + '...');
+  Logger.log(doGet({ parameter: { action: 'scan', minMb: '10', callback: 'cb' } }).getContent().slice(0, 800));
 }
 
-function testAuthRedirect() {
-  var res = doGet({
+function testScanRedirect() {
+  Logger.log(doGet({
     parameter: {
-      action: 'auth',
+      action: 'scan_redirect',
+      minMb: '10',
       redirect: 'https://cto-ulpik.github.io/artifacts/pages/varios/Ulpik%20Drive%20Cleaner%20(standalone).html'
     }
-  });
-  Logger.log(res.getContent().slice(0, 300));
+  }).getContent().slice(0, 400));
 }
