@@ -26,6 +26,7 @@
 //  Si el error persiste:
 //    - Proyecto → ⚙ → Activar "Drive API" en Servicios (+)
 //    - ⚙ → Mostrar appsscript.json → pegar scripts/ulpik-drive-cleaner.appsscript.json
+//      (debe incluir "runtimeVersion": "V8" — sin esto: error Rhino deprecated)
 //    - https://myaccount.google.com/permissions → quitar la app → volver a autorizar
 // ════════════════════════════════════════════════════════════
 
