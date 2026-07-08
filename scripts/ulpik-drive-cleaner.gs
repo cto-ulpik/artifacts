@@ -16,12 +16,17 @@
 //    URL App web /exec → APPS_SCRIPT_URL en el HTML
 //
 //  AUTORIZAR DRIVE (obligatorio la primera vez):
-//    1. En el editor, ejecutar authorizeDrive() → Aceptar permisos de Drive
-//    2. Implementar → Nueva versión de la App web
-//    3. Abrir la URL /exec con cuenta @ulpik.com y aceptar permisos otra vez
+//    1. Menú ▶ junto a authorizeDrive → Ejecutar
+//    2. Si aparece barra amarilla "Se requiere autorización" → clic en
+//       "Revisar permisos" → elegir cuenta @ulpik.com → Aceptar TODO (Drive)
+//    3. Volver a ejecutar authorizeDrive() hasta ver "✓ Drive autorizado" en Registro
+//    4. Implementar → Administrar implementaciones → Nueva versión → Implementar
+//    5. Abrir la URL /exec en el navegador y aceptar permisos otra vez
 //
-//  Si ves "You do not have permission to call DriveApp.getStorageUsed":
-//    → Falta el paso 1 y/o 2 arriba.
+//  Si el error persiste:
+//    - Proyecto → ⚙ → Activar "Drive API" en Servicios (+)
+//    - ⚙ → Mostrar appsscript.json → pegar scripts/ulpik-drive-cleaner.appsscript.json
+//    - https://myaccount.google.com/permissions → quitar la app → volver a autorizar
 // ════════════════════════════════════════════════════════════
 
 var ALLOWED_REDIRECT_HOSTS = [
@@ -341,19 +346,39 @@ function jsonResponse(obj, e) {
 }
 
 /**
- * Ejecutar UNA VEZ desde el editor (▶) para solicitar permisos de Google Drive.
- * Acepta el diálogo de Google → luego Implementar → Nueva versión.
+ * Ejecutar desde el editor (▶). NO uses testScan para autorizar.
+ * Si falla: busca la barra amarilla "Revisar permisos" arriba del código.
  */
 function authorizeDrive() {
-  var storage = safeStorageInfo_();
+  var authInfo = ScriptApp.getAuthorizationInfo(ScriptApp.AuthMode.FULL);
+  if (authInfo.getAuthorizationStatus() === ScriptApp.AuthorizationStatus.REQUIRED) {
+    Logger.log('⚠ Permisos pendientes. Abre este enlace y acepta:');
+    Logger.log(authInfo.getAuthorizationUrl());
+    throw new Error(
+      'Permisos pendientes. Haz clic en "Revisar permisos" (barra amarilla en el editor) ' +
+      'o abre el enlace que aparece arriba en el Registro.'
+    );
+  }
+
+  var token = ScriptApp.getOAuthToken();
+  if (!token) {
+    throw new Error('Sin token OAuth. Usa "Revisar permisos" en el editor.');
+  }
+
+  // Llamadas directas a Drive (sin envolver) para validar acceso real
+  var used = DriveApp.getStorageUsed();
+  var limit = DriveApp.getStorageLimit();
   var n = 0;
   var it = DriveApp.searchFiles('trashed = false');
   while (it.hasNext() && n < 5) {
     it.next();
     n++;
   }
-  Logger.log('Drive autorizado para ' + Session.getActiveUser().getEmail());
-  Logger.log('Uso: ' + storage.used + ' bytes | Muestra de archivos: ' + n);
+
+  Logger.log('✓ Drive autorizado');
+  Logger.log('Cuenta: ' + Session.getActiveUser().getEmail());
+  Logger.log('Uso: ' + used + ' bytes / límite ' + limit);
+  Logger.log('Archivos leídos (muestra): ' + n);
 }
 
 function testStatus() {
@@ -361,7 +386,6 @@ function testStatus() {
 }
 
 function testScan() {
-  authorizeDrive();
   Logger.log(doGet({ parameter: { action: 'scan', minMb: '10', callback: 'cb' } }).getContent().slice(0, 800));
 }
 
