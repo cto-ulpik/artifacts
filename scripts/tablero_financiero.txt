@@ -27,15 +27,18 @@ function doGet(e) {
  */
 function buildDashboardData() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ingSheet = getSheetByNames_(ss, ['Ingresos2', 'Ingresos']);
+  const gasSheet = getSheetByNames_(ss, ['Gastos2', 'Gastos']);
 
   return {
-    ingSpendee:        buildGroupedByMonthKey(ss, 'Ingresos2',  'I', 'C', 'N'),
-    ingPresup:         buildGroupedByMonthKey(ss, 'Ingresos2',  'I', 'C', 'L'),
-    gastoSpendee:      buildGroupedByMonthKey(ss, 'Gastos2',    'I', 'C', 'N'),
-    gastoPresup:       buildGroupedByMonthKey(ss, 'Gastos2',    'I', 'C', 'L'),
-    gastoByConcepto:       buildConceptoTotals(ss,       'Gastos2'),
-    gastoByConceptoDetail: buildConceptoByGrupoMonth(ss, 'Gastos2'),
-    estadosFinancieros: buildEstadosFinancieros(ss)
+    ingSpendee:            buildGroupedByMonthKeySheet(ingSheet, 'I', 'C', 'N'),
+    ingPresup:             buildGroupedByMonthKeySheet(ingSheet, 'I', 'C', 'L'),
+    gastoSpendee:          buildGroupedByMonthKeySheet(gasSheet, 'I', 'C', 'N'),
+    gastoPresup:           buildGroupedByMonthKeySheet(gasSheet, 'I', 'C', 'L'),
+    gastoByConcepto:       buildConceptoTotalsSheet(gasSheet),
+    gastoByConceptoDetail: buildConceptoByGrupoMonthSheet(gasSheet),
+    gastoByConceptoMonth:  buildConceptoByMonthSheet(gasSheet),
+    estadosFinancieros:    buildEstadosFinancieros(ss)
   };
 }
 
@@ -53,30 +56,28 @@ function buildDashboardData() {
  * @returns {Object}  { "Marcas": { "1-2024": 1234.56, ... }, ... }
  */
 function buildGroupedByMonthKey(ss, sheetName, grupoCol, keyCol, valorCol) {
-  const sheet = ss.getSheetByName(sheetName);
+  return buildGroupedByMonthKeySheet(getSheetByNames_(ss, [sheetName]), grupoCol, keyCol, valorCol);
+}
+
+function buildGroupedByMonthKeySheet(sheet, grupoCol, keyCol, valorCol) {
   if (!sheet) return {};
 
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return {};
 
-  // Convertir letras de columna a índices (A=1)
-  const gIdx = colLetterToIndex(grupoCol);
-  const kIdx = colLetterToIndex(keyCol);
-  const vIdx = colLetterToIndex(valorCol);
+  const gIdx = findColByHeader_(sheet, ['Grupo']) || colLetterToIndex(grupoCol);
+  const kIdx = findColByHeader_(sheet, ['Mes y Año - key', 'Mes y Año key']) || colLetterToIndex(keyCol);
+  const vIdx = findColByHeader_(sheet, ['Spendee', 'Presupuesto']) || colLetterToIndex(valorCol);
 
-  // Leer el bloque completo en una sola llamada (mucho más rápido)
   const maxCol = Math.max(gIdx, kIdx, vIdx);
   const data = sheet.getRange(2, 1, lastRow - 1, maxCol).getValues();
-
   const result = {};
 
   data.forEach(function(row) {
     const grupo = String(row[gIdx - 1] || '').trim();
-    const key   = String(row[kIdx - 1] || '').trim(); // ej: "1-2024"
+    const key   = String(row[kIdx - 1] || '').trim();
     const valor = parseFloat(row[vIdx - 1]) || 0;
-
     if (!grupo || !key || valor === 0) return;
-
     if (!result[grupo]) result[grupo] = {};
     result[grupo][key] = round2((result[grupo][key] || 0) + valor);
   });
@@ -85,30 +86,38 @@ function buildGroupedByMonthKey(ss, sheetName, grupoCol, keyCol, valorCol) {
 }
 
 /**
- * Gastos por Concepto (col J) agrupados por Grupo (I) y mes-año (C).
- * { "Marcas": { "5-2026": { "Sueldo team": 1234.56, ... } }, ... }
+ * Columnas en hoja Gastos/Gastos2:
+ *   Grupo → col I | Mes y Año - key → col C | Concepto → col J | Spendee → col N
  */
+function getGastosColumnIndexes_(sheet) {
+  return {
+    grupo: findColByHeader_(sheet, ['Grupo']) || colLetterToIndex('I'),
+    key: findColByHeader_(sheet, ['Mes y Año - key', 'Mes y Año key']) || colLetterToIndex('C'),
+    concepto: findColByHeader_(sheet, ['Concepto']) || colLetterToIndex('J'),
+    valor: findColByHeader_(sheet, ['Spendee', 'Gasto', 'Monto']) || colLetterToIndex('N')
+  };
+}
+
 function buildConceptoByGrupoMonth(ss, sheetName) {
-  const sheet = ss.getSheetByName(sheetName);
+  return buildConceptoByGrupoMonthSheet(getSheetByNames_(ss, [sheetName, 'Gastos']));
+}
+
+function buildConceptoByGrupoMonthSheet(sheet) {
   if (!sheet) return {};
 
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return {};
 
-  const gIdx = colLetterToIndex('I');
-  const kIdx = colLetterToIndex('C');
-  const jIdx = colLetterToIndex('J');
-  const nIdx = colLetterToIndex('N');
-  const maxCol = Math.max(gIdx, kIdx, jIdx, nIdx);
-
+  const cols = getGastosColumnIndexes_(sheet);
+  const maxCol = Math.max(cols.grupo, cols.key, cols.concepto, cols.valor);
   const data = sheet.getRange(2, 1, lastRow - 1, maxCol).getValues();
   const result = {};
 
   data.forEach(function(row) {
-    const grupo    = String(row[gIdx - 1] || '').trim();
-    const key      = String(row[kIdx - 1] || '').trim();
-    const concepto = String(row[jIdx - 1] || '').trim();
-    const valor    = parseFloat(row[nIdx - 1]) || 0;
+    const grupo    = String(row[cols.grupo - 1] || '').trim();
+    const key      = String(row[cols.key - 1] || '').trim();
+    const concepto = String(row[cols.concepto - 1] || '').trim();
+    const valor    = parseFloat(row[cols.valor - 1]) || 0;
     if (!grupo || !key || !concepto || valor === 0) return;
     if (!result[grupo]) result[grupo] = {};
     if (!result[grupo][key]) result[grupo][key] = {};
@@ -118,11 +127,32 @@ function buildConceptoByGrupoMonth(ss, sheetName) {
   return result;
 }
 
+/** { "1-2024": { "Publicidad": 100, "Software": 50 } } — etiquetas = Concepto */
+function buildConceptoByMonthSheet(sheet) {
+  const detail = buildConceptoByGrupoMonthSheet(sheet);
+  const result = {};
+
+  Object.keys(detail).forEach(function(grupo) {
+    Object.keys(detail[grupo]).forEach(function(key) {
+      if (!result[key]) result[key] = {};
+      Object.keys(detail[grupo][key]).forEach(function(concepto) {
+        result[key][concepto] = round2((result[key][concepto] || 0) + detail[grupo][key][concepto]);
+      });
+    });
+  });
+
+  return result;
+}
+
 /**
  * Totales por concepto (all-time). Derivado de buildConceptoByGrupoMonth.
  */
 function buildConceptoTotals(ss, sheetName) {
-  const detail = buildConceptoByGrupoMonth(ss, sheetName);
+  return buildConceptoTotalsSheet(getSheetByNames_(ss, [sheetName, 'Gastos']));
+}
+
+function buildConceptoTotalsSheet(sheet) {
+  const detail = buildConceptoByGrupoMonthSheet(sheet);
   const result = {};
 
   Object.keys(detail).forEach(function(grupo) {
@@ -193,6 +223,27 @@ function colLetterToIndex(col) {
     n = n * 26 + (col.charCodeAt(i) - 64);
   }
   return n;
+}
+
+function getSheetByNames_(ss, names) {
+  for (var i = 0; i < names.length; i++) {
+    var sheet = ss.getSheetByName(names[i]);
+    if (sheet) return sheet;
+  }
+  return null;
+}
+
+function findColByHeader_(sheet, headerNames) {
+  if (!sheet) return null;
+  var lastCol = sheet.getLastColumn();
+  if (lastCol < 1) return null;
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var want = headerNames.map(function(h) { return String(h).trim().toLowerCase(); });
+  for (var i = 0; i < headers.length; i++) {
+    var h = String(headers[i] || '').trim().toLowerCase();
+    if (want.indexOf(h) >= 0) return i + 1;
+  }
+  return null;
 }
 
 function round2(n) {

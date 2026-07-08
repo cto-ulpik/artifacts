@@ -397,7 +397,8 @@ const MONTH_SHORT = {1:'Ene',2:'Feb',3:'Mar',4:'Abr',5:'May',6:'Jun',7:'Jul',8:'
 const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxfO8V9vUbuU4AdlNPsIucqv7LT49YHak_OO2Eq7JQsKxY5pptXxF4BO9wXvghL2zef/exec';
 
 let ingSpendee = {}, ingPresup = {}, gastoSpendee = {},
-    gastoPresup = {}, gastoByConcepto = {}, gastoByConceptoDetail = {}, estadosFinancieros = {};
+    gastoPresup = {}, gastoByConcepto = {}, gastoByConceptoDetail = {},
+    gastoByConceptoMonth = {}, estadosFinancieros = {};
 
 function fetchDashboardJsonp(url) {
   return new Promise((resolve, reject) => {
@@ -428,6 +429,7 @@ async function loadDataFromSheet() {
     gastoPresup       = d.gastoPresup       || {};
     gastoByConcepto       = d.gastoByConcepto       || {};
     gastoByConceptoDetail = d.gastoByConceptoDetail || {};
+    gastoByConceptoMonth   = d.gastoByConceptoMonth   || {};
     estadosFinancieros = d.estadosFinancieros || {};
     return true;
   } catch(err) {
@@ -552,6 +554,15 @@ function getFilteredConceptoTotals() {
         Object.entries(gData[k] || {}).forEach(([concepto, valor]) => {
           agg[concepto] = (agg[concepto] || 0) + valor;
         });
+      });
+    });
+    return agg;
+  }
+
+  if (currentGrupo === 'all' && Object.keys(gastoByConceptoMonth).length > 0) {
+    keys.forEach(k => {
+      Object.entries(gastoByConceptoMonth[k] || {}).forEach(([concepto, valor]) => {
+        agg[concepto] = (agg[concepto] || 0) + valor;
       });
     });
     return agg;
