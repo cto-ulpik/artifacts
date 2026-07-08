@@ -114,59 +114,19 @@ function handleScanRedirect_(e) {
 
   var user = requireUlpikUser_();
   var minMb = parseInt((e.parameter && e.parameter.minMb) || '5', 10);
-  var sessionId = (e.parameter && e.parameter.session) || '';
-  var step = parseInt((e.parameter && e.parameter.step) || '0', 10);
-  var session;
-
-  if (sessionId) {
-    var raw = cacheGetJson_('sess:' + sessionId);
-    if (!raw) {
-      throw new Error('Sesión de escaneo expirada. Pulsa Reintentar para volver a escanear.');
-    }
-    session = JSON.parse(raw);
-  } else {
-    sessionId = Utilities.getUuid();
-    session = { files: [], seen: {}, minMb: minMb };
-  }
-
-  if (step < 0 || step >= SCAN_STEPS.length) {
-    throw new Error('Paso de escaneo inválido');
-  }
-
-  runScanStep_(session, step, minMb);
-
-  if (step < SCAN_STEPS.length - 1) {
-    if (!cachePutJson_('sess:' + sessionId, session, CACHE_TTL)) {
-      throw new Error('No se pudo guardar el progreso del escaneo. Intenta de nuevo.');
-    }
-    var next = ScriptApp.getService().getUrl()
-      + '?action=scan_redirect'
-      + '&session=' + encodeURIComponent(sessionId)
-      + '&step=' + (step + 1)
-      + '&minMb=' + encodeURIComponent(String(minMb))
-      + '&redirect=' + encodeURIComponent(redirect);
-    var label = SCAN_STEPS[step + 1].label || ('paso ' + (step + 2));
-    return htmlRedirect_(next, 'Escaneando ' + label + ' (' + (step + 2) + '/' + SCAN_STEPS.length + ')…');
-  }
-
-  session.files.sort(function(a, b) { return b.size - a.size; });
-  markDuplicates_(session.files);
-  var payload = buildStatus_(user);
-  payload.files = session.files;
-  payload.scanned = session.files.length;
+  var payload = buildScan_(user, minMb);
 
   var token = Utilities.getUuid();
   if (!cachePutJson_('scan:' + token, payload, CACHE_TTL)) {
     throw new Error('No se pudo guardar el escaneo. Intenta de nuevo.');
   }
-  cacheRemoveJson_('sess:' + sessionId);
 
   var sep = redirect.indexOf('?') >= 0 ? '&' : '?';
   var target = redirect + sep +
     'scanToken=' + encodeURIComponent(token) +
     '&email=' + encodeURIComponent(user.email);
 
-  return htmlRedirect_(target, 'Escaneo completado. Volviendo a la app…');
+  return htmlRedirect_(target, 'Escaneo completado (' + payload.scanned + ' archivos). Pulsa Continuar para volver.');
 }
 
 function handlePayload_(e) {
@@ -415,7 +375,7 @@ function collectSizeBandsV3_(session, bands, floorMb) {
     return Math.max(b.min, floorMb);
   })));
   var pages = 0;
-  var maxPages = 20;
+  var maxPages = 12;
 
   while (files.length < SCAN_MAX_FILES && pages < maxPages) {
     var res = driveV3List_(DRIVE_V3_BASE_Q, pageToken, 100, 'quotaBytesUsed desc');
