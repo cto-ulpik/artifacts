@@ -4,7 +4,7 @@
 //
 //  Acciones (?action=):
 //    auth          → OAuth + redirige con ?auth=ok&email=...
-//    scan_redirect → escanea Drive y redirige con ?scanToken=... (evita JSONP sin cookies)
+//    scan_redirect → escanea Drive por bloques de tamaño y redirige con ?scanToken=...
 //    payload       → devuelve resultado del escaneo por token (JSONP OK)
 //    status        → { ok, email, used, quota }
 //    scan          → { ok, files, ... } (JSONP; puede fallar fuera de script.google.com)
@@ -38,6 +38,17 @@ var ALLOWED_REDIRECT_HOSTS = [
 ];
 
 var CACHE_TTL = 1800; // 30 min (el payload se lee en segundos; margen por si tarda el redirect)
+
+/** Escaneo por bloques de tamaño (consultas indexadas, mucho más rápido que iterar todo el Drive) */
+var SCAN_STEPS = [
+  { label: 'muy grandes', bands: [{ min: 500, max: null }, { min: 50, max: 500 }] },
+  { label: 'grandes', bands: [{ min: 40, max: 50 }, { min: 30, max: 40 }, { min: 20, max: 30 }] },
+  { label: 'medianos', bands: [{ min: 10, max: 20 }, { min: 5, max: 10 }] },
+  { label: 'antiguos', old: true }
+];
+
+var SCAN_MAX_FILES = 200;
+var SCAN_MAX_PER_QUERY = 80;
 
 function doGet(e) {
   try {
@@ -101,21 +112,59 @@ function handleScanRedirect_(e) {
 
   var user = requireUlpikUser_();
   var minMb = parseInt((e.parameter && e.parameter.minMb) || '5', 10);
-  var payload = buildScan_(user, minMb);
+  var sessionId = (e.parameter && e.parameter.session) || '';
+  var step = parseInt((e.parameter && e.parameter.step) || '0', 10);
+  var session;
+
+  if (sessionId) {
+    var raw = cacheGetJson_('sess:' + sessionId);
+    if (!raw) {
+      throw new Error('Sesión de escaneo expirada. Pulsa Reintentar para volver a escanear.');
+    }
+    session = JSON.parse(raw);
+  } else {
+    sessionId = Utilities.getUuid();
+    session = { files: [], seen: {}, minMb: minMb };
+  }
+
+  if (step < 0 || step >= SCAN_STEPS.length) {
+    throw new Error('Paso de escaneo inválido');
+  }
+
+  runScanStep_(session, step, minMb);
+
+  if (step < SCAN_STEPS.length - 1) {
+    if (!cachePutJson_('sess:' + sessionId, session, CACHE_TTL)) {
+      throw new Error('No se pudo guardar el progreso del escaneo. Intenta de nuevo.');
+    }
+    var next = ScriptApp.getService().getUrl()
+      + '?action=scan_redirect'
+      + '&session=' + encodeURIComponent(sessionId)
+      + '&step=' + (step + 1)
+      + '&minMb=' + encodeURIComponent(String(minMb))
+      + '&redirect=' + encodeURIComponent(redirect);
+    var label = SCAN_STEPS[step + 1].label || ('paso ' + (step + 2));
+    return htmlRedirect_(next, 'Escaneando ' + label + ' (' + (step + 2) + '/' + SCAN_STEPS.length + ')…');
+  }
+
+  session.files.sort(function(a, b) { return b.size - a.size; });
+  markDuplicates_(session.files);
+  var payload = buildStatus_(user);
+  payload.files = session.files;
+  payload.scanned = session.files.length;
 
   var token = Utilities.getUuid();
-  var cacheKey = 'scan:' + token;
-  var stored = cachePutJson_(cacheKey, payload, CACHE_TTL);
-  if (!stored) {
+  if (!cachePutJson_('scan:' + token, payload, CACHE_TTL)) {
     throw new Error('No se pudo guardar el escaneo. Intenta de nuevo.');
   }
+  cacheRemoveJson_('sess:' + sessionId);
 
   var sep = redirect.indexOf('?') >= 0 ? '&' : '?';
   var target = redirect + sep +
     'scanToken=' + encodeURIComponent(token) +
     '&email=' + encodeURIComponent(user.email);
 
-  return htmlRedirect_(target, 'Escaneando tu Drive…');
+  return htmlRedirect_(target, 'Escaneo completado. Volviendo a la app…');
 }
 
 function handlePayload_(e) {
@@ -204,9 +253,8 @@ function htmlRedirect_(target, message) {
     '<script>',
     '(function(){',
     'var u=', safe, ';',
-    'function go(){try{(window.top||window).location.replace(u);}catch(e){window.open(u,"_blank");}}',
+    'function go(){try{(window.top||window).location.replace(u);}catch(e){window.location.replace(u);}}',
     'go();',
-    'setTimeout(go,400);',
     '})();',
     '</script>',
     '</body></html>'
@@ -277,11 +325,15 @@ function buildStatus_(user) {
 }
 
 function buildScan_(user, minMb) {
+  var session = { files: [], seen: {}, minMb: minMb };
+  for (var i = 0; i < SCAN_STEPS.length; i++) {
+    runScanStep_(session, i, minMb);
+  }
+  session.files.sort(function(a, b) { return b.size - a.size; });
+  markDuplicates_(session.files);
   var status = buildStatus_(user);
-  var files = scanDriveFiles_(minMb);
-  markDuplicates_(files);
-  status.files = files;
-  status.scanned = files.length;
+  status.files = session.files;
+  status.scanned = session.files.length;
   return status;
 }
 
@@ -292,35 +344,62 @@ function normalizeQuota_(quota) {
   return quota;
 }
 
-function scanDriveFiles_(minMb) {
-  var minBytes = Math.max(1, (minMb || 5)) * 1024 * 1024;
-  var files = [];
-  var seen = {};
-  var maxFiles = 200;
-  var maxIter = 1200;
+function mbToBytes_(mb) {
+  return Math.round(mb * 1024 * 1024);
+}
 
-  var it = DriveApp.searchFiles('trashed = false and mimeType != "application/vnd.google-apps.folder"');
+function sixMonthsAgoIso_() {
+  var d = new Date();
+  d.setMonth(d.getMonth() - 6);
+  return d.toISOString().split('T')[0];
+}
+
+function buildSizeQuery_(minMb, maxMb) {
+  var q = 'trashed = false and mimeType != "application/vnd.google-apps.folder"';
+  q += ' and size >= ' + mbToBytes_(minMb);
+  if (maxMb != null) {
+    q += ' and size < ' + mbToBytes_(maxMb);
+  }
+  return q;
+}
+
+function runScanStep_(session, step, minMb) {
+  var cfg = SCAN_STEPS[step];
+  if (!cfg) return;
+
+  var seen = session.seen || (session.seen = {});
+  var files = session.files || (session.files = []);
+  var floorMb = Math.max(5, minMb || 5);
+
+  if (cfg.old) {
+    var date = sixMonthsAgoIso_();
+    var oldQ = 'trashed = false and mimeType != "application/vnd.google-apps.folder" and modifiedTime < "' + date + '"';
+    collectFilesFromQuery_(oldQ, seen, files, SCAN_MAX_PER_QUERY, SCAN_MAX_FILES);
+    return;
+  }
+
+  (cfg.bands || []).forEach(function(band) {
+    var min = Math.max(band.min, floorMb);
+    if (band.max != null && min >= band.max) return;
+    collectFilesFromQuery_(buildSizeQuery_(min, band.max), seen, files, SCAN_MAX_PER_QUERY, SCAN_MAX_FILES);
+  });
+}
+
+function collectFilesFromQuery_(query, seen, files, maxPerQuery, maxTotal) {
+  var it = DriveApp.searchFiles(query);
   var n = 0;
 
-  while (it.hasNext() && n < maxIter && files.length < maxFiles) {
+  while (it.hasNext() && n < maxPerQuery && files.length < maxTotal) {
     n++;
     var file = it.next();
     var id = file.getId();
     if (seen[id]) continue;
 
-    var size = file.getSize();
-    var months = monthsSince_(file.getLastUpdated());
     var mime = file.getMimeType() || '';
-    var isGoogleNative = mime.indexOf('application/vnd.google-apps.') === 0 && mime !== 'application/vnd.google-apps.folder';
-
-    if (size >= minBytes || months >= 6 || size >= 5 * 1024 * 1024 || isGoogleNative) {
-      seen[id] = true;
-      files.push(fileToDto_(file, isGoogleNative, false));
-    }
+    var isGoogleNative = mime.indexOf('application/vnd.google-apps.') === 0;
+    seen[id] = true;
+    files.push(fileToDto_(file, isGoogleNative, false));
   }
-
-  files.sort(function(a, b) { return b.size - a.size; });
-  return files;
 }
 
 function fileToDto_(file, isGoogleNative, includePath) {
