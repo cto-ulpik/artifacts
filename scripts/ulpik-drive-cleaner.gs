@@ -24,9 +24,9 @@
 //    5. Abrir la URL /exec en el navegador y aceptar permisos otra vez
 //
 //  Si el error persiste:
-//    - Proyecto → ⚙ → Activar "Drive API" en Servicios (+)
+//    - ⚙ → Servicios (+) → activar "Drive API" (Advanced Service)
 //    - ⚙ → Mostrar appsscript.json → pegar scripts/ulpik-drive-cleaner.appsscript.json
-//      (V8 + scopes drive, script.external_request para UrlFetchApp → Drive API v3)
+//      (V8 + Drive API v3 avanzada; no requiere UrlFetchApp ni external_request)
 //    - https://myaccount.google.com/permissions → quitar la app → volver a autorizar
 // ════════════════════════════════════════════════════════════
 
@@ -360,32 +360,29 @@ function isDriveFolder_(mime) {
   return mime === 'application/vnd.google-apps.folder';
 }
 
-/** Drive API v3 — DriveApp.searchFiles no admite `size` en la query (error: Argumento no válido: q) */
+/** Drive API v3 (Advanced Service) — sin UrlFetchApp, solo scope drive */
 function driveV3List_(q, pageToken, pageSize, orderBy) {
-  var params = [
-    'q=' + encodeURIComponent(q),
-    'pageSize=' + String(pageSize || 100),
-    'fields=' + encodeURIComponent('nextPageToken,files(id,name,mimeType,size,modifiedTime)'),
-    'corpora=user',
-    'spaces=drive'
-  ];
-  if (pageToken) params.push('pageToken=' + encodeURIComponent(pageToken));
-  if (orderBy) params.push('orderBy=' + encodeURIComponent(orderBy));
-
-  var resp = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files?' + params.join('&'), {
-    headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
-    muteHttpExceptions: true
-  });
-  if (resp.getResponseCode() !== 200) {
-    var errBody = resp.getContentText();
-    var detail = errBody;
-    try {
-      var errJson = JSON.parse(errBody);
-      detail = (errJson.error && errJson.error.message) || errBody;
-    } catch (ignore) {}
-    throw new Error('Drive API: ' + detail + ' [q=' + q + ']');
+  var opts = {
+    q: q,
+    pageSize: pageSize || 100,
+    fields: 'nextPageToken,files(id,name,mimeType,size,modifiedTime)',
+    corpora: 'user',
+    spaces: 'drive'
+  };
+  if (pageToken) opts.pageToken = pageToken;
+  if (orderBy) opts.orderBy = orderBy;
+  try {
+    return Drive.Files.list(opts);
+  } catch (err) {
+    var msg = String(err.message || err);
+    if (/Drive is not defined|undefined/i.test(msg)) {
+      throw new Error(
+        'Falta activar Drive API: Apps Script → ⚙ → Servicios (+) → Drive API → Activar. ' +
+        'Luego nueva implementación del despliegue.'
+      );
+    }
+    throw new Error('Drive API: ' + msg + ' [q=' + q + ']');
   }
-  return JSON.parse(resp.getContentText());
 }
 
 function matchesSizeBand_(size, bands, floorMb) {
