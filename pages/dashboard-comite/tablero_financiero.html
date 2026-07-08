@@ -397,7 +397,7 @@ const MONTH_SHORT = {1:'Ene',2:'Feb',3:'Mar',4:'Abr',5:'May',6:'Jun',7:'Jul',8:'
 const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxfO8V9vUbuU4AdlNPsIucqv7LT49YHak_OO2Eq7JQsKxY5pptXxF4BO9wXvghL2zef/exec';
 
 let ingSpendee = {}, ingPresup = {}, gastoSpendee = {},
-    gastoPresup = {}, gastoByConcepto = {}, estadosFinancieros = {};
+    gastoPresup = {}, gastoByConcepto = {}, gastoByConceptoDetail = {}, estadosFinancieros = {};
 
 function fetchDashboardJsonp(url) {
   return new Promise((resolve, reject) => {
@@ -426,7 +426,8 @@ async function loadDataFromSheet() {
     ingPresup         = d.ingPresup         || {};
     gastoSpendee      = d.gastoSpendee      || {};
     gastoPresup       = d.gastoPresup       || {};
-    gastoByConcepto   = d.gastoByConcepto   || {};
+    gastoByConcepto       = d.gastoByConcepto       || {};
+    gastoByConceptoDetail = d.gastoByConceptoDetail || {};
     estadosFinancieros = d.estadosFinancieros || {};
     return true;
   } catch(err) {
@@ -536,6 +537,32 @@ function sumByKey(data, key) {
   let total = 0;
   Object.keys(data).forEach(g => { total += (data[g]?.[key]||0); });
   return total;
+}
+
+/** Totales por concepto respetando filtros de mes, año, rango y unidad de negocio */
+function getFilteredConceptoTotals() {
+  const keys = getFilteredKeys();
+  const agg = {};
+
+  if (Object.keys(gastoByConceptoDetail).length > 0) {
+    const grupos = currentGrupo === 'all' ? Object.keys(gastoByConceptoDetail) : [currentGrupo];
+    grupos.forEach(g => {
+      const gData = gastoByConceptoDetail[g] || {};
+      keys.forEach(k => {
+        Object.entries(gData[k] || {}).forEach(([concepto, valor]) => {
+          agg[concepto] = (agg[concepto] || 0) + valor;
+        });
+      });
+    });
+    return agg;
+  }
+
+  // API antigua sin detalle por mes: solo all-time si no hay filtro de periodo
+  const allKeys = getMonthKeys(currentYear);
+  const noPeriodFilter = currentMonth === 'all' && !currentDesde && !currentHasta
+    && keys.length === allKeys.length;
+  if (noPeriodFilter) return Object.assign({}, gastoByConcepto);
+  return agg;
 }
 
 // ═══════════════════════════════════════════
@@ -813,10 +840,10 @@ function renderGastos() {
     })()}
   `;
 
-  // Pie distribución (all-time histórico)
+  // Pie distribución — respeta filtros de mes / año / unidad
   destroyChart('chartGastosPie');
   const pieColors = ['#ff2500','#00adb0','#823bda','#f98d0b','#22c55e','#6366f1','#ec4899','#14b8a6','#f59e0b'];
-  const conceptoEntries = Object.entries(gastoByConcepto).sort((a,b) => b[1]-a[1]);
+  const conceptoEntries = Object.entries(getFilteredConceptoTotals()).sort((a,b) => b[1]-a[1]);
   const topConceptos = conceptoEntries.slice(0,8);
   const otrosV = conceptoEntries.slice(8).reduce((s,e) => s+e[1],0);
   const pieLabels = topConceptos.map(e => e[0]);
@@ -831,7 +858,7 @@ function renderGastos() {
       responsive:true, maintainAspectRatio:false,
       plugins:{
         legend:{ position:'right', labels:{ color:'#888', font:{family:'DM Sans',size:11}, padding:10 } },
-        tooltip:{ callbacks:{ label: ctx => ctx.label+': '+fmt(ctx.parsed)+' ('+pct(ctx.parsed/totalAllGasto)+')' } }
+        tooltip:{ callbacks:{ label: ctx => ctx.label+': '+fmt(ctx.parsed)+(totalAllGasto>0?' ('+pct(ctx.parsed/totalAllGasto)+')':'') } }
       }
     }
   });
