@@ -363,39 +363,50 @@ function jsonResponse(obj, e) {
 }
 
 /**
- * Ejecutar desde el editor (▶). NO uses testScan para autorizar.
- * Si falla: busca la barra amarilla "Revisar permisos" arriba del código.
+ * Ejecutar desde el editor (▶).
+ * 1ª vez: aparece barra amarilla "Se requiere autorización" → Revisar permisos → Aceptar Drive
+ * 2ª vez: debe mostrar "✓ Drive autorizado" en el Registro
  */
 function authorizeDrive() {
-  var authInfo = ScriptApp.getAuthorizationInfo(ScriptApp.AuthMode.FULL);
-  if (authInfo.getAuthorizationStatus() === ScriptApp.AuthorizationStatus.REQUIRED) {
-    Logger.log('⚠ Permisos pendientes. Abre este enlace y acepta:');
-    Logger.log(authInfo.getAuthorizationUrl());
-    throw new Error(
-      'Permisos pendientes. Haz clic en "Revisar permisos" (barra amarilla en el editor) ' +
-      'o abre el enlace que aparece arriba en el Registro.'
-    );
-  }
+  var email = Session.getActiveUser().getEmail() || '(cuenta activa en el editor)';
+  Logger.log('Solicitando acceso a Drive para: ' + email);
+  Logger.log('Si ves barra amarilla arriba del código → "Revisar permisos" → Aceptar.');
 
-  var token = ScriptApp.getOAuthToken();
-  if (!token) {
-    throw new Error('Sin token OAuth. Usa "Revisar permisos" en el editor.');
-  }
+  try {
+    var used = DriveApp.getStorageUsed();
+    var limit = DriveApp.getStorageLimit();
+    var n = 0;
+    var it = DriveApp.searchFiles('trashed = false');
+    while (it.hasNext() && n < 5) {
+      it.next();
+      n++;
+    }
 
-  // Llamadas directas a Drive (sin envolver) para validar acceso real
-  var used = DriveApp.getStorageUsed();
-  var limit = DriveApp.getStorageLimit();
-  var n = 0;
-  var it = DriveApp.searchFiles('trashed = false');
-  while (it.hasNext() && n < 5) {
-    it.next();
-    n++;
-  }
+    Logger.log('✓ Drive autorizado');
+    Logger.log('Cuenta: ' + Session.getActiveUser().getEmail());
+    Logger.log('Uso: ' + used + ' bytes / límite ' + limit);
+    Logger.log('Archivos leídos (muestra): ' + n);
+    return true;
 
-  Logger.log('✓ Drive autorizado');
-  Logger.log('Cuenta: ' + Session.getActiveUser().getEmail());
-  Logger.log('Uso: ' + used + ' bytes / límite ' + limit);
-  Logger.log('Archivos leídos (muestra): ' + n);
+  } catch (err) {
+    var msg = String(err.message || err);
+    Logger.log('✗ ' + msg);
+    Logger.log('');
+    Logger.log('── Cómo autorizar ──');
+    Logger.log('1. Mira ARRIBA del editor (no el Registro): barra amarilla "Se requiere autorización"');
+    Logger.log('2. Clic en "Revisar permisos"');
+    Logger.log('3. Cuenta @ulpik.com → Avanzado si hace falta → Aceptar permisos de Drive');
+    Logger.log('4. Ejecuta authorizeDrive otra vez');
+    Logger.log('');
+    Logger.log('Si no hay barra amarilla: abre la URL /exec de la App web en el navegador y acepta ahí.');
+
+    try {
+      var url = ScriptApp.getAuthorizationInfo(ScriptApp.AuthMode.FULL).getAuthorizationUrl();
+      if (url) Logger.log('Enlace alternativo: ' + url);
+    } catch (ignore) {}
+
+    throw new Error('Permisos de Drive pendientes. Sigue los pasos del Registro y vuelve a ejecutar.');
+  }
 }
 
 function testStatus() {
