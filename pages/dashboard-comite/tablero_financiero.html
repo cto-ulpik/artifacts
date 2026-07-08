@@ -338,7 +338,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg-dark); color:var(--
   <div class="kpi-grid" id="kpi-gastos"></div>
   <div class="two-col">
     <div class="section">
-      <div class="section-title"><span class="dot"></span> Distribución de Gastos</div>
+      <div class="section-title"><span class="dot"></span> Distribución de Gastos <span style="font-weight:400;color:#666;font-size:12px">· por Concepto</span></div>
       <div class="chart-wrap"><canvas id="chartGastosPie"></canvas></div>
     </div>
     <div class="section">
@@ -394,7 +394,7 @@ const MONTH_SHORT = {1:'Ene',2:'Feb',3:'Mar',4:'Abr',5:'May',6:'Jun',7:'Jul',8:'
 // ═══════════════════════════════════════════
 // DATA — cargada dinámicamente desde Google Sheets
 // ═══════════════════════════════════════════
-const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxfO8V9vUbuU4AdlNPsIucqv7LT49YHak_OO2Eq7JQsKxY5pptXxF4BO9wXvghL2zef/exec';
+const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxae6tDKHs6duZoq43MgJ23rzT0jLEN4YzVluVuvXyrk24VOrnuE4FbrDkbZ3LnzOP40A/exec';
 
 let ingSpendee = {}, ingPresup = {}, gastoSpendee = {},
     gastoPresup = {}, gastoByConcepto = {}, gastoByConceptoDetail = {},
