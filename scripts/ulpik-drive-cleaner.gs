@@ -62,7 +62,7 @@ function doGet(e) {
     }
 
     if (action === 'scan') {
-      var minMb = parseInt((e.parameter && e.parameter.minMb) || '50', 10);
+      var minMb = parseInt((e.parameter && e.parameter.minMb) || '5', 10);
       return jsonResponse(buildScan_(user, minMb), e);
     }
 
@@ -100,7 +100,7 @@ function handleScanRedirect_(e) {
   assertAllowedRedirect_(redirect);
 
   var user = requireUlpikUser_();
-  var minMb = parseInt((e.parameter && e.parameter.minMb) || '50', 10);
+  var minMb = parseInt((e.parameter && e.parameter.minMb) || '5', 10);
   var payload = buildScan_(user, minMb);
 
   var token = Utilities.getUuid();
@@ -232,7 +232,7 @@ function normalizeQuota_(quota) {
 }
 
 function scanDriveFiles_(minMb) {
-  var minBytes = Math.max(1, (minMb || 50)) * 1024 * 1024;
+  var minBytes = Math.max(1, (minMb || 5)) * 1024 * 1024;
   var files = [];
   var seen = {};
   var maxFiles = 300;
