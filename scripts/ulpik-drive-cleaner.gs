@@ -49,6 +49,7 @@ var SCAN_STEPS = [
 
 var SCAN_MAX_FILES = 200;
 var SCAN_MAX_PER_QUERY = 80;
+var DRIVE_V3_BASE_Q = "trashed = false and mimeType != 'application/vnd.google-apps.folder'";
 
 function doGet(e) {
   try {
@@ -351,16 +352,40 @@ function mbToBytes_(mb) {
 function sixMonthsAgoIso_() {
   var d = new Date();
   d.setMonth(d.getMonth() - 6);
-  return d.toISOString().split('T')[0];
+  return d.toISOString().split('T')[0] + 'T00:00:00';
 }
 
-function buildSizeQuery_(minMb, maxMb) {
-  var q = 'trashed = false and mimeType != "application/vnd.google-apps.folder"';
-  q += ' and size >= ' + mbToBytes_(minMb);
-  if (maxMb != null) {
-    q += ' and size < ' + mbToBytes_(maxMb);
+/** Drive API v3 — DriveApp.searchFiles no admite `size` en la query (error: Argumento no válido: q) */
+function driveV3List_(q, pageToken, pageSize, orderBy) {
+  var params = [
+    'q=' + encodeURIComponent(q),
+    'pageSize=' + String(pageSize || 100),
+    'fields=' + encodeURIComponent('nextPageToken,files(id,name,mimeType,size,modifiedTime)'),
+    'supportsAllDrives=true',
+    'includeItemsFromAllDrives=true'
+  ];
+  if (pageToken) params.push('pageToken=' + encodeURIComponent(pageToken));
+  if (orderBy) params.push('orderBy=' + encodeURIComponent(orderBy));
+
+  var resp = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files?' + params.join('&'), {
+    headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
+    muteHttpExceptions: true
+  });
+  if (resp.getResponseCode() !== 200) {
+    throw new Error('Drive API: ' + resp.getContentText().slice(0, 200));
   }
-  return q;
+  return JSON.parse(resp.getContentText());
+}
+
+function matchesSizeBand_(size, bands, floorMb) {
+  for (var i = 0; i < bands.length; i++) {
+    var band = bands[i];
+    var min = mbToBytes_(Math.max(band.min, floorMb));
+    if (size < min) continue;
+    if (band.max != null && size >= mbToBytes_(band.max)) continue;
+    return true;
+  }
+  return false;
 }
 
 function runScanStep_(session, step, minMb) {
@@ -372,34 +397,96 @@ function runScanStep_(session, step, minMb) {
   var floorMb = Math.max(5, minMb || 5);
 
   if (cfg.old) {
-    var date = sixMonthsAgoIso_();
-    var oldQ = 'trashed = false and mimeType != "application/vnd.google-apps.folder" and modifiedTime < "' + date + '"';
-    collectFilesFromQuery_(oldQ, seen, files, SCAN_MAX_PER_QUERY, SCAN_MAX_FILES);
+    collectOldFilesV3_(seen, files);
     return;
   }
 
-  (cfg.bands || []).forEach(function(band) {
-    var min = Math.max(band.min, floorMb);
-    if (band.max != null && min >= band.max) return;
-    collectFilesFromQuery_(buildSizeQuery_(min, band.max), seen, files, SCAN_MAX_PER_QUERY, SCAN_MAX_FILES);
-  });
+  collectSizeBandsV3_(session, cfg.bands || [], floorMb);
 }
 
-function collectFilesFromQuery_(query, seen, files, maxPerQuery, maxTotal) {
-  var it = DriveApp.searchFiles(query);
-  var n = 0;
+function collectSizeBandsV3_(session, bands, floorMb) {
+  if (!bands.length) return;
 
-  while (it.hasNext() && n < maxPerQuery && files.length < maxTotal) {
-    n++;
-    var file = it.next();
-    var id = file.getId();
-    if (seen[id]) continue;
+  var seen = session.seen;
+  var files = session.files;
+  var pageToken = session.pageToken || null;
+  var lowestMinBytes = mbToBytes_(Math.min.apply(null, bands.map(function(b) {
+    return Math.max(b.min, floorMb);
+  })));
+  var pages = 0;
+  var maxPages = 20;
 
-    var mime = file.getMimeType() || '';
-    var isGoogleNative = mime.indexOf('application/vnd.google-apps.') === 0;
-    seen[id] = true;
-    files.push(fileToDto_(file, isGoogleNative, false));
+  while (files.length < SCAN_MAX_FILES && pages < maxPages) {
+    var res = driveV3List_(DRIVE_V3_BASE_Q, pageToken, 100, 'quotaBytesUsed desc');
+    pages++;
+    var items = res.files || [];
+    pageToken = res.nextPageToken || null;
+    session.pageToken = pageToken;
+
+    if (!items.length) break;
+
+    var allBelowStep = true;
+    for (var i = 0; i < items.length; i++) {
+      var f = items[i];
+      var size = parseInt(f.size || '0', 10);
+      if (size >= lowestMinBytes) allBelowStep = false;
+      if (!matchesSizeBand_(size, bands, floorMb)) continue;
+      if (seen[f.id]) continue;
+      seen[f.id] = true;
+      files.push(v3ToDto_(f));
+      if (files.length >= SCAN_MAX_FILES) return;
+    }
+
+    if (allBelowStep) break;
+    if (!pageToken) break;
   }
+}
+
+function collectOldFilesV3_(seen, files) {
+  var q = DRIVE_V3_BASE_Q + " and modifiedTime < '" + sixMonthsAgoIso_() + "'";
+  var pageToken = null;
+  var n = 0;
+  var pages = 0;
+
+  while (n < SCAN_MAX_PER_QUERY && files.length < SCAN_MAX_FILES && pages < 10) {
+    var res = driveV3List_(q, pageToken, 100, 'modifiedTime asc');
+    pages++;
+    pageToken = res.nextPageToken || null;
+    var items = res.files || [];
+    for (var i = 0; i < items.length; i++) {
+      var f = items[i];
+      if (seen[f.id]) continue;
+      seen[f.id] = true;
+      files.push(v3ToDto_(f));
+      n++;
+      if (n >= SCAN_MAX_PER_QUERY || files.length >= SCAN_MAX_FILES) return;
+    }
+    if (!pageToken) break;
+  }
+}
+
+function v3ToDto_(f) {
+  var mime = f.mimeType || '';
+  var isGoogleNative = mime.indexOf('application/vnd.google-apps.') === 0;
+  var name = f.name || 'archivo';
+  var ext = name.indexOf('.') >= 0 ? name.split('.').pop().toUpperCase() : 'FILE';
+  if (isGoogleNative) {
+    if (mime.indexOf('document') >= 0) ext = 'DOC';
+    else if (mime.indexOf('spreadsheet') >= 0) ext = 'XLSX';
+    else if (mime.indexOf('presentation') >= 0) ext = 'KEY';
+    else ext = 'FILE';
+  }
+  var size = parseInt(f.size || '0', 10);
+  if (isGoogleNative && size === 0) size = 2 * 1024 * 1024;
+  var modified = f.modifiedTime ? new Date(f.modifiedTime) : new Date();
+  return {
+    id: f.id,
+    name: name,
+    ext: ext,
+    size: size,
+    months: monthsSince_(modified),
+    path: 'Mi unidad'
+  };
 }
 
 function fileToDto_(file, isGoogleNative, includePath) {
