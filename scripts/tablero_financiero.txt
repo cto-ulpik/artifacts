@@ -69,7 +69,7 @@ function buildGroupedByMonthKeySheet(sheet, grupoCol, keyCol, valorCol) {
   if (/^Gastos/i.test(sheet.getName())) {
     var cols = getGastosColumnIndexes_(sheet);
     gIdx = cols.grupo;
-    vIdx = String(valorCol || '').toUpperCase() === 'L' ? findPresupuestoCol_(sheet) : cols.valor;
+    vIdx = String(valorCol || '').toUpperCase() === 'L' ? findPresupuestoCol_(sheet) : colLetterToIndex('N');
     keyCols = { mes: cols.mes, anio: cols.anio, key: cols.key };
   } else {
     keyCols = getSheetKeyColumns_(sheet, keyCol);
@@ -110,7 +110,8 @@ function getGastosColumnIndexes_(sheet) {
 }
 
 function findSpendeeCol_(sheet) {
-  return findColByHeader_(sheet, ['Spendee']) || colLetterToIndex('N');
+  var byHeader = findColByHeader_(sheet, ['Spendee']);
+  return byHeader || colLetterToIndex('N');
 }
 
 function findPresupuestoCol_(sheet) {

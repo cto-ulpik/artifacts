@@ -440,9 +440,10 @@ async function loadDataFromSheet() {
 
 document.addEventListener('DOMContentLoaded', async function() {
   const ok = await loadDataFromSheet();
-  populateFilters();
-  renderOverview();
-  renderComparativo();
+    populateFilters();
+    renderOverview();
+    renderComparativo();
+    renderPageCharts(currentPage);
   const sub = document.querySelector('.header-subtitle');
   if (sub) {
     sub.textContent = hasSpendeeData()
@@ -637,15 +638,42 @@ function getFilteredConceptoTotals() {
   return agg;
 }
 
+function sumConceptoForKeys(keys) {
+  let total = 0;
+  const grupos = currentGrupo === 'all'
+    ? Object.keys(gastoByConceptoDetail)
+    : [currentGrupo];
+
+  if (Object.keys(gastoByConceptoDetail).length > 0) {
+    grupos.forEach(g => {
+      keys.forEach(k => {
+        Object.values(gastoByConceptoDetail[g]?.[k] || {}).forEach(v => {
+          total += Number(v) || 0;
+        });
+      });
+    });
+    return total;
+  }
+
+  if (currentGrupo === 'all') {
+    keys.forEach(k => {
+      Object.values(gastoByConceptoMonth[k] || {}).forEach(v => {
+        total += Number(v) || 0;
+      });
+    });
+  }
+  return total;
+}
+
 function sumFilteredConceptoTotals() {
-  return Object.values(getFilteredConceptoTotals()).reduce((s, v) => s + v, 0);
+  return Object.values(getFilteredConceptoTotals()).reduce((s, v) => s + (Number(v) || 0), 0);
 }
 
 function gastoTotalForKeys(keys) {
   const fromSpendee = sumGrupo(gastoSpendee, currentGrupo, keys);
-  const fromConcepto = sumFilteredConceptoTotals();
-  if (fromConcepto > 0) return Math.max(fromSpendee, fromConcepto);
-  return fromSpendee;
+  const fromConcepto = sumConceptoForKeys(keys);
+  const fromKeys = keys.reduce((s, k) => s + gastoForKeyWithFallback(k), 0);
+  return Math.max(fromSpendee, fromConcepto, fromKeys);
 }
 
 function gastoForKeyWithFallback(k) {
@@ -909,7 +937,11 @@ function renderIngresos() {
 // ═══════════════════════════════════════════
 function renderGastos() {
   const keys = getFilteredKeys();
-  const totalGasto = gastoTotalForKeys(keys);
+  const conceptoTotals = getFilteredConceptoTotals();
+  const totalGasto = Math.max(
+    gastoTotalForKeys(keys),
+    Object.values(conceptoTotals).reduce((s, v) => s + (Number(v) || 0), 0)
+  );
   const totalPresupG = sumGrupo(gastoPresup, currentGrupo, keys);
   // Presupuesto de gastos corregido: mayo 2026 (all grupos) = $17,229.74
   const presupG = (keys.length === 1 && keys[0] === '5-2026' && currentGrupo === 'all')
@@ -939,7 +971,7 @@ function renderGastos() {
   // Pie distribución — respeta filtros de mes / año / unidad
   destroyChart('chartGastosPie');
   const pieColors = ['#ff2500','#00adb0','#823bda','#f98d0b','#22c55e','#6366f1','#ec4899','#14b8a6','#f59e0b'];
-  const conceptoEntries = Object.entries(getFilteredConceptoTotals()).sort((a,b) => b[1]-a[1]);
+  const conceptoEntries = Object.entries(conceptoTotals).sort((a,b) => b[1]-a[1]);
   const topConceptos = conceptoEntries.slice(0,8);
   const otrosV = conceptoEntries.slice(8).reduce((s,e) => s+e[1],0);
   const pieLabels = topConceptos.map(e => e[0]);
