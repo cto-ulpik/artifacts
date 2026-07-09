@@ -423,14 +423,14 @@ function fetchDashboardJsonp(url) {
 async function loadDataFromSheet() {
   try {
     const d = await fetchDashboardJsonp(SHEET_API_URL);
-    ingSpendee        = d.ingSpendee        || {};
-    ingPresup         = d.ingPresup         || {};
-    gastoSpendee      = d.gastoSpendee      || {};
-    gastoPresup       = d.gastoPresup       || {};
-    gastoByConcepto       = d.gastoByConcepto       || {};
-    gastoByConceptoDetail = d.gastoByConceptoDetail || {};
-    gastoByConceptoMonth   = d.gastoByConceptoMonth   || {};
-    estadosFinancieros = d.estadosFinancieros || {};
+    ingSpendee            = normalizeGroupedData(d.ingSpendee || {});
+    ingPresup             = normalizeGroupedData(d.ingPresup || {});
+    gastoSpendee          = normalizeGroupedData(d.gastoSpendee || {});
+    gastoPresup           = normalizeGroupedData(d.gastoPresup || {});
+    gastoByConcepto       = d.gastoByConcepto || {};
+    gastoByConceptoDetail = normalizeConceptoDetail(d.gastoByConceptoDetail || {});
+    gastoByConceptoMonth  = normalizeConceptoMonth(d.gastoByConceptoMonth || {});
+    estadosFinancieros    = normalizeEstadosFinancieros(d.estadosFinancieros || {});
     return true;
   } catch(err) {
     console.error('Error cargando datos:', err);
@@ -475,22 +475,83 @@ function getAllGrupos() {
 }
 
 function parseKey(k) {
-  const [m,y] = k.split('-').map(Number);
-  return {m,y};
+  const s = String(k || '').trim();
+  const m = s.match(/^(\d{1,2})-(\d{4})$/);
+  if (m) return { m: parseInt(m[1], 10), y: parseInt(m[2], 10) };
+  const parts = s.split('-').map(Number);
+  return { m: parts[0] || 0, y: parts[1] || 0 };
+}
+
+function normalizeKey(k) {
+  const { m, y } = parseKey(k);
+  if (!m || !y) return String(k || '').trim();
+  return m + '-' + y;
+}
+
+function normalizeGroupedData(data) {
+  const out = {};
+  Object.entries(data || {}).forEach(([g, mData]) => {
+    out[g] = {};
+    Object.entries(mData || {}).forEach(([k, v]) => {
+      const nk = normalizeKey(k);
+      out[g][nk] = (out[g][nk] || 0) + (parseFloat(v) || 0);
+    });
+  });
+  return out;
+}
+
+function normalizeConceptoDetail(detail) {
+  const out = {};
+  Object.entries(detail || {}).forEach(([g, byKey]) => {
+    out[g] = {};
+    Object.entries(byKey || {}).forEach(([k, concepts]) => {
+      const nk = normalizeKey(k);
+      if (!out[g][nk]) out[g][nk] = {};
+      Object.entries(concepts || {}).forEach(([c, v]) => {
+        out[g][nk][c] = (out[g][nk][c] || 0) + (parseFloat(v) || 0);
+      });
+    });
+  });
+  return out;
+}
+
+function normalizeConceptoMonth(data) {
+  const out = {};
+  Object.entries(data || {}).forEach(([k, concepts]) => {
+    const nk = normalizeKey(k);
+    if (!out[nk]) out[nk] = {};
+    Object.entries(concepts || {}).forEach(([c, v]) => {
+      out[nk][c] = (out[nk][c] || 0) + (parseFloat(v) || 0);
+    });
+  });
+  return out;
+}
+
+function normalizeEstadosFinancieros(data) {
+  const out = {};
+  Object.entries(data || {}).forEach(([k, v]) => {
+    out[normalizeKey(k)] = v;
+  });
+  return out;
+}
+
+function keyInYear(k, year) {
+  if (year === 'all') return true;
+  return parseKey(k).y === parseInt(year, 10);
 }
 
 function getMonthKeys(year) {
   const keys = new Set();
-  [ingSpendee,gastoSpendee].forEach(obj => {
-    Object.values(obj).forEach(mData => {
-      Object.keys(mData).forEach(k => {
-        if (year === 'all' || k.endsWith('-'+year)) keys.add(k);
-      });
-    });
+  const addKey = (k) => {
+    const nk = normalizeKey(k);
+    if (nk && keyInYear(nk, year)) keys.add(nk);
+  };
+  [ingSpendee, gastoSpendee, gastoPresup, ingPresup].forEach(obj => {
+    Object.values(obj).forEach(mData => Object.keys(mData).forEach(addKey));
   });
-  Object.keys(estadosFinancieros).forEach(k => {
-    if (year === 'all' || k.endsWith('-'+year)) keys.add(k);
-  });
+  Object.keys(gastoByConceptoMonth).forEach(addKey);
+  Object.values(gastoByConceptoDetail).forEach(mData => Object.keys(mData).forEach(addKey));
+  Object.keys(estadosFinancieros).forEach(addKey);
   return [...keys].sort((a,b) => {
     const {m:ma,y:ya} = parseKey(a);
     const {m:mb,y:yb} = parseKey(b);
@@ -626,7 +687,8 @@ function clearFilters() {
 function getFilteredKeys() {
   let keys = getMonthKeys(currentYear);
   if (currentMonth !== 'all') {
-    keys = keys.filter(k => k.startsWith(currentMonth+'-'));
+    const monthNum = parseInt(currentMonth, 10);
+    keys = keys.filter(k => parseKey(k).m === monthNum);
   }
   if (currentDesde || currentHasta) {
     keys = keys.filter(k => {

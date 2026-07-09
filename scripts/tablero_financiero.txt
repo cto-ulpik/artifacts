@@ -65,17 +65,16 @@ function buildGroupedByMonthKeySheet(sheet, grupoCol, keyCol, valorCol) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return {};
 
+  const keyCols = getSheetKeyColumns_(sheet, keyCol);
   const gIdx = findColByHeader_(sheet, ['Grupo']) || colLetterToIndex(grupoCol);
-  const kIdx = findColByHeader_(sheet, ['Mes y Año - key', 'Mes y Año key']) || colLetterToIndex(keyCol);
-  const vIdx = findColByHeader_(sheet, ['Spendee', 'Presupuesto']) || colLetterToIndex(valorCol);
-
-  const maxCol = Math.max(gIdx, kIdx, vIdx);
+  const vIdx = findColByHeader_(sheet, ['Spendee', 'Presupuesto', 'Presup.']) || colLetterToIndex(valorCol);
+  const maxCol = Math.max(gIdx, keyCols.mes, keyCols.anio, keyCols.key, vIdx);
   const data = sheet.getRange(2, 1, lastRow - 1, maxCol).getValues();
   const result = {};
 
   data.forEach(function(row) {
     const grupo = String(row[gIdx - 1] || '').trim();
-    const key   = String(row[kIdx - 1] || '').trim();
+    const key   = rowMonthKey_(row, keyCols);
     const valor = parseFloat(row[vIdx - 1]) || 0;
     if (!grupo || !key || valor === 0) return;
     if (!result[grupo]) result[grupo] = {};
@@ -90,9 +89,12 @@ function buildGroupedByMonthKeySheet(sheet, grupoCol, keyCol, valorCol) {
  *   Grupo → col I | Mes y Año - key → col C | Concepto → col J | Spendee → col N
  */
 function getGastosColumnIndexes_(sheet) {
+  var keyCols = getSheetKeyColumns_(sheet, 'C');
   return {
+    mes: keyCols.mes,
+    anio: keyCols.anio,
+    key: keyCols.key,
     grupo: findColByHeader_(sheet, ['Grupo']) || colLetterToIndex('I'),
-    key: findColByHeader_(sheet, ['Mes y Año - key', 'Mes y Año key']) || colLetterToIndex('C'),
     concepto: findColByHeader_(sheet, ['Concepto']) || colLetterToIndex('J'),
     valor: findColByHeader_(sheet, ['Spendee', 'Gasto', 'Monto']) || colLetterToIndex('N')
   };
@@ -109,13 +111,14 @@ function buildConceptoByGrupoMonthSheet(sheet) {
   if (lastRow < 2) return {};
 
   const cols = getGastosColumnIndexes_(sheet);
-  const maxCol = Math.max(cols.grupo, cols.key, cols.concepto, cols.valor);
+  const maxCol = Math.max(cols.grupo, cols.mes, cols.anio, cols.key, cols.concepto, cols.valor);
   const data = sheet.getRange(2, 1, lastRow - 1, maxCol).getValues();
   const result = {};
+  const keyCols = { mes: cols.mes, anio: cols.anio, key: cols.key };
 
   data.forEach(function(row) {
     const grupo    = String(row[cols.grupo - 1] || '').trim();
-    const key      = String(row[cols.key - 1] || '').trim();
+    const key      = rowMonthKey_(row, keyCols);
     const concepto = String(row[cols.concepto - 1] || '').trim();
     const valor    = parseFloat(row[cols.valor - 1]) || 0;
     if (!grupo || !key || !concepto || valor === 0) return;
@@ -196,7 +199,7 @@ function buildEstadosFinancieros(ss) {
   const result = {};
 
   data.forEach(function(row) {
-    const key   = String(row[cIdx - 1] || '').trim();
+    const key   = normalizeMonthKey_(row[cIdx - 1]);
     const tipo  = String(row[fIdx - 1] || '').trim().toLowerCase();
     const monto = parseFloat(row[gIdx - 1]) || 0;
 
@@ -244,6 +247,43 @@ function findColByHeader_(sheet, headerNames) {
     if (want.indexOf(h) >= 0) return i + 1;
   }
   return null;
+}
+
+/** Columnas A/B/C: Año - key, Mes - key, Mes y Año - key → siempre "M-YYYY" (ej. 1-2024) */
+function getSheetKeyColumns_(sheet, keyColFallback) {
+  return {
+    mes: findColByHeader_(sheet, ['Mes - key', 'Mes key']) || colLetterToIndex('B'),
+    anio: findColByHeader_(sheet, ['Año - key', 'Año key']) || colLetterToIndex('A'),
+    key: findColByHeader_(sheet, ['Mes y Año - key', 'Mes y Año key', 'Mes y Año']) || colLetterToIndex(keyColFallback || 'C')
+  };
+}
+
+function normalizeMonthKey_(raw, mesCell, anioCell) {
+  if (raw instanceof Date && !isNaN(raw.getTime())) {
+    return (raw.getMonth() + 1) + '-' + raw.getFullYear();
+  }
+  var s = String(raw == null ? '' : raw).trim();
+  var m = 0;
+  var y = 0;
+  var match = s.match(/^(\d{1,2})\s*[-/]\s*(\d{4})$/);
+  if (match) {
+    m = parseInt(match[1], 10);
+    y = parseInt(match[2], 10);
+  }
+  if ((!m || !y) && mesCell != null && anioCell != null) {
+    m = parseInt(String(mesCell).trim(), 10);
+    y = parseInt(String(anioCell).trim(), 10);
+  }
+  if (!m || !y || m < 1 || m > 12) return '';
+  return m + '-' + y;
+}
+
+function rowMonthKey_(row, keyCols) {
+  return normalizeMonthKey_(
+    row[keyCols.key - 1],
+    row[keyCols.mes - 1],
+    row[keyCols.anio - 1]
+  );
 }
 
 function round2(n) {
