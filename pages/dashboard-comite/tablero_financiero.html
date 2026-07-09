@@ -394,7 +394,7 @@ const MONTH_SHORT = {1:'Ene',2:'Feb',3:'Mar',4:'Abr',5:'May',6:'Jun',7:'Jul',8:'
 // ═══════════════════════════════════════════
 // DATA — cargada dinámicamente desde Google Sheets
 // ═══════════════════════════════════════════
-const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxAJejYFkNGE4ej4yTX0ceC1lFepyHwHRK5FYgnLhTkRJOa7UFT21fqib4lid220aAaEw/exec';
+const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyGXm5K8t0VmXUYYuO4ywtreH92llQrg6Ly-p0Hpt1tJQItRTX2Mr8JhkgPYDtUCoh7sw/exec';
 
 let ingSpendee = {}, ingPresup = {}, gastoSpendee = {},
     gastoPresup = {}, gastoByConcepto = {}, gastoByConceptoDetail = {},
@@ -635,6 +635,29 @@ function getFilteredConceptoTotals() {
     && keys.length === allKeys.length;
   if (noPeriodFilter) return Object.assign({}, gastoByConcepto);
   return agg;
+}
+
+function sumFilteredConceptoTotals() {
+  return Object.values(getFilteredConceptoTotals()).reduce((s, v) => s + v, 0);
+}
+
+function gastoTotalForKeys(keys) {
+  const fromSpendee = sumGrupo(gastoSpendee, currentGrupo, keys);
+  const fromConcepto = sumFilteredConceptoTotals();
+  if (fromConcepto > 0) return Math.max(fromSpendee, fromConcepto);
+  return fromSpendee;
+}
+
+function gastoForKeyWithFallback(k) {
+  const v = gastoForKey(k);
+  if (v > 0) return v;
+  const grupos = currentGrupo === 'all' ? Object.keys(gastoByConceptoDetail) : [currentGrupo];
+  let total = 0;
+  grupos.forEach(g => {
+    Object.values(gastoByConceptoDetail[g]?.[k] || {}).forEach(val => { total += val; });
+  });
+  if (total > 0) return total;
+  return Object.values(gastoByConceptoMonth[k] || {}).reduce((s, v) => s + v, 0);
 }
 
 // ═══════════════════════════════════════════
@@ -886,7 +909,7 @@ function renderIngresos() {
 // ═══════════════════════════════════════════
 function renderGastos() {
   const keys = getFilteredKeys();
-  const totalGasto = sumGrupo(gastoSpendee, currentGrupo, keys);
+  const totalGasto = gastoTotalForKeys(keys);
   const totalPresupG = sumGrupo(gastoPresup, currentGrupo, keys);
   // Presupuesto de gastos corregido: mayo 2026 (all grupos) = $17,229.74
   const presupG = (keys.length === 1 && keys[0] === '5-2026' && currentGrupo === 'all')
@@ -939,7 +962,7 @@ function renderGastos() {
   // Presupuesto vs Gastos — mensual (bar chart)
   destroyChart('chartGastosPresup');
   const labels = keys.map(k => { const {m,y} = parseKey(k); return MONTH_SHORT[m]+' '+String(y).slice(2); });
-  const gastosData = keys.map(k => currentGrupo==='all' ? sumByKey(gastoSpendee,k) : (gastoSpendee[currentGrupo]?.[k]||0));
+  const gastosData = keys.map(k => currentGrupo==='all' ? gastoForKeyWithFallback(k) : (gastoSpendee[currentGrupo]?.[k]||0) || Object.values(gastoByConceptoDetail[currentGrupo]?.[k]||{}).reduce((s,v)=>s+v,0));
   const presupData = keys.map(k => {
     if (k === '5-2026' && currentGrupo === 'all') return 17229.74;
     return currentGrupo==='all' ? sumByKey(gastoPresup,k) : (gastoPresup[currentGrupo]?.[k]||0);

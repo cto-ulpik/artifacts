@@ -65,9 +65,18 @@ function buildGroupedByMonthKeySheet(sheet, grupoCol, keyCol, valorCol) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return {};
 
-  const keyCols = getSheetKeyColumns_(sheet, keyCol);
-  const gIdx = findColByHeader_(sheet, ['Grupo']) || colLetterToIndex(grupoCol);
-  const vIdx = findColByHeader_(sheet, ['Spendee', 'Presupuesto', 'Presup.']) || colLetterToIndex(valorCol);
+  var gIdx, vIdx, keyCols;
+  if (/^Gastos/i.test(sheet.getName())) {
+    var cols = getGastosColumnIndexes_(sheet);
+    gIdx = cols.grupo;
+    vIdx = String(valorCol || '').toUpperCase() === 'L' ? findPresupuestoCol_(sheet) : cols.valor;
+    keyCols = { mes: cols.mes, anio: cols.anio, key: cols.key };
+  } else {
+    keyCols = getSheetKeyColumns_(sheet, keyCol);
+    gIdx = findColByHeader_(sheet, ['Grupo']) || colLetterToIndex(grupoCol);
+    vIdx = findValorCol_(sheet, valorCol);
+  }
+
   const maxCol = Math.max(gIdx, keyCols.mes, keyCols.anio, keyCols.key, vIdx);
   const data = sheet.getRange(2, 1, lastRow - 1, maxCol).getValues();
   const result = {};
@@ -96,8 +105,18 @@ function getGastosColumnIndexes_(sheet) {
     key: keyCols.key,
     grupo: findColByHeader_(sheet, ['Grupo']) || colLetterToIndex('I'),
     concepto: findColByHeader_(sheet, ['Concepto']) || colLetterToIndex('J'),
-    valor: findColByHeader_(sheet, ['Spendee', 'Gasto', 'Monto']) || colLetterToIndex('N')
+    valor: findSpendeeCol_(sheet)
   };
+}
+
+function findSpendeeCol_(sheet) {
+  return findColByHeader_(sheet, ['Spendee']) || colLetterToIndex('N');
+}
+
+function findPresupuestoCol_(sheet) {
+  return findColByHeader_(sheet, [
+    'Presupuesto en cantidades', 'Presupuesto', 'Presup.', 'Presupuest', 'Presupuestc'
+  ]) || colLetterToIndex('L');
 }
 
 function buildConceptoByGrupoMonth(ss, sheetName) {
@@ -247,6 +266,14 @@ function findColByHeader_(sheet, headerNames) {
     if (want.indexOf(h) >= 0) return i + 1;
   }
   return null;
+}
+
+/** Spendee (N) y Presupuesto (L) están separados — no mezclar al buscar columna */
+function findValorCol_(sheet, valorCol) {
+  var letter = String(valorCol || '').toUpperCase();
+  if (letter === 'N') return findSpendeeCol_(sheet);
+  if (letter === 'L') return findPresupuestoCol_(sheet);
+  return colLetterToIndex(letter) || findSpendeeCol_(sheet);
 }
 
 /** Columnas A/B/C: Año - key, Mes - key, Mes y Año - key → siempre "M-YYYY" (ej. 1-2024) */
