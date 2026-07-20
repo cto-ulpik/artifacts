@@ -78,7 +78,8 @@ function buildGroupedByMonthKeySheet(sheet, grupoCol, keyCol, valorCol) {
   }
 
   const maxCol = Math.max(gIdx, keyCols.mes, keyCols.anio, keyCols.key, vIdx);
-  const data = sheet.getRange(2, 1, lastRow - 1, maxCol).getValues();
+  // Incluir última fila (antes se usaba lastRow-1 y se perdían gastos recientes)
+  const data = sheet.getRange(2, 1, lastRow, maxCol).getValues();
   const result = {};
 
   data.forEach(function(row) {
@@ -132,7 +133,7 @@ function buildConceptoByGrupoMonthSheet(sheet) {
 
   const cols = getGastosColumnIndexes_(sheet);
   const maxCol = Math.max(cols.grupo, cols.mes, cols.anio, cols.key, cols.concepto, cols.valor);
-  const data = sheet.getRange(2, 1, lastRow - 1, maxCol).getValues();
+  const data = sheet.getRange(2, 1, lastRow, maxCol).getValues();
   const result = {};
   const keyCols = { mes: cols.mes, anio: cols.anio, key: cols.key };
 
@@ -215,7 +216,7 @@ function buildEstadosFinancieros(ss) {
   const gIdx = colLetterToIndex('G'); // Monto
   const maxCol = Math.max(cIdx, fIdx, gIdx);
 
-  const data = sheet.getRange(2, 1, lastRow - 1, maxCol).getValues();
+  const data = sheet.getRange(2, 1, lastRow, maxCol).getValues();
   const result = {};
 
   data.forEach(function(row) {

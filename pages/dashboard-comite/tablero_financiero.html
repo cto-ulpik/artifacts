@@ -420,6 +420,29 @@ function fetchDashboardJsonp(url) {
   });
 }
 
+/** Reconstruye gastoSpendee desde Concepto×Grupo×Mes (col Spendee real).
+ *  La API a veces manda presupuesto en gastoSpendee; el detalle por concepto es la fuente correcta. */
+function rebuildGastoSpendeeFromConcepto() {
+  const rebuilt = {};
+  Object.entries(gastoByConceptoDetail).forEach(([g, byKey]) => {
+    Object.entries(byKey || {}).forEach(([k, concepts]) => {
+      const sum = Object.values(concepts || {}).reduce((s, v) => s + (Number(v) || 0), 0);
+      if (sum <= 0) return;
+      if (!rebuilt[g]) rebuilt[g] = {};
+      rebuilt[g][k] = Math.round(sum * 100) / 100;
+    });
+  });
+  if (Object.keys(rebuilt).length === 0) {
+    Object.entries(gastoByConceptoMonth).forEach(([k, concepts]) => {
+      const sum = Object.values(concepts || {}).reduce((s, v) => s + (Number(v) || 0), 0);
+      if (sum <= 0) return;
+      if (!rebuilt._total) rebuilt._total = {};
+      rebuilt._total[k] = Math.round(sum * 100) / 100;
+    });
+  }
+  if (Object.keys(rebuilt).length > 0) gastoSpendee = rebuilt;
+}
+
 async function loadDataFromSheet() {
   try {
     const d = await fetchDashboardJsonp(SHEET_API_URL);
@@ -431,6 +454,7 @@ async function loadDataFromSheet() {
     gastoByConceptoDetail = normalizeConceptoDetail(d.gastoByConceptoDetail || {});
     gastoByConceptoMonth  = normalizeConceptoMonth(d.gastoByConceptoMonth || {});
     estadosFinancieros    = normalizeEstadosFinancieros(d.estadosFinancieros || {});
+    rebuildGastoSpendeeFromConcepto();
     return true;
   } catch(err) {
     console.error('Error cargando datos:', err);
@@ -471,7 +495,9 @@ function sign(n) { return n >= 0 ? '+' : ''; }
 
 function getAllGrupos() {
   const g = new Set();
-  [ingSpendee,gastoSpendee].forEach(obj => Object.keys(obj).forEach(k => g.add(k)));
+  [ingSpendee, gastoSpendee, gastoByConceptoDetail].forEach(obj =>
+    Object.keys(obj || {}).forEach(k => { if (k !== '_total') g.add(k); })
+  );
   return [...g].sort();
 }
 
@@ -571,10 +597,32 @@ function ingresoForKey(k) {
   return estadosFinancieros[k]?.ingreso || 0;
 }
 
-function gastoForKey(k) {
-  if (hasSpendeeData()) {
-    return currentGrupo === 'all' ? sumByKey(gastoSpendee, k) : (gastoSpendee[currentGrupo]?.[k] || 0);
+function gastoForKeyWithFallback(k) {
+  const fromSpendee = currentGrupo === 'all'
+    ? sumByKey(gastoSpendee, k)
+    : (gastoSpendee[currentGrupo]?.[k] || 0);
+  if (fromSpendee > 0) return fromSpendee;
+
+  const grupos = currentGrupo === 'all'
+    ? Object.keys(gastoByConceptoDetail)
+    : [currentGrupo];
+  let total = 0;
+  grupos.forEach(g => {
+    Object.values(gastoByConceptoDetail[g]?.[k] || {}).forEach(val => {
+      total += Number(val) || 0;
+    });
+  });
+  if (total > 0) return total;
+
+  if (currentGrupo === 'all') {
+    return Object.values(gastoByConceptoMonth[k] || {}).reduce((s, v) => s + (Number(v) || 0), 0);
   }
+  return 0;
+}
+
+function gastoForKey(k) {
+  const v = gastoForKeyWithFallback(k);
+  if (v > 0) return v;
   return estadosFinancieros[k]?.gasto || 0;
 }
 
@@ -674,18 +722,6 @@ function gastoTotalForKeys(keys) {
   const fromConcepto = sumConceptoForKeys(keys);
   const fromKeys = keys.reduce((s, k) => s + gastoForKeyWithFallback(k), 0);
   return Math.max(fromSpendee, fromConcepto, fromKeys);
-}
-
-function gastoForKeyWithFallback(k) {
-  const v = gastoForKey(k);
-  if (v > 0) return v;
-  const grupos = currentGrupo === 'all' ? Object.keys(gastoByConceptoDetail) : [currentGrupo];
-  let total = 0;
-  grupos.forEach(g => {
-    Object.values(gastoByConceptoDetail[g]?.[k] || {}).forEach(val => { total += val; });
-  });
-  if (total > 0) return total;
-  return Object.values(gastoByConceptoMonth[k] || {}).reduce((s, v) => s + v, 0);
 }
 
 // ═══════════════════════════════════════════
@@ -788,7 +824,7 @@ function makeOpts(overrides={}) {
 function renderOverview() {
   const keys = getFilteredKeys();
   const totalIng = keys.reduce((s, k) => s + ingresoForKey(k), 0);
-  const totalGasto = keys.reduce((s, k) => s + gastoForKey(k), 0);
+  const totalGasto = gastoTotalForKeys(keys);
   const totalUtil = totalIng - totalGasto;
   const margen = totalIng > 0 ? totalUtil/totalIng : 0;
   const src = dataSourceLabel();
@@ -818,7 +854,7 @@ function renderOverview() {
 
   const labels = keys.map(k => { const {m,y} = parseKey(k); return MONTH_SHORT[m]+' '+String(y).slice(2); });
   const ingData  = keys.map(k => ingresoForKey(k));
-  const gastoData = keys.map(k => gastoForKey(k));
+  const gastoData = keys.map(k => gastoForKeyWithFallback(k));
 
   // Ingresos vs Gastos — bar
   destroyChart('chartIngGasto');
@@ -1016,7 +1052,11 @@ function renderGastos() {
   const lineDatasets = [];
 
   gruposG.forEach(g => {
-    const gastoVals = keys.map(k => gastoSpendee[g]?.[k]||0);
+    const gastoVals = keys.map(k => {
+      const v = gastoSpendee[g]?.[k] || 0;
+      if (v > 0) return v;
+      return Object.values(gastoByConceptoDetail[g]?.[k] || {}).reduce((s, x) => s + (Number(x) || 0), 0);
+    });
     const presVals = keys.map(k => gastoPresup[g]?.[k]||0);
     const col = grupoColors[g] || '#888';
     if (gastoVals.some(v=>v>0)) {
@@ -1049,7 +1089,7 @@ function renderComparativo() {
     efIngT += ef.ingreso;
     efGasT += ef.gasto;
     spIngT += sumByKey(ingSpendee, k);
-    spGasT += sumByKey(gastoSpendee, k);
+    spGasT += gastoForKeyWithFallback(k);
   });
 
   const efUtil = efIngT - efGasT;
