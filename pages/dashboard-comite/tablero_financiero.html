@@ -398,7 +398,8 @@ const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbyGXm5K8t0VmXUYYu
 
 let ingSpendee = {}, ingPresup = {}, gastoSpendee = {},
     gastoPresup = {}, gastoByConcepto = {}, gastoByConceptoDetail = {},
-    gastoByConceptoMonth = {}, estadosFinancieros = {};
+    gastoByConceptoMonth = {}, gastoCompendio = {}, gastoCompendioMonth = {},
+    estadosFinancieros = {};
 
 function fetchDashboardJsonp(url) {
   return new Promise((resolve, reject) => {
@@ -453,6 +454,12 @@ async function loadDataFromSheet() {
     gastoByConcepto       = d.gastoByConcepto || {};
     gastoByConceptoDetail = normalizeConceptoDetail(d.gastoByConceptoDetail || {});
     gastoByConceptoMonth  = normalizeConceptoMonth(d.gastoByConceptoMonth || {});
+    gastoCompendio        = normalizeGroupedData(d.gastoCompendio || {});
+    gastoCompendioMonth   = {};
+    Object.entries(d.gastoCompendioMonth || {}).forEach(([k, v]) => {
+      const nk = normalizeKey(k);
+      gastoCompendioMonth[nk] = (gastoCompendioMonth[nk] || 0) + (parseFloat(v) || 0);
+    });
     estadosFinancieros    = normalizeEstadosFinancieros(d.estadosFinancieros || {});
     rebuildGastoSpendeeFromConcepto();
     return true;
@@ -495,7 +502,7 @@ function sign(n) { return n >= 0 ? '+' : ''; }
 
 function getAllGrupos() {
   const g = new Set();
-  [ingSpendee, gastoSpendee, gastoByConceptoDetail].forEach(obj =>
+  [ingSpendee, gastoSpendee, gastoByConceptoDetail, gastoCompendio].forEach(obj =>
     Object.keys(obj || {}).forEach(k => { if (k !== '_total') g.add(k); })
   );
   return [...g].sort();
@@ -573,10 +580,11 @@ function getMonthKeys(year) {
     const nk = normalizeKey(k);
     if (nk && keyInYear(nk, year)) keys.add(nk);
   };
-  [ingSpendee, gastoSpendee, gastoPresup, ingPresup].forEach(obj => {
+  [ingSpendee, gastoSpendee, gastoPresup, ingPresup, gastoCompendio].forEach(obj => {
     Object.values(obj).forEach(mData => Object.keys(mData).forEach(addKey));
   });
   Object.keys(gastoByConceptoMonth).forEach(addKey);
+  Object.keys(gastoCompendioMonth).forEach(addKey);
   Object.values(gastoByConceptoDetail).forEach(mData => Object.keys(mData).forEach(addKey));
   Object.keys(estadosFinancieros).forEach(addKey);
   return [...keys].sort((a,b) => {
@@ -588,6 +596,24 @@ function getMonthKeys(year) {
 
 function hasSpendeeData() {
   return Object.keys(ingSpendee).length > 0 || Object.keys(gastoSpendee).length > 0;
+}
+
+function hasCompendioGastos() {
+  return Object.keys(gastoCompendio).length > 0 || Object.keys(gastoCompendioMonth).length > 0;
+}
+
+/** Total Gastos Vista General = suma col N Compendio General (Tipo=Gasto) */
+function gastoCompendioForKey(k) {
+  if (currentGrupo === 'all') {
+    const fromGrupos = sumByKey(gastoCompendio, k);
+    if (fromGrupos > 0) return fromGrupos;
+    return gastoCompendioMonth[k] || 0;
+  }
+  return gastoCompendio[currentGrupo]?.[k] || 0;
+}
+
+function gastoCompendioTotalForKeys(keys) {
+  return keys.reduce((s, k) => s + gastoCompendioForKey(k), 0);
 }
 
 function ingresoForKey(k) {
@@ -824,10 +850,14 @@ function makeOpts(overrides={}) {
 function renderOverview() {
   const keys = getFilteredKeys();
   const totalIng = keys.reduce((s, k) => s + ingresoForKey(k), 0);
-  const totalGasto = gastoTotalForKeys(keys);
+  // Total Gastos = suma col N de Compendio General (Tipo=Gasto)
+  const totalGasto = hasCompendioGastos()
+    ? gastoCompendioTotalForKeys(keys)
+    : gastoTotalForKeys(keys);
   const totalUtil = totalIng - totalGasto;
   const margen = totalIng > 0 ? totalUtil/totalIng : 0;
   const src = dataSourceLabel();
+  const srcGasto = hasCompendioGastos() ? 'Compendio General' : src;
 
   document.getElementById('kpi-overview').innerHTML = `
     <div class="kpi-card">
@@ -838,7 +868,7 @@ function renderOverview() {
     <div class="kpi-card">
       <div class="kpi-label">Total Gastos</div>
       <div class="kpi-value orange">${fmt(totalGasto)}</div>
-      <div class="kpi-sub">${src} · ${keys.length} mes(es)</div>
+      <div class="kpi-sub">${srcGasto} · col N · ${keys.length} mes(es)</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Utilidad Neta</div>
@@ -854,7 +884,7 @@ function renderOverview() {
 
   const labels = keys.map(k => { const {m,y} = parseKey(k); return MONTH_SHORT[m]+' '+String(y).slice(2); });
   const ingData  = keys.map(k => ingresoForKey(k));
-  const gastoData = keys.map(k => gastoForKeyWithFallback(k));
+  const gastoData = keys.map(k => hasCompendioGastos() ? gastoCompendioForKey(k) : gastoForKeyWithFallback(k));
 
   // Ingresos vs Gastos — bar
   destroyChart('chartIngGasto');
@@ -890,16 +920,17 @@ function renderOverview() {
   });
 
   // Utilidad by Grupo
+  const gastoByGrupoSrc = hasCompendioGastos() ? gastoCompendio : gastoSpendee;
   const grupos = getAllGrupos().filter(g => g!=='Sin Factura');
   const maxUtil = Math.max(...grupos.map(g => {
     const i = sumGrupo(ingSpendee,g,keys);
-    const ga = sumGrupo(gastoSpendee,g,keys);
+    const ga = sumGrupo(gastoByGrupoSrc,g,keys);
     return Math.abs(i-ga);
   }), 1);
   let html = '<div class="bar-chart">';
   grupos.forEach(g => {
     const ing = sumGrupo(ingSpendee,g,keys);
-    const gas = sumGrupo(gastoSpendee,g,keys);
+    const gas = sumGrupo(gastoByGrupoSrc,g,keys);
     const util = ing-gas;
     if (ing===0 && gas===0) return;
     const w = Math.min(Math.abs(util)/maxUtil*100,100);
