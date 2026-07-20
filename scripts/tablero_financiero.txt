@@ -29,7 +29,7 @@ function buildDashboardData() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const ingSheet = getSheetByNames_(ss, ['Ingresos2', 'Ingresos']);
   const gasSheet = getSheetByNames_(ss, ['Gastos2', 'Gastos']);
-  const compendioGastos = buildCompendioGastos_(ss);
+  const compendio = buildCompendioTotales_(ss);
 
   return {
     ingSpendee:            buildGroupedByMonthKeySheet(ingSheet, 'I', 'C', 'N'),
@@ -39,50 +39,68 @@ function buildDashboardData() {
     gastoByConcepto:       buildConceptoTotalsSheet(gasSheet),
     gastoByConceptoDetail: buildConceptoByGrupoMonthSheet(gasSheet),
     gastoByConceptoMonth:  buildConceptoByMonthSheet(gasSheet),
-    // Vista General — Total Gastos = suma col N de Compendio General (Tipo = Gasto)
-    gastoCompendio:        compendioGastos.byGrupo,
-    gastoCompendioMonth:   compendioGastos.byMonth,
+    // Vista General — Compendio General: Ingresos = col L, Gastos = col N
+    ingCompendio:          compendio.ingByGrupo,
+    ingCompendioMonth:     compendio.ingByMonth,
+    gastoCompendio:        compendio.gasByGrupo,
+    gastoCompendioMonth:   compendio.gasByMonth,
     estadosFinancieros:    buildEstadosFinancieros(ss)
   };
 }
 
 /**
- * Compendio General:
- *   C = Mes y Año key | H = Tipo (Ingreso/Gasto) | I = Grupo | N = monto
- * Total Gastos (Vista General) = suma de N donde Tipo = Gasto.
+ * Compendio General (Vista General):
+ *   C = Mes y Año key | I = Grupo
+ *   L = Ingresos  → Total Ingresos
+ *   N = Gastos    → Total Gastos
+ * No se filtra por Tipo: L e N son columnas distintas de monto.
  */
-function buildCompendioGastos_(ss) {
+function buildCompendioTotales_(ss) {
   const sheet = getSheetByNames_(ss, ['Compendio General', 'Compendio']);
-  if (!sheet) return { byGrupo: {}, byMonth: {} };
+  const empty = { ingByGrupo: {}, ingByMonth: {}, gasByGrupo: {}, gasByMonth: {} };
+  if (!sheet) return empty;
 
   const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return { byGrupo: {}, byMonth: {} };
+  if (lastRow < 2) return empty;
 
   const keyCols = getSheetKeyColumns_(sheet, 'C');
-  const tipoIdx = findColByHeader_(sheet, ['Tipo']) || colLetterToIndex('H');
   const grupoIdx = findColByHeader_(sheet, ['Grupo']) || colLetterToIndex('I');
-  const valorIdx = findColByHeader_(sheet, ['Spendee', 'Monto', 'Valor']) || colLetterToIndex('N');
-  const maxCol = Math.max(keyCols.mes, keyCols.anio, keyCols.key, tipoIdx, grupoIdx, valorIdx);
+  const ingIdx = colLetterToIndex('L');  // Ingresos
+  const gasIdx = colLetterToIndex('N');  // Gastos
+  const maxCol = Math.max(keyCols.mes, keyCols.anio, keyCols.key, grupoIdx, ingIdx, gasIdx);
   const data = sheet.getRange(2, 1, lastRow, maxCol).getValues();
 
-  const byGrupo = {};
-  const byMonth = {};
+  const ingByGrupo = {};
+  const ingByMonth = {};
+  const gasByGrupo = {};
+  const gasByMonth = {};
 
   data.forEach(function(row) {
-    const tipo = String(row[tipoIdx - 1] || '').trim().toLowerCase();
-    if (tipo !== 'gasto') return;
-
     const grupo = String(row[grupoIdx - 1] || '').trim() || 'Sin grupo';
     const key = rowMonthKey_(row, keyCols);
-    const valor = parseFloat(row[valorIdx - 1]) || 0;
-    if (!key || valor === 0) return;
+    if (!key) return;
 
-    if (!byGrupo[grupo]) byGrupo[grupo] = {};
-    byGrupo[grupo][key] = round2((byGrupo[grupo][key] || 0) + valor);
-    byMonth[key] = round2((byMonth[key] || 0) + valor);
+    const ingreso = parseFloat(row[ingIdx - 1]) || 0;
+    const gasto = parseFloat(row[gasIdx - 1]) || 0;
+
+    if (ingreso !== 0) {
+      if (!ingByGrupo[grupo]) ingByGrupo[grupo] = {};
+      ingByGrupo[grupo][key] = round2((ingByGrupo[grupo][key] || 0) + ingreso);
+      ingByMonth[key] = round2((ingByMonth[key] || 0) + ingreso);
+    }
+    if (gasto !== 0) {
+      if (!gasByGrupo[grupo]) gasByGrupo[grupo] = {};
+      gasByGrupo[grupo][key] = round2((gasByGrupo[grupo][key] || 0) + gasto);
+      gasByMonth[key] = round2((gasByMonth[key] || 0) + gasto);
+    }
   });
 
-  return { byGrupo: byGrupo, byMonth: byMonth };
+  return {
+    ingByGrupo: ingByGrupo,
+    ingByMonth: ingByMonth,
+    gasByGrupo: gasByGrupo,
+    gasByMonth: gasByMonth
+  };
 }
 
 // ─────────────────────────────────────────────────────────
@@ -385,6 +403,7 @@ function previewData() {
     'Grupos ingresos: ' + grupos.join(', ') + '\n' +
     'Meses EF: ' + meses.length + ' (' + meses[0] + ' → ' + meses[meses.length-1] + ')\n' +
     'Conceptos gasto: ' + conceptos + '\n' +
+    'Meses Compendio ingresos: ' + Object.keys(data.ingCompendioMonth || {}).length + '\n' +
     'Meses Compendio gastos: ' + Object.keys(data.gastoCompendioMonth || {}).length;
 
   Logger.log(JSON.stringify(data, null, 2));
